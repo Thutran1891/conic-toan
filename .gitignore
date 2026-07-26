@@ -1,0 +1,18 @@
+# Kết quả biên dịch
+*.pdf
+!hdsd.pdf
+*.png
+*.svg
+
+# Gói cài đặt cục bộ
+*.zip
+
+# Tệp tạm / hệ thống
+Thumbs.db
+desktop.ini
+.DS_Store
+*.bak
+*~
+_dbg/
+_kiemtra/
+_kt2/
