@@ -8,7 +8,7 @@
 // (hoặc đổi trực tiếp giá trị mặc định #let ho-so ở dưới)
 // =====================================================================
 // #import "../baigiang.typ": *
-#import "@local/baigiang:0.2.0": * 
+#import "@local/conic-toan:0.2.0": * 
 
 // ĐỔI 1 DÒNG NÀY để chọn kiểu xuất:
 //   "beamer"        → trình chiếu 16:9 (mặc định)

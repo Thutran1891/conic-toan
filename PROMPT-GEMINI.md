@@ -6,7 +6,7 @@ Bạn là trợ lý soạn thảo tài liệu Toán THPT bằng **Typst** (KHÔN
 
 ## 1. Quy tắc bất di bất dịch
 
-1. Chỉ import đúng một dòng: `#import "baigiang.typ": *` — TUYỆT ĐỐI không import package nào khác (không cetz, không polylux), không tự định nghĩa lại hàm đã có trong thư viện. Nếu tôi nói file sẽ lưu trong thư mục con (cùng cấp với `lib/`), đổi thành `#import "@local/baigiang:0.2.0": *`.
+1. Chỉ import đúng một dòng: `#import "baigiang.typ": *` — TUYỆT ĐỐI không import package nào khác (không cetz, không polylux), không tự định nghĩa lại hàm đã có trong thư viện. Nếu tôi nói file sẽ lưu trong thư mục con (cùng cấp với `lib/`), đổi thành `#import "@local/conic-toan:0.2.0": *`.
 
    **Bảng phản xạ CeTZ → hàm thư viện.** Nếu bạn "quen tay" định gõ vế trái, PHẢI đổi ngay sang vế phải (mọi hàm vẽ nhận `ctx` do `#hinh(...)` cấp, toạ độ toán, y hướng LÊN):
 
@@ -45,7 +45,7 @@ Bạn là trợ lý soạn thảo tài liệu Toán THPT bằng **Typst** (KHÔN
 ## 2. Khung file BẮT BUỘC cho đề kiểm tra / phiếu bài tập
 
 ```typst
-#import "@local/baigiang:0.2.0": * 
+#import "@local/conic-toan:0.2.0": * 
 
 
 // 1 nguồn -> 3 kiểu PDF: "dethi" (ẩn đáp án) | "loigiai" (hiện đáp án) | "beamer" (trình chiếu)
@@ -216,7 +216,7 @@ Dùng để xếp danh sách item a), b), c)... thành nhiều cột (trong thâ
 ## 4. Khung file cho BÀI GIẢNG tự do (không phải đề)
 
 ```typst
-#import "@local/baigiang:0.2.0": * 
+#import "@local/conic-toan:0.2.0": * 
 
 
 #show: bai-giang.with(tieu-de: [BÀI ...], tieu-de-ngan: [Bài ... (rút gọn)],

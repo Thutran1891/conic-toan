@@ -7,16 +7,16 @@ Thuần Typst, **không phụ thuộc package nào** — biên dịch offline đ
 Cách 1 — dùng như thư viện cục bộ (khuyên dùng):
 
 ```bash
-git clone https://github.com/Thutran1891/baigiang.git
+git clone https://github.com/Thutran1891/conic-toan.git
 ```
 
 Chép `baigiang.typ`, `typst.toml` và thư mục `lib/` vào
-`%APPDATA%\typst\packages\local\baigiang\0.2.0\` (Windows) hoặc
-`~/.local/share/typst/packages/local/baigiang/0.2.0/` (Linux/macOS),
+`%APPDATA%\typst\packages\local\conic-toan\0.2.0\` (Windows) hoặc
+`~/.local/share/typst/packages/local/conic-toan/0.2.0/` (Linux/macOS),
 rồi trong tài liệu viết:
 
 ```typst
-#import "@local/baigiang:0.2.0": *
+#import "@local/conic-toan:0.2.0": *
 ```
 
 Trên Windows có sẵn `cai-dat-tu-du-an.bat` làm việc này tự động.

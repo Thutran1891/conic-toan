@@ -1,102 +1,61 @@
-# Đưa gói `baigiang 0.2.0` lên GitHub
+# Kho `conic-toan` — trạng thái & việc còn lại
 
-## Cách nhanh nhất: chạy `TAO-REPO-VA-PUSH.bat`
+## Đã xong
 
-Nháy đúp vào **`TAO-REPO-VA-PUSH.bat`** trong thư mục này. Script sẽ:
+- Kho git ở `D:\TYPST BEAMER\baigiang-repo`, đã push lên GitHub.
+- `typst.toml` đặt `name = "conic-toan"`, đủ trường bắt buộc của Typst Universe.
+- `LICENSE` (MIT), `.gitignore`, `CHANGELOG.md`, `examples/` (12 file mẫu,
+  đã biên dịch lại 12/12 không lỗi).
 
-1. hỏi tên tài khoản GitHub rồi tự thay vào `typst.toml` + `README.md`;
-2. `git init` + commit toàn bộ 34 file;
-3. gắn remote, dừng lại nhắc cô tạo kho rỗng trên GitHub;
-4. push và gắn nhãn `v0.2.0`.
+## Việc 1 — đổi tên kho trên GitHub
 
-Khi tạo kho tại https://github.com/new nhớ: tên **`baigiang`**, chọn
-**Public**, và **KHÔNG** tích "Add a README / .gitignore / license"
-(thư mục này đã có sẵn, tích vào sẽ xung đột khi push).
+Vào https://github.com/Thutran1891/baigiang → **Settings** → mục
+*Repository name* → sửa thành `conic-toan` → **Rename**.
+(GitHub tự chuyển hướng địa chỉ cũ, không sợ gãy liên kết.)
 
-> Thư mục `github-baigiang` (nếu còn) là bản nháp hỏng — cô xoá đi giúp em.
+Sau đó chạy trong PowerShell:
 
----
-
-## Hoặc làm tay
-
-## Bước 0 — sửa tên tài khoản GitHub
-
-Trong `typst.toml` và `README.md` có chuỗi `Thutran1891`.
-Mở hai file, thay bằng tên tài khoản GitHub thật của cô, rồi:
-
-```bat
-cd /d "D:\TYPST BEAMER\baigiang-repo"
+```powershell
+cd "D:\TYPST BEAMER\baigiang-repo"
+git remote set-url origin https://github.com/Thutran1891/conic-toan.git
 git add -A
-git commit -m "Cap nhat duong dan kho"
-```
-
-## Bước 1 — tạo kho rỗng trên GitHub
-
-Vào https://github.com/new
-
-- **Repository name**: `baigiang`
-- **Description**: `Thư viện Typst thuần: vẽ hình, đồ thị, BBT, bài giảng & đề thi Toán THPT`
-- Chọn **Public**
-- **KHÔNG** tích "Add a README file", "Add .gitignore", "Choose a license"
-  (kho ở máy đã có sẵn 3 file này, tích vào sẽ gây xung đột khi push)
-
-Bấm **Create repository**.
-
-## Bước 2 — đẩy mã nguồn lên
-
-Mở Command Prompt (hoặc Git Bash) và chạy:
-
-```bat
-cd /d "D:\TYPST BEAMER\baigiang-repo"
-git remote add origin https://github.com/Thutran1891/baigiang.git
-git push -u origin main
-```
-
-Lần đầu push, GitHub sẽ mở cửa sổ đăng nhập trình duyệt. Nếu máy chưa có Git:
-`winget install --id Git.Git`.
-
-## Bước 3 — gắn nhãn phiên bản (khuyên làm)
-
-```bat
+git commit -m "Doi ten goi thanh conic-toan"
+git push
 git tag v0.2.0
 git push origin v0.2.0
 ```
 
+> Lưu ý: dự án cá nhân trong `D:\TYPST BEAMER` **vẫn dùng**
+> `@local/baigiang:0.2.0` như cũ — em không đụng vào. Chỉ bản public
+> mang tên `conic-toan`.
+
 ---
 
-# Sau này: gửi lên Typst Universe
+# Gửi lên Typst Universe
 
-## Vướng mắc cần giải quyết trước: TÊN GÓI
+## Chưa gửi gì cả
 
-Quy tắc đặt tên của Typst Universe cấm dùng tên "hiển nhiên / chính tắc" cho
-chức năng của gói, và **quy tắc này áp dụng cho cả tên tiếng nước ngoài**.
-`baigiang` = "bài giảng" nên nhiều khả năng bị từ chối, giống như `slides`
-bị cấm còn `sliding` thì được.
+Push lên kho riêng và đăng lên Universe là **hai việc tách rời**. Hiện mới
+xong việc thứ nhất. Universe chưa biết gói của cô tồn tại, nên chưa có gì
+để "chờ duyệt".
 
-Một vài hướng đặt tên an toàn hơn (tên riêng + phần mô tả):
+Muốn lên Universe phải mở Pull Request vào kho `typst/packages`. Chỉ khi PR
+đó được gộp thì gói mới xuất hiện và người khác import được bằng
+`#import "@preview/conic-toan:0.2.0": *`.
 
-| Tên gợi ý | Ghi chú |
-|---|---|
-| `conic-toan` | gắn với tên ứng dụng ConicTypst cô đang làm |
-| `cay-duong` | tên trường, độc đáo, dễ nhớ |
-| `giang-tap` | ghép từ, không phải từ chính tắc |
-| `phan-trang` | "phấn trắng" — hình ảnh lớp học |
+## Nên chuẩn bị thêm trước khi gửi PR
 
-Tên gói bên Universe **không bắt buộc trùng** tên kho GitHub, nên kho
-`baigiang` giữ nguyên vẫn được.
-
-## Các mục còn phải chuẩn bị
-
-1. **Mô tả tiếng Anh, 40–60 ký tự.** Đã đặt tạm trong `typst.toml`:
+1. **Ảnh minh hoạ trong README.** Universe hiển thị README ngay trên trang
+   gói. Vài ảnh PNG (hình không gian, đồ thị, BBT, một trang đề) sẽ có sức
+   thuyết phục hơn nhiều so với chữ.
+2. **Đoạn giới thiệu tiếng Anh** ở đầu README. Toàn bộ README hiện là tiếng
+   Việt — hợp lệ, nhưng người duyệt và người dùng quốc tế cần vài dòng hiểu
+   gói làm gì.
+3. **Rút gọn `description`.** Universe khuyên 40–60 ký tự. Hiện là
    `Draw math figures, graphs, variation tables and build exam papers.`
-   (hơi dài — nên rút ngắn). Không được chứa từ "Typst", "package".
-2. **`exclude`** đã khai sẵn (`/examples/`, `/hdsd.pdf`, `/PROMPT-GEMINI.md`)
-   để bản tải về gọn nhẹ; README và LICENSE thì KHÔNG được loại trừ.
-3. **README** hiện dài 56 KB và toàn tiếng Việt. Universe chấp nhận, nhưng
-   nên có một đoạn giới thiệu tiếng Anh ở đầu để người ngoài hiểu gói làm gì.
-4. **Giấy phép**: đã có `LICENSE` (MIT) — hợp lệ.
-5. **Ảnh minh hoạ**: rất nên có vài ảnh PNG trong README (hình vẽ, đồ thị,
-   BBT). Universe hiển thị README ngay trên trang gói.
+   (66 ký tự) — có thể rút thành `Draw math figures, graphs and variation tables.`
+4. **Kiểm tra lại `exclude`.** Đang loại `/examples/`, `/hdsd.pdf`,
+   `/PROMPT-GEMINI.md` khỏi bản tải về. README và LICENSE thì không được loại.
 
 ## Quy trình gửi PR
 
@@ -105,19 +64,23 @@ Tên gói bên Universe **không bắt buộc trùng** tên kho GitHub, nên kho
 git clone --depth 1 https://github.com/Thutran1891/packages.git
 cd packages
 
-# 2. Tạo thư mục gói (đổi TEN-GOI cho đúng tên đã chọn)
-mkdir -p packages/preview/TEN-GOI/0.2.0
+# 2. Tạo thư mục gói
+mkdir -p packages/preview/conic-toan/0.2.0
 
-# 3. Chép nội dung kho baigiang vào (trừ .git, examples, hdsd.pdf)
-#    Nhớ sửa name = "TEN-GOI" trong typst.toml
+# 3. Chép nội dung kho conic-toan vào (KHÔNG chép .git, examples, hdsd.pdf,
+#    PROMPT-GEMINI.md — những thứ đã khai trong exclude vẫn nên có mặt trên
+#    kho nhưng không cần trong thư mục nộp)
 
 # 4. Commit & push
-git checkout -b TEN-GOI-0.2.0
+git checkout -b conic-toan-0.2.0
 git add -A
-git commit -m "TEN-GOI:0.2.0"
-git push -u origin TEN-GOI-0.2.0
+git commit -m "conic-toan:0.2.0"
+git push -u origin conic-toan-0.2.0
 
 # 5. Mở Pull Request về typst/packages
 ```
+
+Người duyệt là tình nguyện viên của Typst; thời gian phản hồi thường vài
+ngày đến vài tuần, và họ hay góp ý về tên gói, mô tả, README trước khi gộp.
 
 Tài liệu chính thức: https://github.com/typst/packages/blob/main/docs/README.md
