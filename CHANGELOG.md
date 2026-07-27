@@ -2,6 +2,26 @@
 
 Dự án dùng [SemVer](https://semver.org/lang/vi/).
 
+## Chưa phát hành
+
+> Gói cục bộ vẫn mang số **0.2.0** để không phải sửa
+> `@local/baigiang:0.2.0` trong các file bài giảng đã có. Khi gửi lên
+> Typst Universe thì đặt thành 0.3.0 (thêm tính năng, tương thích ngược).
+
+### Sửa
+
+- Khảo sát hàm số: mọi `lim` bọc `limits(lim)` để chỉ số đặt **dưới** ký hiệu
+  giới hạn thay vì bên cạnh.
+
+### Thêm
+
+- `#ds` — lời giải gắn liền từng ý: `True(nd, giai: ...)` và
+  `False(nd, giai: ...)`. Nhãn a) b) c) d) được đánh lại theo thứ tự sau khi
+  hoán vị nên trộn đề không còn lệch lời giải. `loi-giai:` chung vẫn dùng
+  song song, in trước làm dẫn nhập.
+- Cờ khoá hoán vị: `khoa-y:` (`#ds`) và `khoa-pa:` (`#tn`) — ghi vào metadata
+  `<bg-da>` để công cụ trộn biết câu nào không được xáo.
+
 ## 0.2.0 — 07/2026
 
 ### Thêm mới

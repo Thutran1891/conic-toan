@@ -98,8 +98,6 @@ rồi trong tài liệu viết:
 #import "@local/conic-toan:0.2.0": *
 ```
 
-Trên Windows có sẵn `cai-dat-tu-du-an.bat` làm việc này tự động.
-
 Cách 2 — chép thẳng `baigiang.typ` + `lib/` vào cạnh tài liệu và
 `#import "baigiang.typ": *`.
 
@@ -986,6 +984,37 @@ vẫn dùng được song song.
 
 `loigiai:`/`fig:` cũng dùng được cho `#vd/#tl/#hd/#lt/#vdtt` (bí danh của
 `loi-giai:`/`hinh:`).
+
+### Lời giải gắn từng ý của `#ds` — an toàn khi trộn đề hoán vị ý
+
+Khối `loigiai:` viết cứng "a) … b) … c) … d) …" sẽ **sai** nếu công cụ trộn
+xáo thứ tự các ý. Đặt lời giải ngay cạnh ý bằng `giai:` thì lời giải đi theo
+ý, và nhãn a) b) c) d) được đánh lại theo thứ tự **sau** hoán vị:
+
+```typst
+#ds([Cho hàm số $y = x^3 - 3x$.],
+  (
+    True([$y' = 3x^2 - 3$], giai: [Đạo hàm của $x^n$ là $n x^(n-1)$.]),
+    False([Hàm số không có cực trị], giai: [$y' = 0$ có hai nghiệm phân biệt.]),
+    True([Đồ thị nhận điểm uốn $I(0; 0)$ làm tâm đối xứng]),  // không cần giải riêng
+    [Hàm số đồng biến trên $RR$],                              // ý sai, viết trần
+  ),
+)
+```
+
+- `True(nd, giai: ...)` — ý ĐÚNG; `False(nd, giai: ...)` — ý SAI có lời giải.
+- Ý sai không cần lời giải thì viết trần `[...]` như cũ; `giai:` là tuỳ chọn,
+  ý nào không khai thì phần lời giải bỏ qua ý đó.
+- Dùng chung với `loigiai:` được: phần chung in **trước** làm dẫn nhập
+  (tập xác định, đạo hàm…), rồi mới tới phần theo từng ý.
+- `khoa-y: true` (và `khoa-pa: true` cho `#tn`) đánh dấu câu **không được
+  hoán vị** — dùng khi ý sau dựa vào kết quả ý trước, hoặc có phương án kiểu
+  "Cả A và B đều đúng". Cờ này được ghi vào metadata `<bg-da>` để công cụ
+  trộn đọc.
+
+Form cũ (khối `loigiai:` chung, ý bọc `True(...)` không có `giai:`) vẫn chạy
+nguyên vẹn — `giai:`/`False`/`khoa-y` chỉ là bổ sung.
+File thử: `thu-ds-giai.typ`.
 
 ### Hình ở LỜI GIẢI và trong PHƯƠNG ÁN/Ý (mọi dạng câu)
 

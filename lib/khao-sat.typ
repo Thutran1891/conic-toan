@@ -84,9 +84,9 @@
     [Hàm số đạt cực đại tại $x = #Xd$, $y_("CĐ") = #Yd$; không có cực tiểu.]
   }
   let gh = if a > 0 {
-    [$lim_(x -> -oo) y = +oo$; $lim_(x -> +oo) y = +oo$.]
+    [$limits(lim)_(x -> -oo) y = +oo$; $limits(lim)_(x -> +oo) y = +oo$.]
   } else {
-    [$lim_(x -> -oo) y = -oo$; $lim_(x -> +oo) y = -oo$.]
+    [$limits(lim)_(x -> -oo) y = -oo$; $limits(lim)_(x -> +oo) y = -oo$.]
   }
   let giao-ox = if dlt > _eps {
     let s = calc.sqrt(dlt) / (2 * calc.abs(a))
@@ -124,9 +124,9 @@
   let xu = -b / (3 * a)                 // hoành độ điểm uốn
   let yu = f(xu)
   let gh = if a > 0 {
-    [$lim_(x -> -oo) y = -oo$; $lim_(x -> +oo) y = +oo$.]
+    [$limits(lim)_(x -> -oo) y = -oo$; $limits(lim)_(x -> +oo) y = +oo$.]
   } else {
-    [$lim_(x -> -oo) y = +oo$; $lim_(x -> +oo) y = -oo$.]
+    [$limits(lim)_(x -> -oo) y = +oo$; $limits(lim)_(x -> +oo) y = -oo$.]
   }
   let dao = _da-thuc(((3 * a, 2), (2 * b, 1), (c, 0)))
   let cbt = []
@@ -192,9 +192,9 @@
   let f = x => a * calc.pow(x, 4) + b * x * x + c
   let dao = _da-thuc(((4 * a, 3), (2 * b, 1)))
   let gh = if a > 0 {
-    [$lim_(x -> -oo) y = +oo$; $lim_(x -> +oo) y = +oo$.]
+    [$limits(lim)_(x -> -oo) y = +oo$; $limits(lim)_(x -> +oo) y = +oo$.]
   } else {
-    [$lim_(x -> -oo) y = -oo$; $lim_(x -> +oo) y = -oo$.]
+    [$limits(lim)_(x -> -oo) y = -oo$; $limits(lim)_(x -> +oo) y = -oo$.]
   }
   let cbt = []
   let ct = []
@@ -274,8 +274,8 @@
       + Chiều biến thiên: #dao. #cbt
       + Cực trị: Hàm số không có cực trị.
       + Tiệm cận:
-        $lim_(x -> #X0^-) y = #trai$, $lim_(x -> #X0^+) y = #phai$ nên đường thẳng $x = #X0$ là tiệm cận đứng.
-        $lim_(x -> plus.minus oo) y = #Y0$ nên đường thẳng $y = #Y0$ là tiệm cận ngang.
+        $limits(lim)_(x -> #X0^-) y = #trai$, $limits(lim)_(x -> #X0^+) y = #phai$ nên đường thẳng $x = #X0$ là tiệm cận đứng.
+        $limits(lim)_(x -> plus.minus oo) y = #Y0$ nên đường thẳng $y = #Y0$ là tiệm cận ngang.
       + Bảng biến thiên:
       #_o(giua, bbt-phan-thuc(a, b, c, d))
     - Đồ thị:
@@ -342,8 +342,8 @@
       + Chiều biến thiên: #dao.#dao-them #cbt
       + Cực trị: #ct
       + Tiệm cận:
-        $lim_(x -> #X0^-) y = #trai$, $lim_(x -> #X0^+) y = #phai$ nên đường thẳng $x = #X0$ là tiệm cận đứng.
-        $lim_(x -> plus.minus oo) [y - (#tcx)] = 0$ nên đường thẳng $y = #tcx$ là tiệm cận xiên.
+        $limits(lim)_(x -> #X0^-) y = #trai$, $limits(lim)_(x -> #X0^+) y = #phai$ nên đường thẳng $x = #X0$ là tiệm cận đứng.
+        $limits(lim)_(x -> plus.minus oo) [y - (#tcx)] = 0$ nên đường thẳng $y = #tcx$ là tiệm cận xiên.
       + Bảng biến thiên:
       #_o(giua, bbt-huu-ti(a, b, c, d, e))
     - Đồ thị:

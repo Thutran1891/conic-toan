@@ -308,7 +308,7 @@
   cau, phuong-an, dap-an: none, cot: auto, cols: 0, diem: none,
   hinh: none, fig: none, fig-pos: "right", fig-width: auto,
   loi-giai: none, loigiai: none, lines: 0, num: auto, prefix: "Câu",
-  boxed: false, fig-giai: none, hinh-giai: none, cham: auto,
+  boxed: false, fig-giai: none, hinh-giai: none, cham: auto, khoa-pa: false,
   fig-giai-pos: "right", fig-giai-width: auto, tieu-de: [Trắc nghiệm],
 ) = context {
   let lg = _uu-tien(loigiai, loi-giai)
@@ -317,6 +317,7 @@
   let cot = if cols != 0 { cols } else { cot }
   let goi(..them) = cau-mc(
     cau, phuong-an, dap-an: dap-an, cot: cot, diem: diem, hinh: hinh, cham: cham,
+    khoa-pa: khoa-pa,
     fig-pos: fig-pos, fig-width: fig-width, lines: lines,
     num: num, prefix: prefix, boxed: boxed,
     hinh-giai: hg, fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width, ..them,
@@ -348,10 +349,13 @@
 //     lines: 0, num: auto, prefix: "Câu",
 //   )
 // Form cũ (dap-an: (false, true, true, false)) vẫn dùng được.
+// Lời giải riêng từng ý (an toàn khi trộn hoán vị ý) — đặt `giai:` trong
+// True(...)/Sai(...); `khoa-y: true` báo công cụ trộn đừng xáo các ý của câu.
 #let ds(
   cau, cac-y, dap-an: none, diem: none,
   hinh: none, fig: none, fig-pos: "right", fig-width: auto,
   loi-giai: none, loigiai: none, o-tick: false, lines: 0, num: auto, cham: auto,
+  khoa-y: false,
   prefix: "Câu", boxed: false, fig-giai: none, hinh-giai: none,
   fig-giai-pos: "right", fig-giai-width: auto, tieu-de: [Đúng — Sai],
 ) = context {
@@ -360,6 +364,7 @@
   let hg = _uu-tien(fig-giai, hinh-giai)
   let goi(..them) = cau-tf(
     cau, cac-y, dap-an: dap-an, diem: diem, hinh: hinh, o-tick: o-tick, cham: cham,
+    khoa-y: khoa-y,
     fig-pos: fig-pos, fig-width: fig-width, lines: lines,
     num: num, prefix: prefix, boxed: boxed,
     hinh-giai: hg, fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width, ..them,

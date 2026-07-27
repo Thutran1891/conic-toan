@@ -64,15 +64,30 @@
 //   #tn([...], ([$A$], True([$B$]), [$C$], [$D$]))          -> đáp án B
 //   #ds([...], ([a sai], True([b đúng]), True([c]), [d]))   -> (S, Đ, Đ, S)
 // (bí danh tiếng Việt: Dung)
-#let True(nd) = (bg-dung: true, nd: nd)
+//
+// LỜI GIẢI GẮN LIỀN TỪNG Ý (#ds) — cần khi công cụ trộn HOÁN VỊ các ý:
+// khối lời giải viết cứng "a) … b) …" sẽ sai sau khi xáo, nên đặt lời giải
+// ngay cạnh ý bằng `giai:`; lib tự đánh lại nhãn theo thứ tự SAU hoán vị.
+//   #ds([Cho $y = x^3 - 3x$.], (
+//     True([$y' = 3x^2 - 3$],  giai: [Đạo hàm của $x^n$ là $n x^(n-1)$.]),
+//     False([Hàm số không có cực trị], giai: [$y' = 0$ có hai nghiệm phân biệt.]),
+//     [Ý sai, không cần giải riêng — viết trần như cũ],
+//   ))
+// `loi-giai:` chung vẫn dùng được — in TRƯỚC phần giải theo ý (phần dẫn nhập).
+#let True(nd, giai: none) = (bg-dung: true, nd: nd, giai: giai)
 #let Dung = True
+#let False(nd, giai: none) = (bg-dung: false, nd: nd, giai: giai)
+#let _la-y(x) = type(x) == dictionary and "nd" in x
 #let _la-true(x) = type(x) == dictionary and x.at("bg-dung", default: false)
-#let _bo-true(x) = if _la-true(x) { x.nd } else { x }
+#let _bo-true(x) = if _la-y(x) { x.nd } else { x }
+#let _giai-y(x) = if _la-y(x) { x.at("giai", default: none) } else { none }
 
-// Tách danh sách có True(...): trả (ds: mảng nội dung thuần, dung: mảng bool).
+// Tách danh sách có True(...)/False(...): trả (ds: nội dung thuần,
+// dung: mảng bool, giai: mảng lời giải từng ý — none nếu không khai).
 #let _tach-true(ds) = (
   ds: ds.map(_bo-true),
   dung: ds.map(_la-true),
+  giai: ds.map(_giai-y),
 )
 
 // ---------- TỰ THÊM DẤU CHẤM CUỐI PHƯƠNG ÁN / PHÁT BIỂU ----------
@@ -172,7 +187,8 @@
 //   tn  -> da = chữ cái đáp án đúng ("A".."F") hoặc none.
 //   ds  -> da = mảng bool 4 ý (true = Đ, false = S).
 //   tln -> da = đáp án (chuỗi/số/nội dung).
-#let _ghi-da(loai, da) = [#metadata((loai: loai, da: da)) <bg-da>]
+// khoa: true -> câu này KHÔNG được hoán vị phương án/ý (công cụ trộn đọc cờ này).
+#let _ghi-da(loai, da, khoa: false) = [#metadata((loai: loai, da: da, khoa: khoa)) <bg-da>]
 
 // Chữ cái đáp án đúng của câu tn (ưu tiên True(...) trong danh sách; nếu không
 // có thì lấy dap-an dạng chữ "B" cũ).
@@ -378,11 +394,11 @@
 // Phương án đúng: bọc True(...) trong danh sách (ưu tiên) hoặc dap-an: "B" (cũ).
 #let cau-mc(
   cau, phuong-an, dap-an: none, cot: auto, diem: none, hinh: none,
-  lo-da: none, loi-giai: none, lo-giai: auto, cham: auto,
+  lo-da: none, loi-giai: none, lo-giai: auto, cham: auto, khoa-pa: false,
   fig-pos: "right", fig-width: auto, lines: 0, num: auto, prefix: "Câu", boxed: false,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
 ) = {
-  _ghi-da("tn", _chu-da-tn(phuong-an, dap-an))
+  _ghi-da("tn", _chu-da-tn(phuong-an, dap-an), khoa: khoa-pa)
   _khung-cau(boxed, {
     let hinh-giai = if hinh-giai != none { hinh-giai } else { fig-giai }
     let t = _tach-true(phuong-an)
@@ -479,18 +495,37 @@
 // (khi hiện đáp án sẽ tick ✓ vào ô tương ứng); false => nhãn Đ/S sau câu.
 // Phát biểu ĐÚNG: bọc True(...) trong danh sách (ưu tiên) hoặc
 // dap-an: (false, true, ...) như cũ.
+// giai: của True/False -> lời giải riêng từng ý, tự đánh nhãn theo thứ tự hiện
+// tại nên hoán vị không lệch. khoa-y: true -> báo công cụ trộn ĐỪNG xáo các ý
+// (dùng cho câu mà ý sau dựa vào kết quả ý trước).
 #let cau-tf(
   cau, cac-y, dap-an: none, diem: none, hinh: none,
   lo-da: none, loi-giai: none, lo-giai: auto, o-tick: false, cham: auto,
+  khoa-y: false,
   fig-pos: "right", fig-width: auto, lines: 0, num: auto, prefix: "Câu", boxed: false,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
 ) = {
-  _ghi-da("ds", if _tach-true(cac-y).dung.any(d => d) { _tach-true(cac-y).dung } else { dap-an })
+  _ghi-da("ds", if _tach-true(cac-y).dung.any(d => d) { _tach-true(cac-y).dung } else { dap-an },
+    khoa: khoa-y)
   _khung-cau(boxed, {
     let hinh-giai = if hinh-giai != none { hinh-giai } else { fig-giai }
     let t = _tach-true(cac-y)
     let cac-y = t.ds
     let dap-an = if t.dung.any(d => d) { t.dung } else { dap-an }
+    // Lời giải riêng từng ý -> ghép thành khối "a) … b) …" theo thứ tự HIỆN TẠI
+    let loi-giai = if t.giai.any(g => g != none) {
+      let nhan-y = ("a", "b", "c", "d", "e", "f")
+      {
+        if loi-giai != none { loi-giai; v(3pt) }
+        for (j, g) in t.giai.enumerate() {
+          if g != none {
+            block(above: 5pt, below: 5pt, {
+              _the(nhan-y.at(j), duoi: ")"); [ ]; g
+            })
+          }
+        }
+      }
+    } else { loi-giai }
     voi-hinh({ _dau-cau(diem: diem, prefix: prefix, num: num); cau }, hinh,
       vi-tri: fig-pos, be-rong: fig-width, duoi: {
     v(4pt)

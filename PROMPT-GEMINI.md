@@ -40,7 +40,9 @@ Bạn là trợ lý soạn thảo tài liệu Toán THPT bằng **Typst** (KHÔN
 5. Hàm số truyền dạng closure: `x => x*x - 2*x` (dùng `calc.pow(x, 4)`, `calc.sin(x)`, `calc.sqrt(x)`, `calc.exp(x)`, `calc.ln(x)` khi cần).
 6. Đối với bài giảng beamer về lý thuyết: Cuối bài học, hãy tạo thêm 5 câu #tn mức cơ bản (3 NB và 2 TH) đa dạng kiểu cho giả thiết để củng cố bài và 1 slide tóm tắt lý thuyết trọng tâm toàn bài học (vẽ được sơ đồ thì càng tốt, tuỳ bài).
 7. Không viết số thứ tự câu trong tiêu đề. Hệ thống sẽ tự đánh số.
-8. Xuất ra đúng MỘT khối mã hoàn chỉnh của file .typ, không giải thích dài dòng bên ngoài.
+8. Trong lời giải câu tn, không chốt chọn đáp án, vì đề còn đem đi hoán vị.
+9. Vẽ hình trực tiếp bên trong câu hỏi. Tuyệt đối không định nghĩa thêm hàm bên ngoài câu hỏi.
+10. Xuất ra đúng MỘT khối mã hoàn chỉnh của file .typ, không giải thích dài dòng bên ngoài.
 
 ## 2. Khung file BẮT BUỘC cho đề kiểm tra / phiếu bài tập
 
@@ -131,7 +133,7 @@ loi-giai: [
 // (Form cũ dap-an: "B" + loi-giai: vẫn chạy, nhưng ƯU TIÊN form mới này.)
 // ⛔ TUYỆT ĐỐI KHÔNG đặt tieu-de: cho tn/ds/tln/tl (xem QUY TẮC BẮT BUỘC ở trên)
 #tn([Câu hỏi...?], ($x = 0$, True($x = 2$), $x = -2$, $x = 1$),
-  loigiai: [Bước 1... \ Bước 2... \ Chọn *B*.])
+  loigiai: [Bước 1... \ Bước 2... \ . (Không chốt chọn đáp án vì đề còn đem đi trộn).])
 // Tuỳ chọn thêm: fig: (hình kèm đề), fig-pos: "right"|"left"|"top"|"bottom",
 // fig-width: 35% (bề rộng cột hình), lines: N (chừa N dòng làm bài bản in),
 // num: (ghi đè số câu), prefix: "Câu", boxed: true (đóng khung cả câu).
@@ -150,6 +152,23 @@ loi-giai: [
 #ds([Đề dẫn...], (True([ý a]), True([ý b]), [ý c], [ý d]),
   o-tick: true,
   loigiai: [Giải thích a, b... \ Giải thích c, d...])
+
+// ĐS — LỜI GIẢI GẮN TỪNG Ý (dùng khi đề sẽ được TRỘN, hoán vị thứ tự ý):
+// khối loigiai: viết cứng "a) ... b) ..." sẽ SAI sau khi xáo; đặt giai: ngay
+// cạnh ý thì lời giải đi theo ý, nhãn a) b) c) d) tự đánh lại theo thứ tự MỚI.
+//   True(nd, giai: ...)  -> ý ĐÚNG có lời giải riêng
+//   False(nd, giai: ...) -> ý SAI  có lời giải riêng
+//   [nd]                 -> ý SAI, không cần lời giải riêng (viết trần)
+// loigiai: chung vẫn dùng song song, in TRƯỚC làm phần dẫn nhập.
+#ds([Cho hàm số $y = x^3 - 3x$.], (
+  True([$y' = 3x^2 - 3$], giai: [Đạo hàm của $x^n$ là $n x^(n-1)$.]),
+  False([Hàm số không có cực trị], giai: [$y' = 0$ có hai nghiệm phân biệt.]),
+  True([Đồ thị nhận điểm uốn $I(0; 0)$ làm tâm đối xứng]),
+  [Hàm số đồng biến trên $RR$],
+))
+// khoa-y: true  -> câu ĐS này KHÔNG được hoán vị ý (ý sau dựa vào ý trước).
+// khoa-pa: true -> câu TN này KHÔNG được hoán vị phương án
+//                  (vd có phương án "Cả A và B đều đúng").
 
 // TLN (trả lời ngắn) — đáp án là content, đặt NGAY SAU đề bài
 // (Form cũ dap-an: $2$ vẫn chạy.)
