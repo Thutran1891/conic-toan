@@ -27,7 +27,7 @@
   ma-de: "1012",
   gv: "Kim Thu",
   
-  ngay: 20/07/2026,
+  ngay: [20/07/2026],
   phu-de: [Ôn tập chương I — Khảo sát hàm số],
 
   // ===== HAI BIẾN CÔ TEST TẠI ĐÂY (đổi giá trị rồi biên dịch lại) =====

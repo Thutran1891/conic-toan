@@ -2,32 +2,27 @@
 
 ## Đã xong
 
-- Kho git ở `D:\TYPST BEAMER\baigiang-repo`, đã push lên GitHub.
-- `typst.toml` đặt `name = "conic-toan"`, đủ trường bắt buộc của Typst Universe.
-- `LICENSE` (MIT), `.gitignore`, `CHANGELOG.md`, `examples/` (12 file mẫu,
-  đã biên dịch lại 12/12 không lỗi).
+- Kho git ở `D:\TYPST BEAMER\baigiang-repo`, đã push lên GitHub (bản đầu).
+- Đổi tên gói: `name = "conic-toan"` trong `typst.toml`, kèm `repository`,
+  các dòng `@local/`, đường dẫn cài đặt trong README và PROMPT-GEMINI.
+- `description` rút còn 46 ký tự: *Draw math figures, graphs and variation tables.*
+- Thêm 9 ảnh minh hoạ trong `assets/` và phần giới thiệu tiếng Anh ở đầu README.
+- `exclude` loại `/examples/`, `/assets/`, `/img/`, `/hdsd.pdf`,
+  `/PROMPT-GEMINI.md` khỏi bản tải về (ảnh vẫn hiển thị được trên Universe).
+- Biên dịch lại 12/12 file mẫu, không lỗi.
 
-## Việc 1 — đổi tên kho trên GitHub
+## Việc cô cần làm
 
-Vào https://github.com/Thutran1891/baigiang → **Settings** → mục
-*Repository name* → sửa thành `conic-toan` → **Rename**.
-(GitHub tự chuyển hướng địa chỉ cũ, không sợ gãy liên kết.)
+**1. Đổi tên kho trên GitHub.** Vào
+https://github.com/Thutran1891/baigiang → **Settings** → *Repository name*
+→ sửa thành `conic-toan` → **Rename**. GitHub tự chuyển hướng địa chỉ cũ.
 
-Sau đó chạy trong PowerShell:
+**2. Nháy đúp `DAY-LEN-GITHUB.bat`.** Script dọn file khoá git do sandbox
+để lại, xoá thư mục ảnh nháp `img\`, đổi remote, commit và push, rồi gắn
+lại nhãn `v0.2.0`.
 
-```powershell
-cd "D:\TYPST BEAMER\baigiang-repo"
-git remote set-url origin https://github.com/Thutran1891/conic-toan.git
-git add -A
-git commit -m "Doi ten goi thanh conic-toan"
-git push
-git tag v0.2.0
-git push origin v0.2.0
-```
-
-> Lưu ý: dự án cá nhân trong `D:\TYPST BEAMER` **vẫn dùng**
-> `@local/baigiang:0.2.0` như cũ — em không đụng vào. Chỉ bản public
-> mang tên `conic-toan`.
+> Dự án cá nhân trong `D:\TYPST BEAMER` **vẫn dùng** `@local/baigiang:0.2.0`
+> như cũ — em không đụng vào. Chỉ bản public mang tên `conic-toan`.
 
 ---
 

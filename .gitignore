@@ -2,7 +2,11 @@
 *.pdf
 !hdsd.pdf
 *.png
+!assets/*.png
 *.svg
+
+# Thư mục ảnh nháp (đã thay bằng assets/)
+img/
 
 # Gói cài đặt cục bộ
 *.zip
@@ -13,6 +17,3 @@ desktop.ini
 .DS_Store
 *.bak
 *~
-_dbg/
-_kiemtra/
-_kt2/

@@ -1,3 +1,82 @@
+<h1 align="center">conic-toan</h1>
+
+<p align="center">
+  <em>Draw math figures, graphs and variation tables — and build exam papers.</em><br>
+  A dependency-free Typst library for Vietnamese high-school mathematics.
+</p>
+
+<p align="center">
+  <img src="assets/solid-geometry.png" width="90%" alt="Solid geometry">
+</p>
+
+## English overview
+
+`conic-toan` is a pure Typst library — **no external packages, no CeTZ** — for
+authoring Vietnamese high-school mathematics material. Everything below is drawn
+by the library itself and compiles offline.
+
+**What it does**
+
+- **Plane and solid geometry.** Triangles with their notable points and circles
+  (incircle, circumcircle, orthocentre, excircles), pyramids, prisms, frustums,
+  cones, cylinders and spheres, with hidden edges dashed automatically.
+- **Function graphs.** Quadratic through rational functions, exponentials,
+  logarithms, trigonometry, conics, tangent lines, areas between curves and
+  feasible regions of linear systems. Labels carry *exact* values — a cubic's
+  extremum prints as a surd, not as `10.48`.
+- **Variation tables from coefficients.** `bbt-bac-ba(1, 0, -3, 1)` produces the
+  full table for *y = x³ − 3x + 1*, covering every discriminant case.
+- **Full worked solutions.** `khao-sat-ve-do-thi-ham-bac-ba(1, 0, -3, 1)` emits
+  the domain, derivative, limits, monotonicity, extrema, variation table and
+  graph — the entire textbook analysis from five numbers.
+- **Statistics for the 2018 curriculum.** Frequency tables, histograms, ogives,
+  bar charts, box plots and pie charts, plus fourteen summary statistics for raw
+  and grouped data.
+- **Solids of revolution.** A plane region, the rotation arrow, the resulting
+  solid and its volume integral, side by side.
+- **One source, three PDFs.** The same question file renders as a printable exam,
+  a solution key, or 16:9 lecture slides. Eight question types, automatic answer
+  keys and answer tables.
+
+Function and parameter names are in unaccented Vietnamese (`doan`, `duong-tron`,
+`bbt-bac-ba`), and the documentation below is in Vietnamese.
+
+**Quick start**
+
+```typst
+#import "@local/conic-toan:0.2.0": *
+
+#do-thi-bac-ba(1, 0, -3, 1)          // graph with exact extrema
+#bbt-bac-ba(1, 0, -3, 1)             // matching variation table
+#hinh-chop-luc-giac-deu()            // hexagonal pyramid
+```
+
+<table>
+  <tr>
+    <td><img src="assets/graphs.png" alt="Function graphs"></td>
+    <td><img src="assets/plane-geometry.png" alt="Plane geometry"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/variation-tables.png" alt="Variation tables"></td>
+    <td><img src="assets/solid-of-revolution.png" alt="Solids of revolution"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/statistics.png" alt="Statistical charts"></td>
+    <td><img src="assets/feasible-region.png" alt="Feasible region"></td>
+  </tr>
+</table>
+
+One question source, rendered as lecture slides and as an exam paper:
+
+<p align="center">
+  <img src="assets/slide.png" width="62%" alt="Lecture slide"><br>
+  <img src="assets/exam-page.png" width="42%" alt="Exam page">
+</p>
+
+Licensed under MIT. Full documentation in Vietnamese follows.
+
+---
+
 # Hệ thống bài giảng trình chiếu Toán THPT bằng Typst
 
 Thuần Typst, **không phụ thuộc package nào** — biên dịch offline được ngay.
