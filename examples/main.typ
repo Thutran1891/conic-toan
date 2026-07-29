@@ -32,7 +32,7 @@
 #muc(ngan: [Phần 1])[Phần 1. Đồ thị & Bảng biến thiên]
 
 #slide(tieu-de: [Hàm số bậc hai])[
-  #cot(
+  #chia-cot(
     figure(do-thi-bac-hai(1, -2, -1, ten: $y = x^2 - 2x - 1$)),
     [
       #dinh-nghia[
@@ -45,7 +45,7 @@
 ]
 
 #slide(tieu-de: [Hàm số bậc ba: $y = x^3 - 3x^2 + 2$])[
-  #cot(
+  #chia-cot(
     figure(do-thi-bac-ba(1, -3, 0, 2, ten: $y = x^3 - 3x^2 + 2$)),
     [
       Bảng biến thiên:
@@ -63,7 +63,7 @@
 ]
 
 #slide(tieu-de: [Hàm phân thức: $y = (2x - 1) / (x - 1)$])[
-  #cot(
+  #chia-cot(
     figure(do-thi-phan-thuc(2, -1, 1, -1, ten: $y = (2x-1)/(x-1)$)),
     [
       Tiệm cận đứng $x = 1$, tiệm cận ngang $y = 2$.
@@ -73,14 +73,14 @@
 ]
 
 #slide(tieu-de: [Hàm trùng phương & bảng biến thiên đặc biệt])[
-  #cot(
+  #chia-cot(
     figure(do-thi-trung-phuong(1, -2, 0, ten: $y = x^4 - 2x^2$)),
     bbt-trung-phuong(a: 1, x0: $1$, yc: $-1$, y0: $0$),
   )
 ]
 
 #slide(tieu-de: [Hàm số mũ và lôgarit])[
-  #cot(
+  #chia-cot(
     figure(do-thi-mu(2, w: 6.4cm)),
     figure(do-thi-log(2, w: 6.4cm)),
   )
@@ -89,7 +89,7 @@
 
 #slide(tieu-de: [Hàm số lượng giác])[
   #figure(do-thi-sin(w: 12.5cm))
-  #cot(
+  #chia-cot(
     figure(do-thi-tan(w: 5.6cm)),
     [
       #tinh-chat[
@@ -101,7 +101,7 @@
 ]
 
 #slide(tieu-de: [Vẽ đồ thị chỉ với một dòng lệnh])[
-  #cot(
+  #chia-cot(
     figure(ve-do-thi(x => x * x * x - 3 * x, mau: purple, ten: $y = x^3 - 3x$, w: 6.8cm)),
     figure(ve-do-thi(x => calc.sin(2 * x) + x / 2, mau: red, ten: $y = sin 2x + x/2$, w: 6.8cm)),
   )
@@ -129,7 +129,7 @@
 #muc(ngan: [Phần 2])[Phần 2. Hình học phẳng]
 
 #slide(tieu-de: [Tam giác và các đường đặc biệt])[
-  #cot(
+  #chia-cot(
     figure(hinh(w: 6.8cm, xmin: -0.8, xmax: 6, ymin: -0.9, ymax: 4.6, ctx => {
       let A = (0.6, 0.2)
       let B = (5.4, 0.2)
@@ -149,7 +149,7 @@
 ]
 
 #slide(tieu-de: [Đường tròn ngoại tiếp — nội tiếp])[
-  #cot(
+  #chia-cot(
     figure(hinh(w: 6.2cm, xmin: -1.6, xmax: 6.4, ymin: -2.2, ymax: 5, ctx => {
       let A = (0.4, 0.0)
       let B = (5.2, 0.0)
@@ -165,7 +165,7 @@
 ]
 
 #slide(tieu-de: [Tam giác đặc biệt])[
-  #cot(
+  #chia-cot(
     figure(hinh(w: 4cm, xmin: -0.8, xmax: 4.5, ymin: -0.8, ymax: 4, ctx =>
       tam-giac-deu(ctx, (0.3, 0.3), 3.4))),
     figure(hinh(w: 4cm, xmin: -0.8, xmax: 4.5, ymin: -0.8, ymax: 4, ctx =>
@@ -175,7 +175,7 @@
     figure(hinh(w: 4cm, xmin: -0.8, xmax: 4.5, ymin: -0.8, ymax: 4, ctx =>
       tam-giac-vuong-can(ctx, (0.5, 0.3), 3.1))),
   )
-  #cot(
+  #chia-cot(
     align(center)[Tam giác đều],
     align(center)[Vuông tại $A$],
     align(center)[Cân tại $C$],
@@ -184,7 +184,7 @@
 ]
 
 #slide(tieu-de: [Đường tròn lượng giác])[
-  #cot(
+  #chia-cot(
     figure(duong-tron-luong-giac(so-do: 55deg)),
     [
       #dinh-nghia[
@@ -200,7 +200,7 @@
 #muc(ngan: [Phần 3])[Phần 3. Hình học không gian]
 
 #slide(tieu-de: [Hình chóp])[
-  #cot(
+  #chia-cot(
     figure(hinh-chop-tam-giac(duong-cao: "tam")),
     figure(hinh-chop-tu-giac(duong-cao: "tam", duong-cheo: true, them: (ctx, d) => {
       // vẽ thêm trung điểm M của SC
@@ -213,12 +213,12 @@
 ]
 
 #slide(tieu-de: [Hình chóp đặc biệt])[
-  #cot(
+  #chia-cot(
     figure(hinh-chop-tam-giac-deu(w: 4.6cm, trung-tuyen: true)),
     figure(hinh-chop-tam-dien-vuong(w: 4.4cm)),
     figure(hinh-chop-day-tam-giac-vuong(w: 4.6cm)),
   )
-  #cot(
+  #chia-cot(
     align(center)[Chóp tam giác đều],
     align(center)[Tam diện vuông tại $O$],
     align(center)[$Delta A B C$ vuông tại $B$, $S A perp (A B C)$],
@@ -226,25 +226,25 @@
 ]
 
 #slide(tieu-de: [Chóp đều — chóp cạnh bên vuông góc đáy])[
-  #cot(
+  #chia-cot(
     figure(hinh-chop-tu-giac-deu(w: 6.4cm)),
     figure(hinh-chop-day-chu-nhat(w: 6.4cm)),
   )
-  #cot(
+  #chia-cot(
     align(center)[Chóp tứ giác đều: $S O perp (A B C D)$],
     align(center)[Đáy chữ nhật, $S A perp (A B C D)$],
   )
 ]
 
 #slide(tieu-de: [Hình hộp — lăng trụ])[
-  #cot(
+  #chia-cot(
     figure(hinh-hop(duong-cheo: true)),
     figure(hinh-lang-tru-tam-giac()),
   )
 ]
 
 #slide(tieu-de: [Khối tròn xoay])[
-  #cot(
+  #chia-cot(
     figure(hinh-non(w: 4.4cm)),
     figure(hinh-tru(w: 4.4cm)),
     figure(hinh-cau(w: 4.6cm)),
@@ -256,7 +256,7 @@
 ]
 
 #slide(tieu-de: [Hệ trục toạ độ trong không gian])[
-  #cot(
+  #chia-cot(
     figure(truc-oxyz(don-vi: true)),
     [
       Trong không gian $O x y z$ với ba vectơ đơn vị
@@ -273,7 +273,7 @@
 // 1: đề — 2: tính y' — 3: bảng biến thiên — 4: đồ thị.
 #slide(tieu-de: [Khảo sát hàm số], so-buoc: 4)[
   #vi-du[Khảo sát sự biến thiên và vẽ đồ thị hàm số $y = -x^3 + 3x$.]
-  #cot(
+  #chia-cot(
     [
       #lo(2)[
         #loi-giai[
