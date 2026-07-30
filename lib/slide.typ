@@ -193,7 +193,8 @@
       text(fill: n, size: 13pt, "✦"),
       line(length: 100%, stroke: 0.6pt + n))
     v(18pt)
-    text(fill: c, weight: "bold", size: 38pt, font: ("Libertinus Serif",), tieu-de)
+    text(fill: c, weight: "bold", size: 38pt,
+      font: ("Charis SIL", "Noto Serif", "Libertinus Serif"), tieu-de)
     if _co(phu-de) {
       v(12pt)
       text(size: 19pt, style: "italic", fill: c.lighten(15%), phu-de)
@@ -316,7 +317,11 @@
   nen: "trang",        // NỀN SLIDE (beamer): "trang" | "kem" | "xanh-nhat"
                        // | "luc-nhat" | "xam" — hoặc màu tuỳ ý: rgb("#fdf8ee")
                        // (chọn tông SÁNG để hình vẽ/bảng nét sẫm còn rõ)
-  phong: ("Libertinus Serif", "Times New Roman", "Cambria"),
+  // Charis SIL đứng ĐẦU: font của SIL, thiết kế riêng cho dấu CHỒNG tiếng Việt
+  // (Ể Ổ Ữ Ẩ...). Với chữ HOA (tiêu đề đề thi) nó vẫn giữ dấu hỏi/ngã NGUYÊN CỠ
+  // và chồng THẲNG trên dấu mũ; Noto Serif thu nhỏ + đẩy lệch phải, còn
+  // Libertinus/Times vẽ hook nhỏ nằm ngang -> nhìn như mất dấu.
+  phong: ("Charis SIL", "Noto Serif", "Libertinus Serif", "Times New Roman"),
   co-chu: 19pt,
   ti-le-chu: 1.0,      // HỆ SỐ PHÓNG CỠ CHỮ THÂN NỘI DUNG (toàn file):
                        // 1.0 = giữ nguyên; 1.1 = to hơn 10%; 0.9 = nhỏ đi 10%.

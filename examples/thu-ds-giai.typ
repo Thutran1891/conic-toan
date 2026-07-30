@@ -1,6 +1,6 @@
 // thu-ds-giai.typ — KIỂM TRA lời giải gắn từng ý của #ds (07/2026)
 // Biên dịch:  typst compile thu-ds-giai.typ
-#import "../baigiang.typ": *
+#import "@local/conic-toan:0.2.0": *
 #set page(paper: "a4", margin: 1.5cm)
 #set text(size: 10.5pt, lang: "vi")
 #show: de-toan.with(ho-so: "loigiai", truong: [THPT Thử], mon: [Toán 12])

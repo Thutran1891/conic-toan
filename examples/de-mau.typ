@@ -23,11 +23,11 @@
   tieu-de: [ĐỀ KIỂM TRA KHẢO SÁT CHẤT LƯỢNG],
   mon: [MÔN TOÁN 12 — CHƯƠNG TRÌNH 2025],
   thoi-gian: "90 phút",
-  truong: [SỞ GIÁO DỤC VÀ ĐÀO TẠO \ TRƯỜNG THPT CAY DUONG],
+  truong: [SỞ GIÁO DỤC VÀ ĐÀO TẠO \ TRƯỜNG THPT CÂY DƯƠNG],
   ma-de: "1012",
   gv: "Kim Thu",
   
-  ngay: [20/07/2026],
+  ngay: "20/07/2026",
   phu-de: [Ôn tập chương I — Khảo sát hàm số],
 
   // ===== HAI BIẾN CÔ TEST TẠI ĐÂY (đổi giá trị rồi biên dịch lại) =====

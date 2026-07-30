@@ -4,7 +4,7 @@
 
 #set page(paper: "presentation-16-9", margin: 0pt)
 #set text(
-  font: ("Libertinus Serif", "Times New Roman"),
+  font: ("Charis SIL", "Noto Serif", "Libertinus Serif", "Times New Roman"),
   lang: "vi", size: 19pt, fill: rgb("#1c2833"),
 )
 

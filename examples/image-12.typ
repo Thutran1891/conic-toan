@@ -9,7 +9,7 @@
 // ctx => { ... } là hàm vẽ, mọi hàm (doan, cung, elip, nhan, ...) đều nhận
 // ctx làm đối số đầu tiên.
 // =====================================================================
-#import "../lib/ve.typ": *
+#import "lib/ve.typ": *
 
 // ---- Hình 1: bể cá — phần khối cầu, miệng mài phẳng ----
 // (mặt trong bán kính 2 dm, tâm cách mặt phẳng miệng 1 dm)

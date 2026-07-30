@@ -5,6 +5,8 @@
 #import "lib/ve.typ": *
 #import "lib/hinh-phang.typ": *
 #import "lib/hinh-khong-gian.typ": *
+#import "lib/da-dien.typ": *
+#import "lib/oxyz-toan.typ": *
 #import "lib/do-thi.typ": *
 #import "lib/so-do-cay.typ": *
 #import "lib/bang.typ": *
@@ -59,6 +61,8 @@
   elip: (..a) => elip(ctx, ..a),
   cung: (..a) => cung(ctx, ..a),
   cung-elip: (..a) => cung-elip(ctx, ..a),
+  xoan-oc: (..a) => xoan-oc(ctx, ..a),
+  goc-luong-giac: (..a) => goc-luong-giac(ctx, ..a),
   goc: (..a) => goc(ctx, ..a),
   goc-vuong: (..a) => goc-vuong(ctx, ..a),
   danh-dau: (..a) => danh-dau(ctx, ..a),
@@ -68,6 +72,8 @@
   gach-mien: (..a) => gach-mien(ctx, ..a),
   gach-vung: (..a) => gach-vung(ctx, ..a),
   ve-mien: (..a) => ve-mien(ctx, ..a),
+  duong-luon: (..a) => duong-luon(ctx, ..a),
+  nhan-cong: (..a) => nhan-cong(ctx, ..a),
   // do-thi.typ — hệ trục & gióng
   truc: (..a) => truc(ctx, ..a),
   luoi: (..a) => luoi(ctx, ..a),
@@ -104,6 +110,13 @@
   doan-oxyz: (..a) => doan-oxyz(ctx, ..a),
   vecto-oxyz: (..a) => vecto-oxyz(ctx, ..a),
   giong-oxyz: (..a) => giong-oxyz(ctx, ..a),
+  // da-dien.typ — engine đa diện tổng quát, mặt phẳng, thiết diện
+  // (da-dien / da-dien-thiet-dien TỰ tạo khung nên không kê ở đây)
+  ve-da-dien: (..a) => ve-da-dien(ctx, ..a),
+  mat-phang: (..a) => mat-phang(ctx, ..a),
+  mat-phang-oxyz: (..a) => mat-phang-oxyz(ctx, ..a),
+  mat-phang-bh: (..a) => mat-phang-bh(ctx, ..a),
+  ve-thiet-dien: (..a) => ve-thiet-dien(ctx, ..a),
 )
 
 
@@ -139,6 +152,8 @@
 #let elip = _voi-ctx(elip)
 #let cung = _voi-ctx(cung)
 #let cung-elip = _voi-ctx(cung-elip)
+#let xoan-oc = _voi-ctx(xoan-oc)
+#let goc-luong-giac = _voi-ctx(goc-luong-giac)
 #let goc = _voi-ctx(goc)
 #let goc-vuong = _voi-ctx(goc-vuong)
 #let danh-dau = _voi-ctx(danh-dau)
@@ -148,6 +163,8 @@
 #let gach-mien = _voi-ctx(gach-mien)
 #let gach-vung = _voi-ctx(gach-vung)
 #let ve-mien = _voi-ctx(ve-mien)
+#let duong-luon = _voi-ctx(duong-luon)
+#let nhan-cong = _voi-ctx(nhan-cong)
 #let dau-mui-ten = _voi-ctx(dau-mui-ten)
 
 // do-thi.typ — hệ trục, lưới, vạch chia, đường gióng
@@ -189,3 +206,12 @@
 #let doan-oxyz = _voi-ctx(doan-oxyz)
 #let vecto-oxyz = _voi-ctx(vecto-oxyz)
 #let giong-oxyz = _voi-ctx(giong-oxyz)
+
+// da-dien.typ — khối đa diện tổng quát, mặt phẳng, thiết diện
+// (da-dien, da-dien-thiet-dien tự tạo khung; các hàm TRẢ GIÁ TRỊ như
+//  chieu-*, khoi-*, mp-*, thiet-dien, v3-*, phan-tich-khoi KHÔNG bọc)
+#let ve-da-dien = _voi-ctx(ve-da-dien)
+#let mat-phang = _voi-ctx(mat-phang)
+#let mat-phang-oxyz = _voi-ctx(mat-phang-oxyz)
+#let mat-phang-bh = _voi-ctx(mat-phang-bh)
+#let ve-thiet-dien = _voi-ctx(ve-thiet-dien)

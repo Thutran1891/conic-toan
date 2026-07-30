@@ -490,6 +490,287 @@
   duong-cong(ctx, pts, mau: mau, day: day, dut: dut)
 }
 
+// ---------- Đường xoắn ốc ----------
+// Xoắn ốc Archimedes tâm O: bán kính TĂNG ĐỀU theo góc, quét từ `tu` đến `den`.
+// Góc quét |den - tu| ĐƯỢC PHÉP lớn hơn 360° (nhiều vòng);
+// den > tu = ngược chiều kim đồng hồ (chiều dương), den < tu = cùng chiều kim đồng hồ.
+//   r       : bán kính tại góc `tu`
+//   r-cuoi  : bán kính tại góc `den` (auto = r + buoc · số vòng quét)
+//   buoc    : khoảng cách giữa hai vòng liên tiếp (dùng khi r-cuoi: auto)
+//   mui-ten : true|"cuoi" (đầu mũi tên ở điểm cuối) · "dau" · "ca-hai" · false
+//   ten/huong/cach/mau-ten : nhãn đặt cạnh điểm cuối của xoắn ốc
+#let xoan-oc(
+  ctx, O,
+  tu: 0deg, den: 360deg,
+  r: 0.12, r-cuoi: auto, buoc: 0.16,
+  mau: black, day: 1pt, dut: false,
+  mui-ten: true, kich: 7pt,
+  n: auto,
+  ten: none, huong: "above", cach: 6pt, mau-ten: auto,
+) = {
+  let quet = den - tu
+  let so-vong = calc.abs(quet.deg()) / 360
+  let r2 = if r-cuoi == auto { r + buoc * so-vong } else { r-cuoi }
+  let m = if n == auto { calc.max(32, int(calc.ceil(so-vong * 72))) } else { n }
+  let pts = range(m + 1).map(i => {
+    let s = i / m
+    let a = tu + quet * s
+    let rr = r + (r2 - r) * s
+    (O.at(0) + rr * calc.cos(a), O.at(1) + rr * calc.sin(a))
+  })
+  duong-cong(ctx, pts, mau: mau, day: day, dut: dut)
+  if mui-ten == true or mui-ten == "cuoi" or mui-ten == "ca-hai" {
+    dau-mui-ten(ctx, pts.at(m - 1), pts.at(m), mau: mau, kich: kich)
+  }
+  if mui-ten == "dau" or mui-ten == "ca-hai" {
+    dau-mui-ten(ctx, pts.at(1), pts.at(0), mau: mau, kich: kich)
+  }
+  if ten != none {
+    nhan(
+      ctx, pts.at(m), ten,
+      huong: huong, cach: cach,
+      mau: if mau-ten == auto { mau } else { mau-ten },
+    )
+  }
+}
+
+// Góc lượng giác (OA, OM): xoắn ốc từ tia OA quay tới tia OM (kiểu SGK 11).
+//   chieu : "duong" = ngược chiều kim đồng hồ (mặc định) · "am" = cùng chiều
+//   vong  : số vòng quay THÊM (0, 1, 2, ...) trước khi dừng ở tia OM
+//   so-do : true = tự ghi số đo (vd -430°) cạnh mũi tên; `ten` được ưu tiên
+// Ví dụ hình "AOM = 70°, (OA, OM) = -430°": goc-luong-giac(O, A, M, chieu: "am", vong: 1)
+#let goc-luong-giac(
+  ctx, O, A, M,
+  chieu: "duong", vong: 0,
+  r: auto, r-cuoi: auto, buoc: auto,
+  mau: blue, day: 0.9pt, dut: false, kich: 6pt,
+  ten: none, so-do: false, huong: "above", cach: 6pt, mau-ten: auto,
+  n: auto,
+) = {
+  let am = chieu in ("am", "-", -1) or chieu == false
+  // r, buoc mặc định tính THEO chiều dài tia (để hình nào cũng cân đối)
+  let dai = calc.min(
+    calc.sqrt(calc.pow(A.at(0) - O.at(0), 2) + calc.pow(A.at(1) - O.at(1), 2)),
+    calc.sqrt(calc.pow(M.at(0) - O.at(0), 2) + calc.pow(M.at(1) - O.at(1), 2)),
+  )
+  if dai <= 0 { dai = 1 }
+  let r = if r == auto { 0.12 * dai } else { r }
+  let buoc = if buoc == auto { 0.14 * dai } else { buoc }
+  let a1 = calc.atan2(A.at(0) - O.at(0), A.at(1) - O.at(1))
+  let a2 = calc.atan2(M.at(0) - O.at(0), M.at(1) - O.at(1))
+  let d = a2 - a1
+  while d < 0deg { d = d + 360deg }
+  while d >= 360deg { d = d - 360deg }
+  if am and d != 0deg { d = d - 360deg }
+  let tong = d + (if am { -1 } else { 1 }) * vong * 360deg
+  let nd = if ten != none { ten } else if so-do {
+    let v = calc.round(tong.deg(), digits: 1)
+    let s = if calc.abs(v - calc.round(v)) < 0.01 { str(int(calc.round(v))) } else { str(v) }
+    [#s#sym.degree]
+  } else { none }
+  xoan-oc(
+    ctx, O, tu: a1, den: a1 + tong,
+    r: r, r-cuoi: r-cuoi, buoc: buoc,
+    mau: mau, day: day, dut: dut, kich: kich, n: n,
+    ten: nd, huong: huong, cach: cach, mau-ten: mau-ten,
+  )
+}
+
+// ---------- Đường cong uốn lượn (Bézier kiểu \draw ... controls ... của TikZ) ----------
+// `dieu-khien(c1, c2)` — điểm điều khiển của MỘT đoạn cong, đặt XEN GIỮA hai
+// điểm neo (giống `.. controls (c1) and (c2) ..` của TikZ):
+//   duong-luon(A, dieu-khien(c1, c2), B, dieu-khien(c3, c4), C)
+//   dieu-khien(c1)        // một điểm điều khiển (c2 = c1)
+//   dieu-khien(c1, auto)  // c1 tự chọn cho mềm, c2 do người dùng đặt (auto lấy Catmull-Rom)
+// Đoạn KHÔNG có dieu-khien giữa hai neo -> tự làm MỀM bằng Catmull-Rom
+// (đường trơn đi qua đúng các điểm neo, khỏi tính điểm điều khiển bằng tay).
+#let dieu-khien(..a) = {
+  let p = a.pos()
+  let c1 = p.at(0, default: auto)
+  let c2 = p.at(1, default: c1)
+  (bg-dk: true, c1: c1, c2: c2)
+}
+#let _la-dk(x) = type(x) == dictionary and x.at("bg-dk", default: false)
+
+// Lấy MẢNG điểm mẫu của đường uốn lượn (dùng chung cho vẽ và cho nhãn bám đường).
+// items: dãy đối số vị trí (điểm neo trộn với dieu-khien(...)); n: mẫu mỗi đoạn.
+#let _luon-mau(items, n, dong) = {
+  let anchors = ()
+  let ctrls = ()          // ctrls.at(k) = dieu-khien của đoạn anchors[k] -> anchors[k+1]
+  let pending = none
+  for x in items {
+    if _la-dk(x) { pending = x }
+    else if _la-diem(x) {
+      if anchors.len() > 0 { ctrls.push(pending); pending = none }
+      anchors.push(x)
+    }
+  }
+  if anchors.len() < 2 { return anchors }
+  if dong {
+    ctrls.push(pending)              // điều khiển của đoạn khép kín (cuối -> đầu)
+    anchors.push(anchors.at(0))
+  }
+  let m = anchors.len()
+  let getc = i => anchors.at(calc.max(0, calc.min(m - 1, i)))
+  let getw = i => {
+    if dong {
+      let base = m - 1
+      anchors.at(calc.rem(calc.rem(i, base) + base, base))
+    } else { getc(i) }
+  }
+  let pts = (anchors.at(0),)
+  for k in range(m - 1) {
+    let p1 = anchors.at(k)
+    let p2 = anchors.at(k + 1)
+    let p0 = getw(k - 1)
+    let p3 = getw(k + 2)
+    // điểm điều khiển Catmull-Rom (đường trơn qua các neo)
+    let ec1 = (p1.at(0) + (p2.at(0) - p0.at(0)) / 6, p1.at(1) + (p2.at(1) - p0.at(1)) / 6)
+    let ec2 = (p2.at(0) - (p3.at(0) - p1.at(0)) / 6, p2.at(1) - (p3.at(1) - p1.at(1)) / 6)
+    let dk = ctrls.at(k, default: none)
+    let c1 = if dk == none or dk.c1 == auto { ec1 } else { dk.c1 }
+    let c2 = if dk == none or dk.c2 == auto { ec2 } else { dk.c2 }
+    for j in range(1, n + 1) {
+      let t = j / n
+      let u = 1 - t
+      let x = u * u * u * p1.at(0) + 3 * u * u * t * c1.at(0) + 3 * u * t * t * c2.at(0) + t * t * t * p2.at(0)
+      let y = u * u * u * p1.at(1) + 3 * u * u * t * c1.at(1) + 3 * u * t * t * c2.at(1) + t * t * t * p2.at(1)
+      pts.push((x, y))
+    }
+  }
+  pts
+}
+
+// TRẢ VỀ mảng điểm mẫu của đường uốn lượn (dùng cho nhan-cong hoặc để vẽ lại).
+// KHÔNG cần ctx (chỉ tính trên toạ độ toán).
+#let diem-luon(..noi-dung, n: 16, dong: false) = _luon-mau(noi-dung.pos(), n, dong)
+
+// Vẽ đường cong uốn lượn qua các điểm neo, điểm điều khiển kiểu `controls` TikZ.
+//   duong-luon(A, B, C, D)                          // trơn tự động qua 4 neo
+//   duong-luon(A, dieu-khien(c1, c2), B)            // Bézier bậc ba một đoạn
+//   duong-luon(A, dieu-khien(c1,c2), B, C, dong: true, to: blue.lighten(85%))
+// Tuỳ chọn: mau · day · dut · dong (khép kín) · to (tô) · mui-ten · kich ·
+//   ten/tai/huong/cach/ten-quay/mau-ten (nhãn đặt theo TỈ LỆ độ dài, như cac-doan) ·
+//   n (số mẫu mỗi đoạn, tăng cho mượt).
+#let duong-luon(
+  ctx, ..noi-dung,
+  mau: black, day: 1pt, dut: false, dong: false, to: none,
+  mui-ten: false, kich: 7pt,
+  ten: none, tai: 0.5, huong: auto, cach: 6pt, ten-quay: false, mau-ten: auto,
+  n: 16,
+) = {
+  let pts = _luon-mau(noi-dung.pos(), n, dong)
+  if pts.len() < 2 { return }
+  if to != none { da-giac-pt(pts.map(P => toa-pt(ctx, P)), to: to) }
+  duong-cong(ctx, pts, mau: mau, day: day, dut: dut)
+  if mui-ten {
+    dau-mui-ten(ctx, pts.at(pts.len() - 2), pts.at(pts.len() - 1), mau: mau, kich: kich)
+  }
+  if ten != none {
+    let pg = pts.map(P => toa-pt(ctx, P))
+    let dai = range(pg.len() - 1).map(i => {
+      let a = pg.at(i)
+      let b = pg.at(i + 1)
+      calc.sqrt(calc.pow(b.at(0) - a.at(0), 2) + calc.pow(b.at(1) - a.at(1), 2))
+    })
+    let tong = dai.sum()
+    let moc = calc.max(calc.min(tai, 1), 0) * tong
+    let i = 0
+    let con = moc
+    while i < dai.len() - 1 and con > dai.at(i) { con = con - dai.at(i); i = i + 1 }
+    let ti = if dai.at(i) > 0.0001 { con / dai.at(i) } else { 0.5 }
+    let U = pts.at(i)
+    let V = pts.at(i + 1)
+    let P = (U.at(0) + ti * (V.at(0) - U.at(0)), U.at(1) + ti * (V.at(1) - U.at(1)))
+    let xuoi = toa-pt(ctx, U).at(0) <= toa-pt(ctx, V).at(0)
+    nhan(
+      ctx, P, ten,
+      huong: if huong == auto { _phap-tuyen(ctx, U, V) } else { huong },
+      cach: cach,
+      mau: if mau-ten == auto { mau } else { mau-ten },
+      quay: if ten-quay { if xuoi { goc-truc(ctx, U, V) } else { goc-truc(ctx, V, U) } } else { 0deg },
+    )
+  }
+}
+
+// ---------- Nhãn chữ BÁM THEO đường cong ----------
+// Chuỗi văn bản từ nội dung (str hoặc content đơn giản).
+#let _chuoi-cong(c) = {
+  if type(c) == str { c }
+  else if type(c) == content {
+    if c.has("text") { c.text }
+    else if c.has("children") { c.children.map(_chuoi-cong).fold("", (a, b) => a + b) }
+    else if c.has("body") { _chuoi-cong(c.body) }
+    else { "" }
+  } else { str(c) }
+}
+
+// Đặt từng ký tự của `chu` DỌC THEO đường `duong` (mảng điểm toạ độ toán, vd
+// lấy từ diem-luon / diem-cung / lay-mau), tự xoay tiếp tuyến, canh theo độ dài cung.
+//   duong: mảng điểm (>= 2). chu: str (khuyên dùng) hoặc content văn bản thuần.
+//   tu    : vị trí BẮT ĐẦU theo tỉ lệ độ dài đường (0 = đầu, 1 = cuối, .5 = giữa)
+//   can   : "trai" (bắt đầu tại `tu`) · "giua" (canh giữa chữ quanh `tu`) · "phai"
+//   khoang: giãn cách thêm giữa các ký tự (length)
+//   co    : cỡ chữ (auto = theo cỡ hiện hành) · mau : màu chữ
+//   phia  : "tren" (chữ nằm TRÊN đường) · "duoi" · "giua" (tâm chữ trên đường)
+//   cach  : khoảng hở giữa chữ và đường (khi phia = tren/duoi)
+//   dao   : true = đi ngược đường (khi đường vẽ từ phải sang trái, chữ khỏi lộn ngược)
+//   Ví dụ: nhan-cong(diem-cung((0,0), 2, 2, 20deg, 160deg), "cung tron")
+#let nhan-cong(
+  ctx, duong, chu,
+  tu: 0, can: "trai", khoang: 0pt,
+  co: auto, mau: black, phia: "tren", cach: 2pt, dao: false,
+) = {
+  let pts = if dao { duong.rev() } else { duong }
+  let txt = _chuoi-cong(chu)
+  let cl = txt.clusters()
+  if pts.len() < 2 or cl.len() == 0 { return }
+  let pg = pts.map(P => toa-pt(ctx, P))
+  let cum = (0.0,)
+  for i in range(pg.len() - 1) {
+    let a = pg.at(i)
+    let b = pg.at(i + 1)
+    cum.push(cum.at(i) + calc.sqrt(calc.pow(b.at(0) - a.at(0), 2) + calc.pow(b.at(1) - a.at(1), 2)))
+  }
+  let tong = cum.at(cum.len() - 1)
+  context {
+    let els = cl.map(g => if co == auto { text(fill: mau, g) } else { text(size: co, fill: mau, g) })
+    let ws = els.map(e => measure(e).width.pt())
+    let totw = ws.sum() + khoang.pt() * calc.max(0, els.len() - 1)
+    let s0 = tu * tong
+    if can == "giua" { s0 = s0 - totw / 2 } else if can == "phai" { s0 = s0 - totw }
+    let cursor = s0
+    for idx in range(els.len()) {
+      let w = ws.at(idx)
+      let mid = calc.max(0, calc.min(tong, cursor + w / 2))
+      let i = 0
+      while i < cum.len() - 2 and cum.at(i + 1) < mid { i = i + 1 }
+      let seg = cum.at(i + 1) - cum.at(i)
+      let t = if seg > 0.000001 { (mid - cum.at(i)) / seg } else { 0 }
+      let A = pg.at(i)
+      let B = pg.at(i + 1)
+      let px = A.at(0) + t * (B.at(0) - A.at(0))
+      let py = A.at(1) + t * (B.at(1) - A.at(1))
+      let dx = B.at(0) - A.at(0)
+      let dy = B.at(1) - A.at(1)
+      let ll = calc.sqrt(dx * dx + dy * dy)
+      let (ux, uy) = if ll > 0.000001 { (dx / ll, dy / ll) } else { (1, 0) }
+      let ang = calc.atan2(dx, dy)          // góc của vectơ (dx, dy) trên TRANG (y xuống)
+      let el = els.at(idx)
+      let hh = measure(el).height.pt()
+      let off = if phia == "tren" { cach.pt() + hh / 2 } else if phia == "duoi" { -(cach.pt() + hh / 2) } else { 0 }
+      let cx = px + uy * off                // pháp tuyến hướng "lên" trên trang: (uy, -ux)
+      let cy = py + (-ux) * off
+      place(
+        dx: (cx - w / 2) * 1pt,
+        dy: (cy - hh / 2) * 1pt,
+        rotate(ang, reflow: false, el),
+      )
+      cursor = cursor + w + khoang.pt()
+    }
+  }
+}
+
 // ---------- Đánh dấu góc ----------
 // Góc (thường, không vuông) giữa hai tia O->A và O->B:
 // cung nhỏ + nhãn + số cung (1..3) + tô quạt + tự ghi số đo.

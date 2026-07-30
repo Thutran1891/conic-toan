@@ -124,6 +124,7 @@ lib/
   hinh-phang.typ        ← hình học phẳng
   hinh-khong-gian.typ   ← hình học không gian
   do-thi.typ            ← đồ thị hàm số
+  oxyz-toan.typ         ← TÍNH TOÁN trong Oxyz (vectơ, mặt phẳng, đường, mặt cầu)
   bang.typ              ← bảng biến thiên, bảng xét dấu
 ```
 
@@ -133,6 +134,7 @@ Tạo bài giảng mới: copy `main.typ` thành `bai-1.typ` rồi sửa nội d
 
 ```typst
 #import "baigiang.typ": *
+#show math.equation.where(block: false): it => math.display(it)
 
 #show: bai-giang.with(
   tieu-de: [CHƯƠNG I. KHẢO SÁT HÀM SỐ],
@@ -217,6 +219,40 @@ Mọi hình vẽ nằm trong `#hinh(...)` với hệ toạ độ toán học (y 
 
 Hướng nhãn: `"tren" | "duoi" | "trai" | "phai" | "tren-trai" | "tren-phai" | "duoi-trai" | "duoi-phai" | "giua"`.
 
+### Đường xoắn ốc & góc lượng giác (07/2026)
+
+`xoan-oc` vẽ xoắn ốc Archimedes (bán kính tăng đều theo góc), quét được **nhiều
+vòng**; `goc-luong-giac` là lối gọi tắt cho hình góc lượng giác $(OA, OM)$ của
+SGK 11 — tự tính chiều quay và số vòng.
+
+```typst
+#hinh(xmin: -3, xmax: 3, ymin: -3, ymax: 3, w: 6cm, ctx => {
+  let O = (0, 0)
+  let A = (2.2, 0)
+  let M = toa-cuc(O, 2.2, -70)
+  cac-doan((O, A), (O, M))
+  cac-diem((O, $O$, "above-left"), (A, $A$, "above"), (M, $M$, "right"))
+  goc-luong-giac(O, A, M, chieu: "am", vong: 1)   // (OA, OM) = -430°
+})
+```
+
+`goc-luong-giac(O, A, M, ...)`
+
+| Tham số                            | Ý nghĩa                                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `chieu`                           | `"duong"` (ngược kim đồng hồ, mặc định) · `"am"` (cùng kim đồng hồ)              |
+| `vong`                            | số vòng quay THÊM trước khi dừng ở tia OM (0, 1, 2, …)                                    |
+| `so-do`                           | `true` = tự ghi số đo (vd −430°) cạnh mũi tên; `ten:` được ưu tiên               |
+| `r`, `buoc`, `r-cuoi`         | bán kính đầu, khoảng cách 2 vòng, bán kính cuối (`auto` = tính theo chiều dài tia) |
+| `mau`, `day`, `dut`, `kich` | màu (mặc định`blue`), độ dày, nét đứt, cỡ đầu mũi tên                            |
+| `huong`, `cach`, `mau-ten`    | vị trí nhãn số đo quanh điểm cuối                                                         |
+
+`xoan-oc(O, tu: 0deg, den: 1080deg, r: 0.1, buoc: 0.85, mau: blue)` — dùng khi
+cần xoắn ốc thuần: `den > tu` quay ngược kim đồng hồ, `den < tu` quay cùng kim
+đồng hồ, `r-cuoi:` đặt bán kính cuối (nhỏ hơn `r` thì xoắn vào trong),
+`mui-ten:` nhận `true`/`"cuoi"`/`"dau"`/`"ca-hai"`/`false`, `ten:` ghi nhãn ở
+điểm cuối.
+
 ### `cac-doan` — vẽ nhiều nét trong MỘT lệnh (kiểu `\draw` của TikZ) (07/2026)
 
 ```typst
@@ -236,6 +272,47 @@ cac-doan(
 kín), `to` (tô màu — tự khép kín), `mui-ten` (đầu mũi tên ở điểm cuối), và bộ
 nhãn `ten`/`tai`/`huong`/`cach`/`ten-quay`/`mau-ten` (nhãn đặt tại tỉ lệ `tai`
 tính theo TỔNG chiều dài nét).
+
+### `duong-luon` — đường cong uốn lượn (kiểu `.. controls ..` của TikZ) (07/2026)
+
+```typst
+duong-luon(A, B, C, D)                            // trơn TỰ ĐỘNG qua các điểm neo
+duong-luon(A, dieu-khien(c1, c2), B)              // Bézier bậc ba: 2 điểm điều khiển
+duong-luon(
+  (0,0), dieu-khien((1,2),(2,2)),
+  (3,0), dieu-khien((4,-2),(5,-2)), (6,0),        // nhiều đoạn nối tiếp (sóng)
+  mau: teal, day: 1.4pt, mui-ten: true,
+)
+duong-luon(A, B, C, dong: true, to: blue.lighten(85%))   // khép kín + tô
+```
+
+Liệt kê các **điểm neo**; xen `dieu-khien(c1, c2)` giữa hai neo để đặt điểm điều
+khiển như `.. controls (c1) and (c2) ..` của TikZ. Đoạn KHÔNG có `dieu-khien` thì
+tự làm mềm bằng Catmull-Rom (đường trơn đi qua đúng các neo — khỏi tính tay).
+`dieu-khien(c1)` = một điểm điều khiển (c₂ = c₁); để `auto` một thành phần thì
+thành phần đó tự tính. Tuỳ chọn: `mau`, `day`, `dut`, `dong` (khép kín), `to`
+(tô), `mui-ten`, `kich`, bộ nhãn `ten`/`tai`/`huong`/`cach`/`ten-quay`/`mau-ten`
+(đặt theo tỉ lệ độ dài, như `cac-doan`), `n` (số mẫu mỗi đoạn — tăng cho mượt).
+`diem-luon(...)` TRẢ VỀ mảng điểm mẫu (không vẽ) để tái dùng — ví dụ đưa vào
+`nhan-cong` cho chữ bám đúng đường.
+
+### `nhan-cong` — nhãn chữ bám theo một đường cong (07/2026)
+
+```typst
+// chữ chạy dọc nửa trên đường tròn lượng giác
+nhan-cong(diem-cung((0,0), 2.2, 2.2, 160deg, 20deg),
+          "DUONG TRON LUONG GIAC", co: 13pt, mau: blue, can: "giua", tu: 0.5)
+// chữ bám sóng Bézier (lấy đúng mẫu của đường đã vẽ)
+let s = diem-luon((0,0), dieu-khien((1,2),(2,2)), (3,0), n: 24)
+nhan-cong(s, "song song", co: 12pt, phia: "duoi")
+```
+
+Đặt từng ký tự dọc theo `duong` (mảng điểm toạ độ toán — lấy từ `diem-luon`,
+`diem-cung`, `lay-mau`, hay bất kỳ dãy điểm nào), tự xoay tiếp tuyến và canh theo
+độ dài cung. `chu` nên là chuỗi `"..."`. Tuỳ chọn: `tu` (vị trí bắt đầu theo tỉ
+lệ 0..1), `can` (`"trai"`/`"giua"`/`"phai"`), `khoang` (giãn ký tự), `co` (cỡ
+chữ), `mau`, `phia` (`"tren"`/`"duoi"`/`"giua"` so với đường), `cach` (hở chữ↔đường),
+`dao: true` (đảo chiều khi đường vẽ từ phải sang trái, để chữ đọc xuôi).
 
 ### `cac-diem` — chấm và đặt tên nhiều điểm trong MỘT lệnh (07/2026)
 
@@ -608,11 +685,10 @@ khoảng `bk`, quay góc `goc` (số trần = ĐỘ, nhận cả `30deg`; dươn
 kim đồng hồ). TikZ `(30:2)` ⇔ `toa-cuc((0,0), 2, 30)`. Ví dụ lục giác đều:
 
 ```typst
-#hinh(w: 6cm, xmin: -3, xmax: 3, ymin: -3, ymax: 3, ctx => {
-  let dinh = range(6).map(k => toa-cuc((0, 0), 2.6, 60 * k))
-  duong-gap-khuc(ctx, dinh, dong: true)
-})
+let dinh = range(6).map(k => toa-cuc((0, 0), 2.6, 60 * k))
+duong-gap-khuc(ctx, dinh, dong: true)
 ```
+
 Lưu ý: `gach-vung` mô tả miền theo toạ độ GỐC của khung (không qua ctx-quay);
 riêng elip xoay đã có `trong-elip(..., quay:)` tương ứng.
 
@@ -838,7 +914,7 @@ Bước 1 chiếu đề cho học sinh làm, bấm một cái → phương án �
 
 `#lo` dùng được với MỌI nội dung — ví dụ hiện dần lời giải khảo sát:
 
-```text
+```typst
 #slide(tieu-de: [Khảo sát hàm số], so-buoc: 4)[
   #vi-du[Khảo sát $y = -x^3 + 3x$.]        // bước 1: đề
   #lo(2)[#loi-giai[$y' = ...$]]             // bước 2: đạo hàm
@@ -867,11 +943,11 @@ Liên kết hoạt động trong mọi PDF reader (SumatraPDF, Edge, Adobe...).
 
 Soạn đề MỘT LẦN trong file kiểu `de-mau.typ`, xuất được 3 bản:
 
-| Hồ sơ | Kết quả |
-|---|---|
-| `"dethi"` | Đề thi A4: MC/TF/SA/TL **ẩn** đáp án + lời giải; ví dụ vẫn hiện lời giải; phần Họ tên / Số báo danh (hoặc Lớp) / Mã đề **chỉ hiện khi khai báo** `hien-ho-ten` / `sbd` / `hien-ma-de` |
-| `"loigiai"` | Bản A4 đáp án: mọi câu **hiện** lời giải, tô đáp án đúng |
-| `"beamer"` | Trình chiếu: **mỗi câu một slide** — hiện đề → lời giải hiện dần theo từng dấu `\` → cuối cùng đánh dấu đáp án |
+| Hồ sơ       | Kết quả                                                                                                                                                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `"dethi"`   | Đề thi A4: MC/TF/SA/TL**ẩn** đáp án + lời giải; ví dụ vẫn hiện lời giải; phần Họ tên / Số báo danh (hoặc Lớp) / Mã đề **chỉ hiện khi khai báo** `hien-ho-ten` / `sbd` / `hien-ma-de` |
+| `"loigiai"` | Bản A4 đáp án: mọi câu**hiện** lời giải, tô đáp án đúng                                                                                                                                                      |
+| `"beamer"`  | Trình chiếu:**mỗi câu một slide** — hiện đề → lời giải hiện dần theo từng dấu `\` → cuối cùng đánh dấu đáp án                                                                                    |
 
 ```typst
 #import "baigiang.typ": *
@@ -1035,7 +1111,7 @@ lời giải. Màn `#sang-man` sau muốn có hình thì chèn thẳng trong n�
 Hình trong PHƯƠNG ÁN (tn) hoặc Ý (ds): phương án là content nên nhúng trực
 tiếp, thường kèm `cols:` cố định:
 
-```text
+```typst
 #tn([Đồ thị nào là của $y = x^2$?], (
   [#do-thi-ham(x => x*x*x, w: 3.2cm, ...)],
   True([#do-thi-ham(x => x*x, w: 3.2cm, ...)]),
@@ -1086,7 +1162,7 @@ Quy tắc dò (duyệt ngược nội dung, tìm ký tự có nghĩa cuối cùn
 
 Tắt/bật:
 
-```text
+```typst
 #kieu-cau-hoi(cham-cuoi: false)          // tắt toàn bài (từ vị trí này)
 #tn([...], (...), cham: false)           // tắt riêng một câu
 #ds([...], (...), cham: true)            // ép bật riêng một câu
@@ -1094,10 +1170,44 @@ Tắt/bật:
 
 File thử: `thu-cham-cau.typ` (đủ 5 nhóm ca).
 
+### `#cot-item` — không đánh chồng nhãn a), b) (07/2026)
+
+`#cot-item` TỰ đánh nhãn `a)`, `b)`, `c)`… nên **không cần gõ tay**. Nhưng nếu
+nội dung đã có sẵn nhãn (thường gặp khi chép từ SGK hoặc để AI sinh bài), thư
+viện tự nhận ra và **bỏ nhãn tự động ở đúng item đó** — hết cảnh `a) a) Phải
+quay kim phút…`.
+
+```typst
+#cot-item([Phải quay…], [Có bao nhiêu…])          // in: a) Phải quay…  b) Có bao nhiêu…
+#cot-item([a) Phải quay…], [b) Có bao nhiêu…])    // in: a) Phải quay…  b) Có bao nhiêu…
+```
+
+Nhãn được nhận: `a)` `a.` `a:` `A)` `(a)` `[b]` `1)` `1.` `(2)` `ii)` `IV.`
+(chữ cái đơn, số ≤ 99, số La Mã ≤ xii; sau dấu `.` hoặc `:` phải có khoảng
+trắng). Quy tắc quyết định:
+
+- **mọi** item đều có nhãn tay → bỏ hết nhãn tự động (kể cả khi đánh tiếp
+  `d) e) f)` cho phần sau);
+- chỉ **một vài** item có nhãn tay → chỉ bỏ ở item mà nhãn tay đúng thứ tự của
+  nó, các item còn lại vẫn được đánh (tránh nhận nhầm câu mở đầu kiểu
+  `A. B. C thẳng hàng`);
+- không nhận nhầm `0.5 lít nước`, `12:30`, `$x^2 - 3x = 0$`, `Cho tam giác…`.
+
+Ép đánh nhãn dù item đã có sẵn: `#cot-item(..., do-nhan-tay: false)`;
+bỏ hẳn nhãn: `kieu-nhan: none`. File thử: `thu-cot-item.typ` (8 nhóm ca).
+
 ## Mẹo
 
-- Font: mặc định Libertinus Serif (có sẵn trong Typst, đủ dấu tiếng Việt).
-  Đổi font: `#show: bai-giang.with(phong: ("Times New Roman",))`.
+- Font: mặc định `("Charis SIL", "Noto Serif", "Libertinus Serif", "Times New Roman")`. **Cần CÀI Charis SIL** (miễn phí: software.sil.org/charis) — chưa
+  cài thì tự rơi về font sau trong danh sách.
+  Lý do: dấu CHỒNG tiếng Việt (**Ể Ổ Ữ Ẩ Ấ Ộ**). Libertinus/Times vẽ dấu hỏi
+  nhỏ, nằm NGANG cạnh dấu mũ → nhìn như mất dấu. Noto Serif ổn ở chữ thường
+  nhưng với chữ HOA (tiêu đề đề thi viết hoa toàn bộ) vẫn thu nhỏ dấu hỏi và
+  đẩy lệch sang phải. Charis SIL do SIL thiết kế cho ngôn ngữ nhiều dấu chồng,
+  giữ dấu nguyên cỡ + chồng thẳng ở CẢ chữ hoa lẫn chữ thường.
+  Đổi font: `#show: bai-giang.with(phong: ("Noto Serif",))`.
+  Bề rộng Charis SIL ≈ Libertinus nên số trang không đổi (Noto Serif rộng hơn
+  ~2%, bài dài có thể trôi thêm 1 trang).
 - Xuất PowerPoint không hỗ trợ; trình chiếu trực tiếp file PDF (PDF reader
   chế độ full screen, hoặc trình chiếu bằng Sumatra/Okular).
 - Mỗi hàm vẽ đều có `mau`, `day` (độ dày), `dut` (nét đứt) để tuỳ biến.
@@ -1213,7 +1323,7 @@ Dữ liệu vào của bảng và biểu đồ KHỚP NHAU: cùng `moc:` (n+1 m�
 và `tan-so:` — một nguồn số liệu dùng cho cả bảng lẫn biểu đồ. Mọi biểu đồ
 đều có `them: ctx => ...` để vẽ chồng như các hình khác.
 
-```text
+```typ
 // 4 bảng tần số bố cục NGANG đúng SGK (don-vi: hiện «tên (đơn vị)» ô góc)
 #bang-tan-so(gia-tri: (0, 1, 2, 3), tan-so: (4, 3, 4, 7), ten-gia-tri: [Số con])
 #bang-ghep-nhom(moc: (150, 155, 160, 165, 170, 175), tan-so: (5, 12, 18, 9, 4),
@@ -1273,3 +1383,286 @@ Tất cả TRẢ GIÁ TRỊ (không vẽ) — dùng thẳng trong lời giải, 
 #khoang-bien-thien-ghep-nhom(moc, tan-so)  // mốc phải nhóm cuối − mốc trái nhóm đầu CÓ dữ liệu
 #khoang-tu-phan-vi-ghep-nhom(moc, tan-so)
 ```
+
+## Engine đa diện tổng quát, mặt phẳng Oxyz & thiết diện (07/2026)
+
+`lib/da-dien.typ` — nhập DANH SÁCH ĐỈNH 3D + DANH SÁCH MẶT là vẽ được bất kì
+khối đa diện LỒI: tự chiếu, tự phân biệt mặt trước / mặt sau, tự vẽ nét liền và
+nét khuất, tự tô mặt theo độ sâu. Thứ tự đỉnh trong mỗi mặt KHÔNG cần theo
+chiều nào (pháp tuyến được lật ra ngoài theo tâm khối).
+
+```typ
+// khối dựng sẵn — bung bằng toán tử `..` (trả (dinh:, mat:, ten:))
+#da-dien(..khoi-chop-deu(n: 4, R: 1.9, cao: 3.6), to: blue.lighten(86%))
+#da-dien(..khoi-lang-tru-deu(n: 6, R: 1.8, cao: 3.4))
+#da-dien(..khoi-chop-cut-deu(n: 4, R: 2, r: 1.1, cao: 3))
+#da-dien(..khoi-hop-chu-nhat(dai: 4, rong: 2.6, cao: 3))
+#da-dien(..khoi-lap-phuong(a: 3))
+#da-dien(..khoi-tu-dien-deu(a: 3))
+#da-dien(..khoi-bat-dien-deu(a: 3))
+#da-dien(..khoi-hop((0,0,0), (3,0,0), (0.6,2.2,0), (0.9,0.4,2.8)))  // hộp lệch
+#da-dien(..khoi-chop(day, S))            // đáy = mảng điểm 3D bất kì
+#da-dien(..khoi-lang-tru(day, v))        // đáy tịnh tiến theo vectơ v
+#da-dien(..khoi-chop-cut(day, day-tren)) // hai đáy cùng số đỉnh
+
+// tự khai đỉnh + mặt (mỗi mặt là mảng CHỈ SỐ đỉnh)
+#da-dien(
+  dinh: ((0,0,0), (3.2,0,0), (0,3,0), (0,0,3)),
+  mat: ((0,1,2), (0,1,3), (0,2,3), (1,2,3)),
+  ten: ($O$, $A$, $B$, $C$), to: blue.lighten(88%),
+)
+```
+
+Tham số của `da-dien` / `ve-da-dien`: `ten` (mảng nhãn theo thứ tự đỉnh),
+`huong` (auto = tự đặt nhãn vào KHE GÓC RỘNG NHẤT giữa các cạnh nên không đè
+lên nét), `to` (màu tô các mặt trước), `to-mat` (mảng màu riêng từng mặt,
+`auto` = theo `to`), `hien-khuat: false` (bỏ nét khuất, ẩn luôn đỉnh chỉ thuộc
+mặt sau), `mau-khuat` / `day-khuat`, `hien-dinh`, `bk`, `w`, `le`,
+`them: (ctx, p) => ...` (`p` chiếu `(x, y, z)` → điểm 2D, dùng được với MỌI hàm
+vẽ phẳng). Bản `ve-da-dien(ctx, ...)` vẽ vào khung có sẵn, `da-dien(...)` tự
+tạo khung.
+
+**Camera** — `cam:` nhận một trong:
+
+```typ
+cam: chieu-xien(goc: 40deg, k: 0.5)              // mặc định, khớp hình dựng sẵn
+cam: chieu-truc-giao(ngang: 65deg, cao: 22deg)   // camera Euler thật
+cam: chieu-oxyz(k: 0.55, goc: 35deg)             // khớp hệ trục #oxyz
+cam: P => (P.at(1), P.at(2))                     // hoặc hàm chiếu tuỳ ý
+```
+
+Hướng nhìn (để biết mặt nào là mặt trước) được SUY RA từ ma trận chiếu, nên
+hàm chiếu tuỳ ý cũng phân biệt nét khuất đúng.
+
+**Mặt phẳng trong Oxyz** — gọi trong `oxyz(them: (ctx, t3) => ...)`; phần trục
+toạ độ nằm SAU mặt phẳng TỰ vẽ đứt:
+
+```typ
+#oxyz(x: 5, y: 6, z: 5, them: (ctx, t3) => {
+  // x/4 + y/5 + z/3.5 = 1, cắt ba trục tại A(4,0,0), B(0,5,0), C(0,0,3.5)
+  mat-phang-oxyz(ctx, t3, 4, 5, 3.5, ten-dinh: true, ten: $(P)$)
+  // mặt phẳng lơ lửng: tâm + hai nửa-vectơ (4 đỉnh = tam ± u ± v)
+  mat-phang-bh(ctx, t3, (2.2, 2.8, 2.6), (2.4, 0, 0), (0, 2.6, 0),
+    ten: $(alpha)$, truc: ((0, 5), (0, 6), (0, 5)))
+})
+```
+
+`truc:` khai phạm vi ba trục để xử lí nét đứt (`auto` của `mat-phang-oxyz` =
+từ gốc tới mốc cắt trục; `none` = không xử lí).
+
+**Thiết diện khối lồi**:
+
+```typ
+#let ch = khoi-chop-deu(n: 4, R: 1.9, cao: 3.6)
+#da-dien-thiet-dien(..ch, mp: mp-qua-3-diem(A, M, N), td: (mau: red))
+// mặt phẳng: mp-qua-3-diem(A, B, C) · mp-qua-phap(P, n) · mp-cat-truc(a, b, c)
+//            mp-song-song(mp, P)
+// thiet-dien(dinh, mat, mp) TRẢ VỀ mảng điểm 3D đã sắp theo VÒNG
+// ve-thiet-dien(ctx, dinh:, mat:, mp:) vẽ vào khung có sẵn
+```
+
+Cạnh thiết diện nằm trên mặt THẤY vẽ liền, nằm trên mặt KHUẤT vẽ đứt. Mặt
+phẳng đi qua đỉnh của khối vẫn xử lí đúng.
+
+Vectơ 3D để dựng điểm: `v3-cong`, `v3-tru`, `v3-nhan`, `v3-vo-huong`,
+`v3-co-huong`, `v3-dai`, `v3-chuan`, `trung-diem-3d(A, B)`, `chia-3d(A, B, t)`,
+`tam-3d(ds)`, `day-deu(n, R, z: 0)`, `phap-da-giac(ds)`, `phan-tich-khoi(dinh, mat)`.
+
+**Điểm phụ và đoạn phụ trong khối** — `diem:` và `duong:` (có ở cả `da-dien`,
+`ve-da-dien` và `da-dien-thiet-dien`):
+
+```typ
+#let cd = khoi-chop-deu(n: 4, R: 1.9, cao: 3.6)
+#let (A, B, C, D, S) = cd.dinh
+#let O = tam-3d((A, B, C, D))              // tâm đáy
+#let M = trung-diem-3d(S, B)               // trung điểm SB
+#let N = diem-canh(cd.dinh, 2, 4, t: 0.6)  // trên cạnh nối đỉnh #2 với #4
+#let H = hinh-chieu-3d(A, S, C)            // chân đường vuông góc từ A xuống SC
+
+#da-dien(
+  ..cd, to: blue.lighten(92%),
+  diem: ((O, $O$), (M, $M$), (N, $N$), (H, $H$, auto, red)),
+  duong: (
+    (S, O, (mau: red, vuong: A, ten: $h$, tai: 0.22, huong: "right")),
+    (A, H, (mau: red)),
+    (A, M),
+  ),
+)
+```
+
+Mỗi mục của `diem:` là `P` · `(P, ten)` · `(P, ten, huong)` · `(P, ten, huong, mau)`. Điểm nằm **trên một cạnh** của khối thì nhãn TỰ đặt vuông góc với cạnh
+đó (đúng lối sách); điểm khác thì nhãn toả ra xa tâm hình chiếu.
+
+Mỗi mục của `duong:` là `(A, B)` hoặc `(A, B, tuỳ-chọn)`, tuỳ-chọn là dict nhận
+`mau`, `day`, `ten`, `tai`, `huong`, `cach`, `dut` (ép kiểu nét), `hien-khuat`,
+`mau-khuat`, `day-khuat`, `vuong` (một điểm $C$ — vẽ ký hiệu góc vuông tại $B$,
+giữa $BA$ và $BC$) và `r` (cỡ ký hiệu). Phần đoạn **bị khối che tự vẽ đứt**,
+phần thấy vẽ liền — một đoạn có thể vừa liền vừa đứt (đường cao $SO$ thấy ở
+ngoài rồi chui vào trong khối). Phép kiểm là CHÍNH XÁC, không quét mẫu: xét tia
+từ điểm về phía người nhìn có cắt khối lồi hay không.
+
+Với `hien-khuat: false`, điểm bị khối che, ký hiệu góc vuông và nhãn nằm ở chỗ
+bị che đều được ẩn theo.
+
+Tiện ích dựng điểm: `diem-canh(dinh, i, j, t: 0.5)` (chia cạnh nối hai đỉnh),
+`hinh-chieu-3d(P, A, B)` (chân đường vuông góc hạ xuống đường thẳng $AB$),
+`hinh-chieu-mp(P, mp)` (hình chiếu lên mặt phẳng), `tam-3d(ds)` (tâm của mảng
+điểm — dùng lấy tâm đáy).
+
+GIỚI HẠN: quy tắc nét khuất chỉ đúng với khối LỒI (đủ cho toàn bộ THPT). Khối
+KHÔNG lồi, hai khối che nhau, hoặc mặt cong (cầu/trụ/nón) thì dùng các hàm cũ
+trong `hinh-khong-gian.typ`. File thử: `thu-da-dien.typ`.
+
+## Tính toán trong không gian Oxyz (`lib/oxyz-toan.typ`) (07/2026)
+
+Nhóm hàm **tính** (không vẽ): mọi hàm trả về **giá trị** (số, điểm, dict) hoặc
+**nội dung toán đã định dạng** (nhóm `pt-*` và `hien-*`), gọi thẳng, không cần
+`ctx`.
+
+Kiểu dữ liệu dùng chung:
+
+| Đối tượng   | Cách viết                                          |
+| --------------- | ---------------------------------------------------- |
+| điểm / vectơ | `(x, y, z)`                                        |
+| mặt phẳng     | `(a: , b: , c: , d: )` ⇔ `ax + by + cz + d = 0` |
+| đường thẳng | `(P: điểm đi qua, u: vectơ chỉ phương)`     |
+| mặt cầu       | `(I: tâm, R: bán kính)`                         |
+
+Các hàm nhận mặt phẳng cũng **nhận luôn dạng `(n: , d: )`** của `da-dien.typ`
+(`mp-qua-3-diem`, `mp-cat-truc`…), nên hai nhóm dùng lẫn được.
+
+### Vectơ
+
+```typst
+#let A = (1, 2, -1)
+#let B = (2, -1, 3)
+#let C = (-4, 7, 5)
+
+vecto-3d(A, B)                     // toạ độ AB = B − A  →  (1, -3, 4)
+do-dai-vecto(vecto-3d(A, B))       // độ dài (số thực)
+tich-vo-huong(u, v)                // u · v
+tich-co-huong(u, v)                // [u, v]
+tich-hon-tap(u, v, w)              // [u, v] · w  (định thức cấp ba)
+cos-goc-vecto(u, v)  ·  goc-vecto(u, v)      // số thực · kiểu angle
+cung-phuong(u, v) · vuong-goc(u, v) · dong-phang(u, v, w)   // true/false
+```
+
+Các phép cộng/trừ/nhân số có sẵn từ `da-dien.typ`: `v3-cong`, `v3-tru`,
+`v3-nhan`, `v3-chuan`, `v3-dai`.
+
+### Điểm — khoảng cách, điểm đặc biệt của tam giác
+
+```typst
+khoang-cach-3d(A, B)               // = do-dai-doan-3d(A, B)
+trung-diem-3d(A, B)  ·  chia-3d(A, B, t)
+trong-tam-3d(A, B, C)              // nhận số điểm tuỳ ý
+truc-tam-3d(A, B, C)               // hệ thức Euler H = A + B + C − 2O
+tam-ngoai-tiep-3d(A, B, C)  ·  ban-kinh-ngoai-tiep-3d(A, B, C)
+tam-noi-tiep-3d(A, B, C)    ·  ban-kinh-noi-tiep-3d(A, B, C)
+tam-bang-tiep-3d(A, B, C)          // bàng tiếp TRONG GÓC A
+```
+
+### Diện tích — thể tích
+
+```typst
+dien-tich-tam-giac-3d(A, B, C)   dien-tich-hbh-3d(A, B, C)
+the-tich-tu-dien(A, B, C, D)     the-tich-hinh-hop(A, B, C, D)
+bon-diem-dong-phang(A, B, C, D)
+```
+
+### Mặt phẳng
+
+```typst
+mat-phang-qua-phap(A, (2, -3, 1))      // qua 1 điểm + 1 vectơ pháp tuyến
+mat-phang-qua-3-diem(A, B, C)
+mat-phang-doan-chan(p, q, r)           // x/p + y/q + z/r = 1
+mat-phang-trung-truc(A, B)
+mat-phang-song-song(mp, A)             // qua A, song song mp
+mat-phang-vuong-goc-duong(A, d)        // qua A, vuông góc đường thẳng d
+mat-phang-qua-2-phuong(A, u, v)
+
+#pt-mat-phang(mat-phang-qua-3-diem(A, B, C))   // $19x + 13y + 5z − 40 = 0$
+```
+
+Hệ số **tự rút gọn về nguyên tố cùng nhau**, hệ số khác 0 đầu tiên mang dấu
+dương. Đổi tên ẩn: `pt-mat-phang(P, an: ("X", "Y", "Z"))`.
+
+```typst
+phap-tuyen-mp(P)                  the-vao-mp(A, P)        // ax₀+by₀+cz₀+d
+khoang-cach-diem-mp(A, P)         goc-2-mp(P, Q)
+hinh-chieu-len-mp(A, P)           doi-xung-qua-mp(A, P)
+vi-tri-2-mp(P, Q)                 // "trùng nhau" | "song song" | "cắt nhau"
+```
+
+### Đường thẳng
+
+```typst
+#let d1 = duong-thang-qua-2-diem(A, B)
+#let d2 = duong-thang-qua-vtcp((1, 2, 3), (2, 0, -1))
+duong-thang-vuong-goc-mp(A, P)
+
+#pt-tham-so(d1)      // hệ cases(x = …, y = …, z = …), đổi tham số: t: "k"
+#pt-chinh-tac(d1)    // thành phần chỉ phương bằng 0 tự tách ra sau dấu phẩy
+```
+
+```typst
+khoang-cach-diem-duong(A, d)      khoang-cach-2-duong(d1, d2)
+hinh-chieu-len-duong(A, d)        doi-xung-qua-duong(A, d)
+goc-2-duong(d1, d2)               goc-duong-mp(d, P)
+vi-tri-2-duong(d1, d2)   // "trùng nhau" | "song song" | "cắt nhau" | "chéo nhau"
+giao-2-duong(d1, d2)     giao-duong-mp(d, P)     giao-2-mp(P, Q)   // none nếu không có
+vtcp-dep(u)              // rút gọn vectơ chỉ phương về nguyên, dấu đầu dương
+```
+
+### Mặt cầu
+
+```typst
+#let S = mat-cau((1, -2, 3), 5)
+mat-cau-duong-kinh(A, B)      mat-cau-tam-tiep-xuc-mp(I, P)
+mat-cau-qua-4-diem(A, B, C, D)          // đồng phẳng → none
+
+#pt-mat-cau(S)                 // $(x−1)² + (y+2)² + (z−3)² = 25$
+#pt-mat-cau-khai-trien(S)      // $x² + y² + z² − 2x + 4y − 6z − 11 = 0$
+
+vi-tri-mp-mat-cau(P, S)        // "cắt nhau" | "tiếp xúc" | "không cắt"
+duong-tron-giao(P, S)          // (I: tâm, R: bán kính) đường tròn giao tuyến
+```
+
+### Hiển thị — chính xác hay gần đúng
+
+```typst
+#hien-diem(A, ten: "A")            // $A(1; 2; −1)$
+#hien-vecto(u, ten: "AB")          // $arrow(A B) = (1; −3; 4)$
+#hien-so(v)                        // nguyên / phân số CHÍNH XÁC, nếu không thì thập phân
+#hien-gan-dung(v, chu-so: 2)       // giá trị gần đúng
+#hien-goc(goc-2-mp(P, Q))          // 77.7°
+#hien-can(4030)                    // căn thức đã rút thừa số chính phương
+```
+
+Các đại lượng chứa căn có bản **chính xác** riêng (không làm tròn):
+`hien-do-dai(u)`, `hien-khoang-cach(A, B)`, `hien-cos-goc(u, v)`,
+`hien-khoang-cach-diem-mp(A, P)`, `hien-khoang-cach-diem-duong(A, d)`,
+`hien-khoang-cach-2-duong(d1, d2)`, `hien-dien-tich-tam-giac(A, B, C)`,
+`hien-dien-tich-hbh(A, B, C)`, `hien-the-tich-tu-dien(A, B, C, D)`.
+
+> `hien-so` chỉ nhận dạng số nguyên và phân số nên **luôn đúng**; muốn ra căn
+> thức thì dùng đúng hàm `hien-*` ở trên. (`so-toan` của `do-thi.typ` có đoán
+> thêm dạng căn nên với số vô tỉ bất kì có thể ra một dạng "đẹp" mà sai.)
+
+### Tính xong thì vẽ
+
+```typst
+#oxyz(w: 8cm, x: 4.4, y: 5.4, z: 4.4, them: (ctx, t3) => {
+  let Q = mat-phang-qua-phap((1, 1.2, 1.4), (1, 1, 1))
+  let (T, u, v) = khung-mp(Q, tam: (1, 1.2, 1.4), r: 2.5)  // khung để vẽ
+  mat-phang-bh(ctx, t3, T, u, v, ten: $(alpha)$)
+  let H = hinh-chieu-len-mp((0, 0, 0), Q)
+  doan-oxyz(ctx, t3, (0, 0, 0), H, mau: red, dut: true)
+})
+```
+
+`khung-mp(mp, tam: auto, r: 2)` trả `(tâm, u, v)` để đưa thẳng vào
+`mat-phang-bh`; `mp-de-ve(mp)` đổi mặt phẳng sang dạng `(n: , d: )` của
+`da-dien.typ`. Mặt phẳng dạng đoạn chắn vẽ bằng `mat-phang-oxyz(ctx, t3, p, q, r)`.
+
+File thử: `thu-oxyz.typ`.

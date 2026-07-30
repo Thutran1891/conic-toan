@@ -436,12 +436,107 @@
   )
 }
 
+// ---------- DÒ NHÃN THỨ TỰ GÕ TAY (chống lặp "a) a) …") ----------
+// Người soạn (hoặc AI sinh bài) hay tự gõ sẵn "a)", "1.", "(b)"… vào đầu item,
+// trong khi cot-item vốn TỰ đánh nhãn ⇒ ra "a) a) Phải quay…". Bộ dò dưới đây
+// đọc CHUỖI ĐẦU của từng item; item nào đã có nhãn thì cot-item bỏ nhãn tự động.
+//   NHẬN: a) a. a: A) (a) [b] 1) 1. (2) ii) IV.
+//   KHÔNG nhận: "0,5 lít" · "0.5 lít" (sau dấu là chữ số) · "Ta có" · "$x = 1$"
+#let _dau-nhan = (")", ".", ":")
+#let _chu-cai = "abcdefghijklmnopqrstuvwxyz"
+#let _chu-so = "0123456789"
+#let _so-la-ma = ("i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
+  "xi", "xii")
+
+// Chuỗi văn bản ĐẦU của một nội dung (chỉ cần vài ký tự đủ soi nhãn).
+// Gặp "vật cản" (toán, hình, bảng, danh sách) thì trả "$" để chắc chắn không khớp.
+#let _dau-van(c, gh: 10) = {
+  if c == none { return "" }
+  let t = type(c)
+  if t == int or t == float { return str(c) }
+  if t == str { return c }
+  if t == array {
+    let s = ""
+    for x in c {
+      s = s + _dau-van(x, gh: gh)
+      if s.trim(at: start).clusters().len() >= gh { break }
+    }
+    return s
+  }
+  if t != content { return "" }
+  let f = c.func()
+  if f == _f-space or f == linebreak or f == parbreak { return " " }
+  if f == metadata { return "" }
+  if _la-khoi(f) or f == math.equation { return "$" }
+  if c.has("text") { return if type(c.text) == str { c.text } else { "$" } }
+  if c.has("children") { return _dau-van(c.children, gh: gh) }
+  if c.has("body") { return _dau-van(c.body, gh: gh) }
+  if c.has("child") { return _dau-van(c.child, gh: gh) }   // phần tử styled
+  ""
+}
+
+// Thứ tự của nhãn gõ tay ở đầu item: 1 cho a)/1)/(a), 2 cho b)/2)… ;
+// none = không thấy nhãn nào.
+#let _thu-nhan-tay(c) = {
+  let cl = _dau-van(c).trim(at: start).clusters()
+  if cl.len() == 0 { return none }
+  let mo = (cl.at(0) == "(" or cl.at(0) == "[")
+  let i = if mo { 1 } else { 0 }
+  // thân nhãn: TOÀN chữ cái hoặc TOÀN chữ số, tối đa 4 ký tự
+  let than = ""
+  let loai = none
+  while i < cl.len() and than.clusters().len() < 4 {
+    let l = lower(cl.at(i))
+    let la-so = (_chu-so.contains(l) and loai != "chu")
+    let la-chu = (_chu-cai.contains(l) and loai != "so")
+    if la-so { loai = "so" } else if la-chu { loai = "chu" } else { break }
+    than = than + l
+    i = i + 1
+  }
+  if loai == none or i >= cl.len() { return none }
+  // dấu ngăn: trong ngoặc thì phải đóng ngoặc, ngoài ngoặc thì ) . :
+  let d = cl.at(i)
+  let hop-le = if mo { d == ")" or d == "]" } else { _dau-nhan.contains(d) }
+  if not hop-le { return none }
+  // Sau dấu CHẤM / HAI CHẤM bắt buộc là khoảng trắng hoặc hết chuỗi, kẻo nhận
+  // nhầm "0.5 lít" hay "12:30". Sau dấu ĐÓNG NGOẶC thì "a)Nội dung" vẫn tính.
+  i = i + 1
+  let can-cach = (d == "." or d == ":")
+  if can-cach and i < cl.len() and cl.at(i).trim() != "" { return none }
+  if loai == "so" {
+    if than.starts-with("0") { return none }   // "01." không phải nhãn
+    let k = int(than)
+    return if k >= 1 and k <= 99 { k } else { none }
+  }
+  if than.clusters().len() == 1 {
+    let k = _chu-cai.clusters().position(x => x == than)
+    return if k == none { none } else { k + 1 }
+  }
+  let k = _so-la-ma.position(x => x == than)
+  if k == none { none } else { k + 1 }
+}
+
+// Quyết định BỎ nhãn tự động cho từng item:
+//   • MỌI item đều đã có nhãn tay -> bỏ hết (kể cả khi đánh tiếp d), e), f)).
+//   • chỉ VÀI item có nhãn tay -> chỉ bỏ ở item mà nhãn tay ĐÚNG thứ tự của nó
+//     (tránh nhận nhầm câu mở đầu bằng "A. B. C thẳng hàng").
+#let _bo-nhan-tu-dong(items) = {
+  let n = items.len()
+  let thu = items.map(_thu-nhan-tay)
+  let co = thu.filter(x => x != none).len()
+  if co == n and n > 0 { range(n).map(i => true) } else {
+    range(n).map(i => thu.at(i) == i + 1)
+  }
+}
+
 // ---------- CHIA CỘT CÁC ITEM (dùng trong thân câu, nhất là TL) ----------
 // Tự đánh nhãn a) b) c)... và xếp các item thành nhiều cột.
 // so-cot: auto => ĐO item dài nhất rồi chọn số cột lớn nhất còn vừa bề rộng
 //         (thử lần lượt trong `muc-cot`); hoặc số cột cố định.
 // theo-cot: true => xếp DỌC theo cột (a,b,c | d,e,f); false => theo hàng.
 // kieu-nhan: mẫu numbering ("a)", "1)", ...); none => không đánh nhãn.
+// do-nhan-tay: true (mặc định) => item nào ĐÃ gõ sẵn "a)", "1.", "(b)"… thì
+//   KHÔNG đánh nhãn tự động nữa (chống lặp "a) a) …"); false => luôn đánh.
 //
 // LƯU Ý (beamer): các `\` NẰM TRONG một item chỉ là xuống dòng thường —
 // KHÔNG tạo bước hoạt hình, vì chúng nằm trong lưới nên bộ tách bước ở cấp
@@ -457,13 +552,17 @@
   dem: 42pt,               // đệm mỗi cột (nhãn + khoảng cách), như cau-mc
   theo-cot: true,
   kieu-nhan: "a)",
+  do-nhan-tay: true,       // dò nhãn a)/1)… gõ sẵn trong item -> không đánh chồng
   cach-cot: 14pt,
   cach-hang: 8pt,
 ) = {
   let items = noi-dung.pos()
   let n = items.len()
   if n == 0 { return }
-  let nhan(i) = if kieu-nhan == none { [] } else { [#numbering(kieu-nhan, i + 1) ] }
+  let bo = if do-nhan-tay { _bo-nhan-tu-dong(items) } else { range(n).map(i => false) }
+  let nhan(i) = if kieu-nhan == none or bo.at(i) { [] } else {
+    [#numbering(kieu-nhan, i + 1) ]
+  }
   let o(i) = box(width: 100%, [#nhan(i)#items.at(i)])
   context layout(kich => {
     let so = if so-cot == auto {
