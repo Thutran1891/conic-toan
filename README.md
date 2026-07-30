@@ -685,8 +685,8 @@ khoảng `bk`, quay góc `goc` (số trần = ĐỘ, nhận cả `30deg`; dươn
 kim đồng hồ). TikZ `(30:2)` ⇔ `toa-cuc((0,0), 2, 30)`. Ví dụ lục giác đều:
 
 ```typst
-let dinh = range(6).map(k => toa-cuc((0, 0), 2.6, 60 * k))
-duong-gap-khuc(ctx, dinh, dong: true)
+#let dinh = range(6).map(k => toa-cuc((0, 0), 2.6, 60 * k))
+#duong-gap-khuc(ctx, dinh, dong: true)
 ```
 
 Lưu ý: `gach-vung` mô tả miền theo toạ độ GỐC của khung (không qua ctx-quay);
@@ -1341,10 +1341,12 @@ và `tan-so:` — một nguồn số liệu dùng cho cả bảng lẫn biểu �
 // HISTOGRAM — cột dính sát nhau (tần số ghép nhóm, Toán 11–12)
 #bieu-do-tan-so(moc: (150, 155, 160, 165, 170, 175), tan-so: (5, 12, 18, 9, 4),
   ten-x: [Chiều cao (cm)])
-#bieu-do-tan-so(moc: .., tan-so: .., gap-khuc: true)  // + gấp khúc tần số chồng lên
+#bieu-do-tan-so(moc: (150, 155, 160, 165, 170, 175), tan-so: (5, 12, 18, 9, 4),
+  gap-khuc: true)  // + gấp khúc tần số chồng lên
 
 // ĐƯỜNG GẤP KHÚC TẦN SỐ đứng riêng (nối trung điểm, kéo dài về 0 hai đầu)
-#da-giac-tan-so(moc: .., tan-so: .., keo-dai: true)
+#da-giac-tan-so(moc: (150, 155, 160, 165, 170, 175), tan-so: (5, 12, 18, 9, 4),
+  keo-dai: true)
 
 // BIỂU ĐỒ CỘT RỜI — giá trị rời rạc: số (đặt đúng hoành độ) hoặc chữ
 #bieu-do-cot(gia-tri: (0, 1, 2, 3, 4), tan-so: (4, 9, 13, 6, 2), ten-x: [Số con])
