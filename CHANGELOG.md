@@ -31,7 +31,9 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
 
 - README: ví dụ mục *Giãn dòng* viết `bai-giang.with(..., gian-dong: 1.25)` —
   Typst đọc `...` trơ là toán tử spread nên báo lỗi cú pháp; thay bằng tham số
-  cụ thể.
+  cụ thể. Khối lệnh biên dịch nhiều mã đề đánh dấu là ```` ```sh ```` để
+  `typst-package-check` không đọc nó như mã Typst (`# cùng thứ tự` bị hiểu là
+  mở vùng code).
 - `examples/main.typ`: bỏ slide thử nghiệm gọi `tam-giac-vuong` ngoài `#hinh`
   khiến file không biên dịch được.
 
