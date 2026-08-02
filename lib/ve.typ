@@ -12,6 +12,9 @@
 // (xem _voi-ctx ngay dưới hinh). Đẩy vào khi vào khung, lấy ra khi rời khung.
 #let _ctx-ht = state("bg-ctx-ht", ())
 
+/// Khung vẽ: đặt cửa sổ toạ độ toán (xmin..xmax, ymin..ymax) rồi vẽ bên trong.
+/// Mọi lệnh vẽ đặt trong thân hàm này là tự có `ctx`, không phải gõ.
+/// -> content
 #let hinh(
   w: 8cm,
   h: auto,
@@ -86,6 +89,9 @@
 // Toạ độ CỰC kiểu TikZ: điểm cách `tam` một khoảng `bk`, quay góc `goc`
 // (số trần = ĐỘ, nhận cả kiểu angle 30deg/0.5rad; dương = ngược kim đồng hồ).
 //   toa-cuc((0,0), 2, 30)  ~  TikZ (30:2)
+/// Toạ độ cực kiểu TikZ: điểm cách `tam` một khoảng `bk`, theo `goc`
+/// (số trần = độ, dương = ngược kim đồng hồ). TikZ `(30:2)` <=> `toa-cuc((0,0), 2, 30)`.
+/// TRẢ VỀ điểm, không vẽ gì.
 #let toa-cuc(tam, bk, goc) = {
   let g = if type(goc) == angle { goc } else { goc * 1deg }
   (tam.at(0) + bk * calc.cos(g), tam.at(1) + bk * calc.sin(g))
@@ -191,6 +197,9 @@
 //        "below-left", "below-right", "center"
 // (tên tiếng Việt cũ "tren", "duoi", "trai", "phai", ... vẫn dùng được)
 // quay: góc xoay chữ (vd 90deg, -45deg, hoặc goc-truc(...)). Mặc định 0deg.
+/// Đặt chữ/công thức tại điểm P. `huong` là phía đặt chữ so với P
+/// ("above", "below", "left", "right", "above-left"… hoặc tuple (dx, dy)),
+/// `cach` là khoảng cách tới P, `quay` để xoay chữ theo đường.
 #let nhan(ctx, P, noi-dung, huong: "above", cach: 6pt, mau: black, quay: 0deg) = {
   let p = toa(ctx, P)
   // huong: tên hướng, HOẶC vectơ (dx, dy) trên trang (y hướng XUỐNG) — dùng
@@ -231,6 +240,8 @@
 //   Ví dụ: doan(A, B, ten: $2a$)            // giữa đoạn, phía trên
 //          doan(A, B, ten: $h$, tai: 0.7, huong: "right", cach: 4pt)
 //          doan(A, B, ten: [đường chéo], ten-quay: true)
+/// Đoạn thẳng A–B. Kèm nhãn giữa đoạn bằng `ten:` (đặt chỗ khác bằng `tai:`
+/// tỉ lệ 0..1, lệch sang bên bằng `huong:`, xoay theo đoạn bằng `ten-quay: true`).
 #let doan(
   ctx, A, B,
   mau: black, day: 1pt, dut: false,
@@ -253,6 +264,8 @@
 
 // Điểm (chấm tròn) + nhãn tuỳ chọn.
 // cach: khoảng cách nhãn tới điểm · mau-ten: màu chữ (auto = màu chấm).
+/// Chấm một điểm, kèm tên: `diem(A, ten: $A$, huong: "below-left")`.
+/// Nhiều điểm một lệnh thì dùng `cac-diem`.
 #let diem(ctx, P, ten: none, huong: "tren", bk: 2pt, mau: black, cach: 6pt, mau-ten: black) = {
   let p = toa(ctx, P)
   place(dx: p.at(0) - bk, dy: p.at(1) - bk, circle(radius: bk, fill: mau, stroke: none))
@@ -301,6 +314,8 @@
 }
 
 // Đa giác kín: viền + tô màu tuỳ chọn (to: màu hoặc none).
+/// Đa giác khép kín. Đỉnh truyền vào dưới dạng MỘT MẢNG:
+/// `da-giac((A, B, C))` — không phải `da-giac(A, B, C)`. `to:` để tô màu.
 #let da-giac(ctx, cac-diem, mau: black, day: 1pt, dut: false, to: none) = {
   if to != none {
     da-giac-pt(cac-diem.map(P => toa-pt(ctx, P)), to: to)
@@ -345,6 +360,9 @@
 #let _la-duong(x) = type(x) == dictionary and x.at("bg-duong", default: false)
 #let _la-diem(x) = type(x) == array and x.len() == 2 and type(x.at(0)) != array
 
+/// Vẽ NHIỀU nét trong một lệnh: điểm liền nhau thành một đường gấp khúc,
+/// mỗi MẢNG điểm là một nét riêng — `cac-doan((A, B), (C, D), (M, N))`.
+/// Nét cần kiểu riêng thì bọc `duong(...)`.
 #let cac-doan(
   ctx, ..noi-dung,
   mau: black, day: 1pt, dut: false, dong: false, to: none, mui-ten: false,
@@ -421,6 +439,8 @@
 //     (A, $A$, "below-left"), (B, $B$, "below-right"), (C, $C$, "above"),
 //     mau: blue, bk: 2.2pt,
 //   )
+/// Chấm + đặt tên nhiều điểm một lệnh. Mỗi mục: `A` | `(A, $A$)` |
+/// `(A, $A$, "left")` | `(A, $A$, "left", red)`.
 #let cac-diem(
   ctx, ..noi-dung,
   mau: black, bk: 2pt, huong: "above", cach: 6pt, mau-ten: black,
@@ -780,6 +800,10 @@
 //           Khác `so-cung` (vẽ nhiều cung đồng tâm) — `vach` chỉ vẽ MỘT cung
 //           rồi gạch 1/2/3 vạch nhỏ vuông góc cung tại giữa cung.
 //           Bí danh `vach-danh-dau:` dùng được y hệt.
+/// Đánh dấu góc (không vuông) TẠI O, giữa hai tia O→A và O→B.
+/// ĐỈNH là đối số ĐẦU. Quen lối TikZ (đỉnh ở giữa) thì dùng `ve-goc(A, O, B)`.
+/// `ten:` nhãn · `so-do: true` tự ghi số đo · `vach: 1..3` vạch góc bằng nhau ·
+/// `so-cung: 1..3` cung đồng tâm · `to:` tô quạt · `cach-nhan:` nhãn xa/gần cung.
 #let goc(
   ctx, O, A, B,
   r: 0.45,          // bán kính cung (đơn vị toạ độ)
@@ -852,6 +876,8 @@
 }
 
 // Ký hiệu góc vuông tại O (giữa hai tia O->A, O->B).
+/// Ký hiệu góc vuông TẠI O (giữa hai tia O→A, O→B). ĐỈNH là đối số ĐẦU.
+/// Quen lối TikZ (đỉnh ở giữa) thì dùng `ve-goc-vuong(A, O, B)`.
 #let goc-vuong(ctx, O, A, B, r: 0.32, mau: black, day: 0.8pt) = {
   let ka = calc.sqrt(calc.pow(A.at(0) - O.at(0), 2) + calc.pow(A.at(1) - O.at(1), 2))
   let kb = calc.sqrt(calc.pow(B.at(0) - O.at(0), 2) + calc.pow(B.at(1) - O.at(1), 2))
@@ -863,6 +889,23 @@
   let P3 = (O.at(0) + v.at(0), O.at(1) + v.at(1))
   duong-cong(ctx, (P1, P2, P3), mau: mau, day: day)
 }
+
+// ---------- Lối viết TikZ: ĐỈNH góc đặt ở GIỮA ----------
+// `goc`/`goc-vuong` ở trên đặt ĐỈNH góc làm đối số ĐẦU: goc-vuong(O, A, B).
+// TikZ lại viết đỉnh ở GIỮA (pic angle = A--O--B), nên hai hàm dưới đây nhận
+// thứ tự quen thuộc đó — đỉnh là đối số THỨ HAI:
+//     ve-goc(A, O, B, ...)        <=>  goc(O, A, B, ...)
+//     ve-goc-vuong(A, O, B, ...)  <=>  goc-vuong(O, A, B, ...)
+// Mọi tuỳ chọn (r, ten, so-do, so-cung, vach, to, mau, day, cach-nhan…) giữ
+// nguyên tên và được truyền thẳng xuống hàm gốc, nên hai lối dùng lẫn được
+// trong cùng một hình. Hàm gốc KHÔNG đổi ⇒ mọi bài cũ chạy y như trước.
+/// Đánh dấu góc TẠI O theo lối TikZ: ĐỈNH nằm GIỮA — `ve-goc(A, O, B)`.
+/// Cùng bộ tuỳ chọn với `goc` (r, ten, so-do, so-cung, vach, to, mau, day, cach-nhan).
+#let ve-goc(ctx, A, O, B, ..tuy-chon) = goc(ctx, O, A, B, ..tuy-chon)
+
+/// Ký hiệu góc vuông TẠI O theo lối TikZ: ĐỈNH nằm GIỮA — `ve-goc-vuong(A, O, B)`.
+/// Cùng bộ tuỳ chọn với `goc-vuong` (r, mau, day).
+#let ve-goc-vuong(ctx, A, O, B, ..tuy-chon) = goc-vuong(ctx, O, A, B, ..tuy-chon)
 
 // ---------- Đánh dấu đoạn bằng nhau (1..3 vạch tại trung điểm) ----------
 #let danh-dau(ctx, A, B, so: 1, dai: 6pt, mau: black, day: 1pt) = {
@@ -890,6 +933,7 @@
 }
 
 // ---------- Tiện ích hình học phẳng (tính toán) ----------
+/// TRẢ VỀ trung điểm của A và B (chỉ tính, không vẽ).
 #let trung-diem(A, B) = ((A.at(0) + B.at(0)) / 2, (A.at(1) + B.at(1)) / 2)
 
 #let khoang-cach(A, B) = calc.sqrt(
@@ -897,12 +941,15 @@
 )
 
 // Điểm chia: A + t*(B - A).
+/// TRẢ VỀ điểm M trên đường AB với AM/AB = t (t = 0.5 là trung điểm,
+/// t > 1 là kéo dài quá B, t < 0 là ngược về phía A).
 #let chia(A, B, t) = (
   A.at(0) + t * (B.at(0) - A.at(0)),
   A.at(1) + t * (B.at(1) - A.at(1)),
 )
 
 // Chân đường vuông góc hạ từ P xuống đường thẳng AB.
+/// TRẢ VỀ hình chiếu vuông góc của P lên đường thẳng AB (chân đường cao).
 #let hinh-chieu(P, A, B) = {
   let ux = B.at(0) - A.at(0)
   let uy = B.at(1) - A.at(1)

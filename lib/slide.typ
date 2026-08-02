@@ -31,6 +31,31 @@
 #let _chuan-hs(hs) = lower(hs).replace("-", "").replace("_", "")
 #let _la-sach(hs) = _chuan-hs(hs) != "beamer"   // khác beamer = bản in A4
 
+// ----- GIÃN DÒNG (khoảng cách giữa các dòng) -----
+// `nen`   : leading NỀN của hồ sơ đang dùng (bai-giang/de-toan ghi vào);
+// `he-so` : HỆ SỐ NHÂN do người dùng đặt — 1.0 = mốc mặc định,
+//           1.3 = giãn thêm 30%, 0.9 = thu lại 10%.
+// Cách đặt:
+//   #bai-giang(gian-dong: 1.25)  /  #de-toan(gian-dong: 1.25)  — toàn tài liệu
+//   #gian-dong(1.4)              — đổi giữa bài (áp cho các slide/khung sau đó)
+//   #tn(..., gian-dong: 1.4)     — ghi đè RIÊNG một câu
+// Dùng khi phân số / căn thức / chỉ số chồng tầng làm hai dòng dính nhau.
+#let _gd = state("bg-gian-dong", (nen: 0.62em, he-so: 1.0))
+#let _dat-gian(nen, k) = _gd.update((nen: nen, he-so: k))
+#let gian-dong(k) = _gd.update(g => (nen: g.nen, he-so: k))
+// Hai helper dưới đây CHỈ gọi được trong `context`.
+#let _he-so-gian() = _gd.get().he-so
+#let _gian-ht() = {
+  let g = _gd.get()
+  g.nen * g.he-so
+}
+// Áp hệ số giãn dòng cho MỘT KHỐI nội dung bất kì (phần còn lại không đổi):
+//   #voi-gian-dong(1.4)[ ... đoạn nhiều phân số ... ]
+#let voi-gian-dong(k, body) = context {
+  set par(leading: _gd.get().nen * k)
+  body
+}
+
 // ----- Bộ đếm "đóng băng" theo slide -----
 // Slide hoạt hình được in thành nhiều trang lặp; nếu đếm kiểu thường thì
 // "Ví dụ 1" sẽ thành "Ví dụ 2, 3..." qua từng bước. Cách giải quyết:
@@ -328,6 +353,12 @@
                        // Nhân vào cỡ chữ nền -> mọi phần thân + khung dùng em
                        // (định nghĩa/ví dụ/lời giải...) co giãn theo; các thanh
                        // tiêu đề/header/footer (pt tuyệt đối) giữ nguyên.
+  gian-dong: 1.0,      // HỆ SỐ GIÃN DÒNG thân nội dung (toàn file):
+                       // 1.0 = mốc mặc định (A4 0.6em, trình chiếu 0.62em);
+                       // 1.25 = giãn thêm 25%; 0.9 = thu lại 10%. Tăng khi
+                       // phân số/căn thức nhiều tầng làm hai dòng dính nhau.
+                       // Đổi giữa bài: #gian-dong(1.4); riêng một câu:
+                       // #vd/#tn/#ds/... (gian-dong: 1.4).
   mau-cong-thuc: auto, // MÀU MỌI CÔNG THỨC/KÍ HIỆU trong $...$ (toàn file):
                        // auto (mặc định) = thừa kế màu chữ xung quanh — thân
                        // bài màu đen nên công thức hiển thị ĐEN, còn công thức
@@ -388,7 +419,8 @@
         [Trang #counter(page).display() / #counter(page).final().first()])),
     )
     set text(font: phong, size: 11.5pt * ti-le-chu, lang: "vi", fill: rgb("#1c2833"))
-    set par(justify: true, leading: 0.6em)
+    _dat-gian(0.6em, gian-dong)
+    set par(justify: true, leading: 0.6em * gian-dong)
     set heading(numbering: none)   // không đánh số — chỉ dùng thanh màu
     // Thanh tiêu đề màu thay cho heading (giữ heading để có bookmark + mục lục).
     show heading.where(level: 1): it => block(width: 100%, above: 16pt, below: 10pt,
@@ -419,7 +451,8 @@
     state("ch-hien-da", false).update(true)
     set page(paper: "presentation-16-9", margin: 0pt, fill: _giay)
     set text(font: phong, size: co-chu * ti-le-chu, lang: "vi", fill: rgb("#1c2833"))
-    set par(justify: false, leading: 0.62em)
+    _dat-gian(0.62em, gian-dong)
+    set par(justify: false, leading: 0.62em * gian-dong)
 
     // ----- Trang bìa (1 trong 5 kiểu) -----
     _ve-bia(_kb, mau-chinh, mau-nhan, don-vi, logo, tieu-de, phu-de,
@@ -481,10 +514,17 @@
 // đầu/chân trang lặp lại, số slide và chấm điều hướng giữ nguyên.
 #let slide(tieu-de: none, so-buoc: 1, body) = context {
   let tieu-de = _go-enum(tieu-de)
+  // Giãn dòng hiện hành (nen × he-so) — đặt lại ở mỗi slide để #gian-dong(k)
+  // gọi giữa bài có tác dụng cho các slide phía sau. Với he-so = 1.0 giá trị
+  // này TRÙNG mốc mặc định nên bố cục không đổi.
+  let _gl = _gian-ht()
   if _la-sach(_ho-so.get()) {
     // Bản in A4: thanh tiêu đề màu (heading cấp 2) + nội dung chảy liên tục.
     if tieu-de != none { heading(level: 2, tieu-de) }
-    block(above: 4pt, below: 12pt, body)
+    block(above: 4pt, below: 12pt, {
+      set par(leading: _gl)
+      body
+    })
   } else {
   for k in range(1, so-buoc + 1) {
     set page(
@@ -568,7 +608,10 @@
         muc: _muc-ht.get(), so: _dem-slide.get().first(),
       ))<bg-nav>])
     }
-    pad(x: 28pt, body)
+    pad(x: 28pt, {
+      set par(leading: _gl)
+      body
+    })
     // hết slide: cộng dồn số đã dùng vào tổng tích luỹ (đúng một lần)
     if k == so-buoc {
       context {

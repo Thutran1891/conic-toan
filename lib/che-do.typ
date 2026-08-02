@@ -17,8 +17,8 @@
 //    hd = hoạt động, lt = luyện tập, vdtt = vận dụng thực tế;
 //    tên cũ mc/tf/sa và dòng tao-cau-hoi cũ vẫn dùng được)
 // =====================================================================
-#import "slide.typ": slide, muc, bai-giang, lo, vi-du, loi-giai, _ho-so, _la-sach, _buoc-ht
-#import "cau-hoi.typ": cau-mc, cau-tf, cau-sa, cau-tl, cau-hd, cau-lt, cau-vdtt, bat-dap-an, tat-dap-an, voi-hinh, True, Dung
+#import "slide.typ": slide, muc, bai-giang, lo, vi-du, loi-giai, _ho-so, _la-sach, _buoc-ht, gian-dong, _gd, _dat-gian, _he-so-gian, _gian-ht, _bd-cau
+#import "cau-hoi.typ": cau-mc, cau-tf, cau-sa, cau-tl, cau-hd, cau-lt, cau-vdtt, bat-dap-an, tat-dap-an, voi-hinh, True, Dung, _la-y
 
 // Gộp tham số kiểu mới / kiểu cũ: ưu tiên giá trị kiểu mới nếu được đặt.
 #let _uu-tien(moi, cu) = if moi != none { moi } else { cu }
@@ -31,6 +31,171 @@
 
 // Mã đề khai ở de-toan -> lưu vào state để #bang-dap-an tự lấy (khỏi nhập tay).
 #let _ma-de = state("bg-ma-de", none)
+
+// =====================================================================
+// HOÁN VỊ (TRỘN ĐỀ) — công tắc đặt Ở ĐẦU FILE ĐỀ
+// ---------------------------------------------------------------------
+// Cách dùng (khung một file ngân hàng / một đề thi):
+//     #let ho-so = sys.inputs.at("ho-so", default: "dethi")
+//     #let hoan-vi = false        // <- ĐỔI THÀNH true LÀ TRỘN
+//     #show: de-toan.with(ho-so: ho-so, ma-de: "0101", hoan-vi: hoan-vi)
+//
+// NGUYÊN TẮC (chốt 08/2026):
+//   • Hoán vị các CÂU trong cùng MỘT NHÓM THỂ LOẠI: nhóm tn xáo với nhau,
+//     nhóm ds xáo với nhau, nhóm tln xáo với nhau. Câu tl GIỮ NGUYÊN thứ tự.
+//     "Nhóm" = dãy câu CÙNG LOẠI đứng liền nhau (chỉ cách nhau bằng dòng
+//     trống). Gặp #phan, một đoạn văn xen giữa, một câu tl... là hết nhóm và
+//     sang nhóm mới ⇒ câu KHÔNG BAO GIỜ nhảy qua tiêu đề phần.
+//   • Hoán vị 4 PHƯƠNG ÁN A/B/C/D của câu tn. Các Ý a/b/c/d của câu ds GIỮ
+//     NGUYÊN, KHÔNG hoán vị (ý sau thường dựa vào ý trước).
+//   • Chỉ chạy ở bản in A4 (dethi/loigiai); trình chiếu beamer không trộn.
+//   • dethi và loigiai cùng mầm ⇒ RA CÙNG MỘT THỨ TỰ, bảng đáp án luôn khớp.
+//
+// hoan-vi: false (mặc định) | true (trộn cả câu lẫn phương án)
+//          | "cau" (chỉ trộn thứ tự câu) | "pa" (chỉ trộn phương án)
+// mam:     MÃ TRỘN — auto (mặc định) = băm từ `ma-de`, nên hai mã đề 0101 /
+//          0102 tự cho hai thứ tự khác nhau; đặt tay `mam: 7` để ghi đè.
+//
+// GIỚI HẠN đã biết:
+//   • Câu tn viết theo FORM CŨ `dap-an: "B"` (chữ cái) KHÔNG được trộn phương
+//     án — trộn sẽ lệch đáp án. Muốn trộn thì bọc phương án đúng bằng True(...).
+//   • `khoa-pa: true` ở một câu tn ⇒ riêng câu đó giữ nguyên thứ tự phương án.
+// =====================================================================
+
+// ---------- Bộ sinh số giả ngẫu nhiên TẤT ĐỊNH (LCG 32 bit) ----------
+// Typst không có random. Dùng LCG để CÙNG một mầm luôn cho CÙNG một kết quả —
+// nhờ vậy bản dethi và bản loigiai (hai lần biên dịch khác nhau) trộn giống hệt.
+#let _hv-m = 2147483648
+#let _hv-tiep(s) = calc.rem(1103515245 * s + 12345, _hv-m)
+
+// Chuẩn hoá mầm: số / chuỗi / nội dung / none -> số nguyên không âm (băm djb2).
+#let _hv-mam(x) = {
+  if x == none or x == auto { return 20250101 }
+  if type(x) == int { return calc.rem(calc.abs(x), _hv-m) }
+  let s = if type(x) == str { x } else { repr(x) }
+  let h = 5381
+  for c in s.clusters() {
+    h = calc.rem(h * 33 + str.to-unicode(c), _hv-m)
+  }
+  h
+}
+
+// Xáo một mảng theo mầm — RÚT ngẫu nhiên không hoàn lại (khỏi gán theo chỉ số).
+#let _hv-xao(mang, mam) = {
+  let con = mang
+  let kq = ()
+  let s = _hv-tiep(_hv-mam(mam) + 1013904223)
+  while con.len() > 0 {
+    s = _hv-tiep(s)
+    let j = calc.rem(calc.quo(s, 65536), con.len())
+    kq.push(con.at(j))
+    con = con.slice(0, j) + con.slice(j + 1)
+  }
+  kq
+}
+
+// ---------- Nhãn nhận diện câu (đánh dấu chỗ được phép xáo) ----------
+#let _hv-nhan = (tn: <bg-cau-tn>, ds: <bg-cau-ds>, tln: <bg-cau-tln>)
+#let _gan-tn(c) = [#c <bg-cau-tn>]
+#let _gan-ds(c) = [#c <bg-cau-ds>]
+#let _gan-tln(c) = [#c <bg-cau-tln>]
+
+// Phần tử "trắng" giữa hai câu (dòng trống, xuống dòng, khoảng trắng,
+// metadata) — bỏ qua khi gom nhóm và LUÔN giữ nguyên vị trí lúc ghép lại.
+#let _hv-f-space = [ ].func()
+#let _hv-trong(c) = {
+  if type(c) == str { return c.trim() == "" }
+  if type(c) != content { return false }
+  let f = c.func()
+  f == _hv-f-space or f == parbreak or f == linebreak or f == metadata
+}
+
+// Loại của một phần tử: "tn" | "ds" | "tln" | none.
+// Nếu markup bọc câu trong một sequence MỘT phần tử thì bóc thêm một lớp.
+#let _hv-loai(c) = {
+  if type(c) != content { return none }
+  let l = c.at("label", default: none)
+  if l == _hv-nhan.tn { return "tn" }
+  if l == _hv-nhan.ds { return "ds" }
+  if l == _hv-nhan.tln { return "tln" }
+  if l == none and c.has("children") {
+    let ct = c.children.filter(x => not _hv-trong(x))
+    if ct.len() == 1 { return _hv-loai(ct.first()) }
+  }
+  none
+}
+
+// ---------- Xáo THỨ TỰ CÂU trong thân tài liệu ----------
+// Duyệt các phần tử cấp cao nhất, gom từng DÃY LIỀN NHAU cùng loại rồi hoán vị
+// các phần tử của dãy đó TẠI CHỖ (vị trí nào là câu tn thì sau khi trộn vẫn là
+// câu tn). Phần tử không nhận diện được giữ nguyên vị trí ⇒ nếu vì lý do nào đó
+// không nhận ra câu, tài liệu vẫn dựng đúng y như khi tắt trộn.
+#let _hv-xao-than(than, mam) = {
+  if type(than) != content or not than.has("children") { return than }
+  let cs = than.children
+  let n = cs.len()
+  let kq = ()
+  let nhom = 0
+  let i = 0
+  while i < n {
+    let loai = _hv-loai(cs.at(i))
+    if loai == none {
+      kq.push(cs.at(i))
+      i = i + 1
+    } else {
+      // gom dãy: các câu CÙNG loại, chỉ được cách nhau bằng phần tử trắng
+      let vt = ()
+      let cuoi = i
+      let j = i
+      while j < n {
+        let lj = _hv-loai(cs.at(j))
+        if lj == loai {
+          vt.push(j)
+          cuoi = j
+          j = j + 1
+        } else if _hv-trong(cs.at(j)) {
+          j = j + 1
+        } else {
+          break
+        }
+      }
+      nhom = nhom + 1
+      let cac = vt.map(k => cs.at(k))
+      let moi = if cac.len() > 1 { _hv-xao(cac, _hv-mam(mam) + nhom * 7919) } else { cac }
+      let d = 0
+      for k in range(i, cuoi + 1) {
+        if vt.contains(k) {
+          kq.push(moi.at(d))
+          d = d + 1
+        } else {
+          kq.push(cs.at(k))
+        }
+      }
+      i = cuoi + 1
+    }
+  }
+  if kq.len() == 0 { than } else { kq.join() }
+}
+
+// Trạng thái để #tn biết có xáo phương án hay không (và xáo theo mầm nào).
+#let _hv = state("bg-hoan-vi", (bat: false, mam: 0))
+
+// Tách công tắc hoan-vi thành hai cờ: xáo CÂU và xáo PHƯƠNG ÁN.
+#let _hv-che(h) = (
+  cau: h == true or h == "cau" or h == "ca-hai",
+  pa: h == true or h == "pa" or h == "ca-hai",
+)
+
+// Dùng như một show-rule RIÊNG khi tài liệu không đi qua #de-toan:
+//   #show: hoan-vi-de.with(true)
+//   #show: hoan-vi-de.with(true, mam: "0102")
+// (Đi qua #de-toan thì chỉ cần tham số hoan-vi: — khỏi gọi hàm này.)
+#let hoan-vi-de(bat, mam: auto, body) = {
+  let che = _hv-che(bat)
+  let m = _hv-mam(mam)
+  _hv.update((bat: che.pa, mam: m))
+  if che.cau { _hv-xao-than(body, m) } else { body }
+}
 
 // ---------- Tách lời giải thành từng dòng ----------
 // Nhận nội dung có dấu \ (hoặc mảng nội dung), trả về mảng các dòng.
@@ -90,23 +255,37 @@
 
 // ---------- Lời giải hiện dần từng dòng (dùng trong slide) ----------
 // Khung hiện từ bước `tu`; dòng thứ i hiện ở bước tu + i.
-// gian: giãn dòng trong lời giải (~150% so với thân slide 0.62em) —
-// phân số, căn thức chồng tầng không còn dính vào nhau.
-#let giai-buoc(nd, tu: 2, nhan: [Hướng dẫn giải. ], gian: 0.95em) = {
+// gian: giãn dòng trong lời giải — ĐỘ DÀI tuyệt đối (mốc 0.95em, ~150% so với
+//   thân slide 0.62em) để phân số, căn thức chồng tầng không dính vào nhau.
+//   `auto` (mặc định) = 0.95em × hệ số giãn dòng hiện hành.
+// gian-dong: HỆ SỐ giãn dòng riêng cho khung này (auto = lấy hệ số toàn tài
+//   liệu do #bai-giang/#de-toan/#gian-dong đặt).
+#let giai-buoc(nd, tu: 2, nhan: [Hướng dẫn giải. ], gian: auto, gian-dong: auto) = {
   let dong = tach-dong(nd)
   if dong.len() == 0 { return }
   lo(tu, block(
     width: 100%, inset: (left: 11pt, top: 5pt, bottom: 5pt),
     stroke: (left: 2.5pt + _luc), above: 10pt,
-    {
-      set par(leading: gian)
+    context {
+      let k = if gian-dong == auto { _he-so-gian() } else { gian-dong }
+      let g = if gian == auto { 0.95em * k } else { gian }
+      set par(leading: g)
       align(center, text(fill: _luc, weight: "bold", size: 0.84em, nhan))
       dong.at(0)
       for i in range(1, dong.len()) {
-        lo(tu + i, block(above: gian, dong.at(i)))
+        lo(tu + i, block(above: g, dong.at(i)))
       }
     },
   ))
+}
+
+// ---------- Ghi đè giãn dòng cho MỘT câu ----------
+// gd == auto -> giữ nguyên; ngược lại nhân hệ số gd vào leading NỀN của hồ sơ.
+#let _voi-gian(gd, nd) = if gd == auto { nd } else {
+  context {
+    set par(leading: _gd.get().nen * gd)
+    nd
+  }
 }
 
 // ---------- Thiết lập tài liệu theo hồ sơ ----------
@@ -135,17 +314,38 @@
   ti-le-chu: 1.0,      // HỆ SỐ PHÓNG CỠ CHỮ THÂN NỘI DUNG (toàn file) —
                        // 1.0 giữ nguyên; >1 to hơn, <1 nhỏ đi. Áp dụng cho
                        // cả 3 hồ sơ (beamer + A4 dethi/loigiai).
+  gian-dong: 1.0,      // HỆ SỐ GIÃN DÒNG (toàn file) — 1.0 = mốc mặc định
+                       // (A4 đề thi 0.65em, trình chiếu 0.62em); 1.25 = giãn
+                       // thêm 25%; 0.9 = thu lại 10%. Tăng khi phân số/căn
+                       // thức nhiều tầng làm hai dòng dính nhau. Đổi giữa
+                       // bài: #gian-dong(1.4); riêng một câu: tham số
+                       // gian-dong: của #vd/#tn/#ds/#tln/#tl/#hd/#lt/#vdtt.
   mau-cong-thuc: auto, // MÀU MỌI CÔNG THỨC trong $...$ (toàn file) — auto = thừa
                        // kế màu chữ (đen ở thân, trắng ở tiêu đề); đặt màu cụ
                        // thể để nhuộm tất cả. Dùng chung cho cả 3 hồ sơ.
+  hoan-vi: false,      // TRỘN ĐỀ — xem khối "HOÁN VỊ" ở đầu file này:
+                       //   false (mặc định) = giữ nguyên thứ tự soạn;
+                       //   true  = trộn thứ tự CÂU (theo nhóm tn/ds/tln, câu
+                       //           tl giữ nguyên) VÀ trộn phương án A/B/C/D
+                       //           của câu tn (ý a/b/c/d của ds giữ nguyên);
+                       //   "cau" = chỉ trộn thứ tự câu;
+                       //   "pa"  = chỉ trộn phương án.
+                       // Chỉ tác dụng ở bản in A4 (dethi/loigiai).
+  mam: auto,           // MÃ TRỘN: auto = băm từ `ma-de` (mã đề khác ⇒ thứ tự
+                       // khác); hoặc số/chuỗi tuỳ ý để ghi đè.
   phu-de: none, gv: none, ngay: none,
   body,
 ) = {
   let hs = _chuan-ho-so(ho-so)
   _ma-de.update(ma-de)   // lưu mã đề để #bang-dap-an tự đồng bộ
+  // ----- Hoán vị (trộn đề): chỉ ở bản in A4, beamer giữ nguyên bài giảng -----
+  let _che = _hv-che(hoan-vi)
+  let _mam = _hv-mam(if mam == auto { ma-de } else { mam })
+  _hv.update((bat: _che.pa and hs != "beamer", mam: _mam))
+  let body = if _che.cau and hs != "beamer" { _hv-xao-than(body, _mam) } else { body }
   if hs == "beamer" {
     bai-giang(tieu-de: tieu-de, tieu-de-ngan: tieu-de-ngan, nen: nen,
-      ti-le-chu: ti-le-chu, mau-cong-thuc: mau-cong-thuc,
+      ti-le-chu: ti-le-chu, gian-dong: gian-dong, mau-cong-thuc: mau-cong-thuc,
       phu-de: phu-de, gv: gv, ngay: ngay, {
       bat-dap-an()
       body
@@ -170,7 +370,9 @@
         it
       }
     }
-    set par(justify: true)
+    // 0.65em = leading mặc định của Typst -> gian-dong: 1.0 giữ y nguyên bố cục.
+    _dat-gian(0.65em, gian-dong)
+    set par(justify: true, leading: 0.65em * gian-dong)
     if hs == "loigiai" { bat-dap-an() } else { tat-dap-an() }
     // ----- đầu đề thi -----
     grid(
@@ -246,10 +448,10 @@
 // Trong lời giải, mỗi dấu \ là một bước xuất hiện (chỉ tác dụng ở beamer).
 // tieu-de: tiêu đề slide của câu (chỉ dùng ở beamer).
 // Các slide "(tiếp)" cho những màn lời giải sau màn đầu.
-#let _man-tiep(man, tieu-de, nhan: [Hướng dẫn giải (tiếp). ]) = {
+#let _man-tiep(man, tieu-de, nhan: [Hướng dẫn giải (tiếp). ], gd: auto) = {
   for mk in man.slice(1) {
     slide(tieu-de: tieu-de, so-buoc: calc.max(1, mk.len()))[
-      #giai-buoc(mk, tu: 1, nhan: nhan)
+      #_voi-gian(gd, giai-buoc(mk, tu: 1, nhan: nhan, gian-dong: gd))
     ]
   }
 }
@@ -273,23 +475,28 @@
 
 #let vd(noi-dung, loi-giai: none, loigiai: none, diem: none, hinh: none, fig: none,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
-  tieu-de: [Ví dụ]) = context {
+  gian-dong: auto, tieu-de: [Ví dụ]) = context {
   let loi-giai = _uu-tien(loigiai, loi-giai)
   let hinh = _uu-tien(fig, hinh)
   let hg = _uu-tien(fig-giai, hinh-giai)
+  let gd = gian-dong
   if _la-sach(_ho-so.get()) {
     // Ví dụ: LUÔN hiện lời giải, kể cả trong hồ sơ "dethi".
-    vi-du(voi-hinh(noi-dung, hinh))
-    if loi-giai != none {
-      _mt-loi-giai(voi-hinh(_ghep(loi-giai), hg, vi-tri: fig-giai-pos, be-rong: fig-giai-width))
-    }
+    _voi-gian(gd, {
+      vi-du(voi-hinh(noi-dung, hinh))
+      if loi-giai != none {
+        _mt-loi-giai(voi-hinh(_ghep(loi-giai), hg, vi-tri: fig-giai-pos, be-rong: fig-giai-width))
+      }
+    })
   } else {
     let man = tach-man(loi-giai)
     slide(tieu-de: tieu-de, so-buoc: 1 + calc.max(1, man.at(0).len()))[
-      #vi-du(voi-hinh(noi-dung, hinh))
-      #_giai-kem-hinh(giai-buoc(man.at(0), nhan: [Lời giải. ]), hg, fig-giai-pos, fig-giai-width)
+      #_voi-gian(gd, [
+        #vi-du(voi-hinh(noi-dung, hinh))
+        #_giai-kem-hinh(giai-buoc(man.at(0), nhan: [Lời giải. ], gian-dong: gd), hg, fig-giai-pos, fig-giai-width)
+      ])
     ]
-    _man-tiep(man, tieu-de, nhan: [Lời giải (tiếp). ])
+    _man-tiep(man, tieu-de, nhan: [Lời giải (tiếp). ], gd: gd)
   }
 }
 
@@ -309,12 +516,25 @@
   hinh: none, fig: none, fig-pos: "right", fig-width: auto,
   loi-giai: none, loigiai: none, lines: 0, num: auto, prefix: "Câu",
   boxed: false, fig-giai: none, hinh-giai: none, cham: auto, khoa-pa: false,
-  fig-giai-pos: "right", fig-giai-width: auto, tieu-de: [Trắc nghiệm],
-) = context {
+  fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto,
+  tieu-de: [Trắc nghiệm],
+) = _gan-tn(context {
   let lg = _uu-tien(loigiai, loi-giai)
   let hinh = _uu-tien(fig, hinh)
   let hg = _uu-tien(fig-giai, hinh-giai)
+  let gd = gian-dong
   let cot = if cols != 0 { cols } else { cot }
+  // ----- HOÁN VỊ PHƯƠNG ÁN A/B/C/D -----
+  // Chỉ xáo khi phương án đúng được bọc True(...) (form mới) — form cũ
+  // `dap-an: "B"` gắn đáp án vào CHỮ CÁI nên xáo sẽ lệch. `khoa-pa: true`
+  // giữ nguyên riêng câu này. Mầm riêng từng câu = mầm chung + số thứ tự câu
+  // ⇒ mỗi câu một hoán vị khác nhau, mà vẫn tất định.
+  let _hvt = _hv.get()
+  let phuong-an = if (_hvt.bat and not khoa-pa and phuong-an.len() > 1
+      and phuong-an.any(_la-y)) {
+    let _so = _bd-cau.goc.get() + _bd-cau.cnt.get().first()
+    _hv-xao(phuong-an, _hvt.mam + (_so + 1) * 104729)
+  } else { phuong-an }
   let goi(..them) = cau-mc(
     cau, phuong-an, dap-an: dap-an, cot: cot, diem: diem, hinh: hinh, cham: cham,
     khoa-pa: khoa-pa,
@@ -323,17 +543,19 @@
     hinh-giai: hg, fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width, ..them,
   )
   if _la-sach(_ho-so.get()) {
-    goi(loi-giai: _ghep(lg))
+    _voi-gian(gd, goi(loi-giai: _ghep(lg)))
   } else {
     let man = tach-man(lg)
     let buoc-da = 2 + man.at(0).len()
     slide(tieu-de: tieu-de, so-buoc: buoc-da)[
-      #goi(lo-da: buoc-da)
-      #_giai-kem-hinh(giai-buoc(man.at(0)), hg, fig-giai-pos, fig-giai-width)
+      #_voi-gian(gd, [
+        #goi(lo-da: buoc-da)
+        #_giai-kem-hinh(giai-buoc(man.at(0), gian-dong: gd), hg, fig-giai-pos, fig-giai-width)
+      ])
     ]
-    _man-tiep(man, tieu-de)
+    _man-tiep(man, tieu-de, gd: gd)
   }
-}
+})
 
 // FORM MỚI:
 //   #ds(
@@ -357,11 +579,13 @@
   loi-giai: none, loigiai: none, o-tick: false, lines: 0, num: auto, cham: auto,
   khoa-y: false,
   prefix: "Câu", boxed: false, fig-giai: none, hinh-giai: none,
-  fig-giai-pos: "right", fig-giai-width: auto, tieu-de: [Đúng — Sai],
-) = context {
+  fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto,
+  tieu-de: [Đúng — Sai],
+) = _gan-ds(context {
   let lg = _uu-tien(loigiai, loi-giai)
   let hinh = _uu-tien(fig, hinh)
   let hg = _uu-tien(fig-giai, hinh-giai)
+  let gd = gian-dong
   let goi(..them) = cau-tf(
     cau, cac-y, dap-an: dap-an, diem: diem, hinh: hinh, o-tick: o-tick, cham: cham,
     khoa-y: khoa-y,
@@ -370,17 +594,19 @@
     hinh-giai: hg, fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width, ..them,
   )
   if _la-sach(_ho-so.get()) {
-    goi(loi-giai: _ghep(lg))
+    _voi-gian(gd, goi(loi-giai: _ghep(lg)))
   } else {
     let man = tach-man(lg)
     let buoc-da = 2 + man.at(0).len()
     slide(tieu-de: tieu-de, so-buoc: buoc-da)[
-      #goi(lo-da: buoc-da)
-      #_giai-kem-hinh(giai-buoc(man.at(0)), hg, fig-giai-pos, fig-giai-width)
+      #_voi-gian(gd, [
+        #goi(lo-da: buoc-da)
+        #_giai-kem-hinh(giai-buoc(man.at(0), gian-dong: gd), hg, fig-giai-pos, fig-giai-width)
+      ])
     ]
-    _man-tiep(man, tieu-de)
+    _man-tiep(man, tieu-de, gd: gd)
   }
-}
+})
 
 // FORM MỚI — đáp án đặt NGAY SAU đề bài (positional thứ 2):
 //   #tln(
@@ -398,11 +624,12 @@
   loi-giai: none, loigiai: none, show-boxes: true, box-count: 4,
   lines: 0, num: auto, prefix: "Câu", boxed: false,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
-  tieu-de: [Trả lời ngắn],
-) = context {
+  gian-dong: auto, tieu-de: [Trả lời ngắn],
+) = _gan-tln(context {
   let lg = _uu-tien(loigiai, loi-giai)
   let hinh = _uu-tien(fig, hinh)
   let hg = _uu-tien(fig-giai, hinh-giai)
+  let gd = gian-dong
   let dap-an = if tra-loi.pos().len() > 0 { tra-loi.pos().first() } else { dap-an }
   let goi(..them) = cau-sa(
     cau, dap-an: dap-an, diem: diem, hinh: hinh,
@@ -412,39 +639,44 @@
     hinh-giai: hg, fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width, ..them,
   )
   if _la-sach(_ho-so.get()) {
-    goi(loi-giai: _ghep(lg))
+    _voi-gian(gd, goi(loi-giai: _ghep(lg)))
   } else {
     let man = tach-man(lg)
     let buoc-da = 2 + man.at(0).len()
     slide(tieu-de: tieu-de, so-buoc: buoc-da)[
-      #goi(lo-da: buoc-da)
-      #_giai-kem-hinh(giai-buoc(man.at(0)), hg, fig-giai-pos, fig-giai-width)
+      #_voi-gian(gd, [
+        #goi(lo-da: buoc-da)
+        #_giai-kem-hinh(giai-buoc(man.at(0), gian-dong: gd), hg, fig-giai-pos, fig-giai-width)
+      ])
     ]
-    _man-tiep(man, tieu-de)
+    _man-tiep(man, tieu-de, gd: gd)
   }
-}
+})
 
 // Bộ dựng chung cho 4 dạng "kiểu tự luận" (TL/HĐ/LT/VDTT).
 #let _dang-tl(ham-cau, cau, loi-giai, diem, cho-trong, hinh, tieu-de,
-  hg: none, hg-pos: "right", hg-width: auto) = context {
+  hg: none, hg-pos: "right", hg-width: auto, gd: auto) = context {
   if _la-sach(_ho-so.get()) {
-    ham-cau(cau, loi-giai: _ghep(loi-giai), diem: diem, cho-trong: cho-trong, hinh: hinh,
-      hinh-giai: hg, fig-giai-pos: hg-pos, fig-giai-width: hg-width)
+    _voi-gian(gd, ham-cau(cau, loi-giai: _ghep(loi-giai), diem: diem,
+      cho-trong: cho-trong, hinh: hinh,
+      hinh-giai: hg, fig-giai-pos: hg-pos, fig-giai-width: hg-width))
   } else {
     let man = tach-man(loi-giai)
     slide(tieu-de: tieu-de, so-buoc: 1 + calc.max(1, man.at(0).len()))[
-      #ham-cau(cau, diem: diem, hinh: hinh)
-      #_giai-kem-hinh(giai-buoc(man.at(0)), hg, hg-pos, hg-width)
+      #_voi-gian(gd, [
+        #ham-cau(cau, diem: diem, hinh: hinh)
+        #_giai-kem-hinh(giai-buoc(man.at(0), gian-dong: gd), hg, hg-pos, hg-width)
+      ])
     ]
-    _man-tiep(man, tieu-de)
+    _man-tiep(man, tieu-de, gd: gd)
   }
 }
 
 // (loigiai:/fig:/fig-giai: là bí danh kiểu mới của loi-giai:/hinh:/hinh-giai:)
-#let tl(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, tieu-de: [Tự luận]) = _dang-tl(cau-tl, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width)
-#let hd(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, tieu-de: [Hoạt động]) = _dang-tl(cau-hd, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width)
-#let lt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, tieu-de: [Luyện tập]) = _dang-tl(cau-lt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width)
-#let vdtt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, tieu-de: [Vận dụng]) = _dang-tl(cau-vdtt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width)
+#let tl(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Tự luận]) = _dang-tl(cau-tl, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let hd(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Hoạt động]) = _dang-tl(cau-hd, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let lt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Luyện tập]) = _dang-tl(cau-lt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let vdtt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Vận dụng]) = _dang-tl(cau-vdtt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
 
 #let phan(ten, ngan: none) = context {
   if _la-sach(_ho-so.get()) {

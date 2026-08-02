@@ -171,6 +171,12 @@ Tạo bài giảng mới: copy `main.typ` thành `bai-1.typ` rồi sửa nội d
                                // 1.0 giữ nguyên; 1.1 to hơn 10%; 0.9 nhỏ đi 10%.
                                // Chỉ co giãn thân + khung (định nghĩa/ví dụ/lời
                                // giải…); thanh tiêu đề, header, footer giữ nguyên.
+  gian-dong: 1.0,              // HỆ SỐ GIÃN DÒNG — khoảng cách giữa các dòng
+                               // (toàn file): 1.0 = mốc mặc định (trình chiếu
+                               // 0.62em · A4 bài giảng 0.6em · A4 đề thi 0.65em);
+                               // 1.25 giãn thêm 25%; 0.9 thu lại 10%. TĂNG khi
+                               // phân số / căn thức / chỉ số nhiều tầng làm hai
+                               // dòng liền nhau dính (thậm chí chồng) vào nhau.
   mau-cong-thuc: auto,         // MÀU MỌI CÔNG THỨC trong $...$ (toàn file):
                                // auto (mặc định) = thừa kế màu chữ — thân đen,
                                // tiêu đề/bìa trắng. Đặt màu, vd rgb("#0f4c81"),
@@ -210,6 +216,8 @@ Mọi hình vẽ nằm trong `#hinh(...)` với hệ toạ độ toán học (y 
       to: rgb(255, 170, 0, 70))                   // + tô màu hình quạt
   goc(ctx, (0,0), (5,0), (3,4), vach: 2)          // 2 vạch cắt ngang cung
   goc-vuong(ctx, (0,0), (5,0), (0,4))             // ký hiệu vuông góc
+  ve-goc(ctx, (5,0), (0,0), (3,4), ten: $alpha$)  // = goc, nhưng ĐỈNH ở GIỮA (lối TikZ)
+  ve-goc-vuong(ctx, (5,0), (0,0), (0,4))          // = goc-vuong, ĐỈNH ở GIỮA (lối TikZ)
   danh-dau(ctx, (0,0), (5,0), so: 2)              // vạch "bằng nhau"
   ve-ham(ctx, x => x*x/4, mau: blue)              // đồ thị hàm bất kỳ
   to-vung(ctx, x => x*x/4, 0, 3)                  // tô miền dưới đồ thị
@@ -218,6 +226,14 @@ Mọi hình vẽ nằm trong `#hinh(...)` với hệ toạ độ toán học (y 
 ```
 
 Hướng nhãn: `"tren" | "duoi" | "trai" | "phai" | "tren-trai" | "tren-phai" | "duoi-trai" | "duoi-phai" | "giua"`.
+
+> **Vị trí ĐỈNH góc — hai lối viết.** `goc`/`goc-vuong` đặt đỉnh làm đối số
+> **ĐẦU**: `goc-vuong(O, A, B)` là góc vuông **tại O**. TikZ thì viết đỉnh ở
+> **GIỮA** (`pic angle = A--O--B`), nên có thêm `ve-goc(A, O, B)` và
+> `ve-goc-vuong(A, O, B)` cho ai quen lối đó — cùng vẽ góc **tại O**, cùng bộ
+> tuỳ chọn (`r`, `ten`, `so-do`, `so-cung`, `vach`, `to`, `mau`, `day`,
+> `cach-nhan`), dùng lẫn nhau trong một hình cũng được. Viết nhầm thứ tự sẽ
+> KHÔNG báo lỗi, chỉ vẽ ký hiệu sai đỉnh — nên chọn một lối rồi giữ nguyên.
 
 ### Đường xoắn ốc & góc lượng giác (07/2026)
 
@@ -406,7 +422,7 @@ them: ctx => {
 
 Danh sách 49 lệnh được gọi ngầm: nguyên thuỷ của `ve.typ`
 (`doan`, `diem`, `nhan`, `mui-ten`, `vecto`, `duong-cong`, `duong-tron`,
-`elip`, `cung`, `goc`, `goc-vuong`, `danh-dau`, `ve-ham`, `to-vung`,
+`elip`, `cung`, `goc`, `goc-vuong`, `ve-goc`, `ve-goc-vuong`, `danh-dau`, `ve-ham`, `to-vung`,
 `gach-mien`, `gach-vung`, `ve-mien`, `mui-ten`, `dau-mui-ten`…),
 hệ trục của `do-thi.typ` (`truc`, `luoi`, `vach-chia`, `he-truc`, `giong`,
 `nhan-pi`), toàn bộ `hinh-phang.typ` (`tam-giac`, `duong-cao`, `tu-giac`…)
@@ -967,6 +983,7 @@ Soạn đề MỘT LẦN trong file kiểu `de-mau.typ`, xuất được 3 bản
   sbd: "sbd",          //   sbd: "sbd"=Số báo danh | "lop"=Lớp | none=ẩn
   hien-ma-de: true,    //   hien-ho-ten / hien-ma-de: bật ô tương ứng
   ti-le-chu: 1.0,   // hệ số phóng cỡ chữ thân — dùng chung cho cả 3 hồ sơ
+  gian-dong: 1.0,   // hệ số GIÃN DÒNG — dùng chung cho cả 3 hồ sơ (xem §Giãn dòng)
   mau-cong-thuc: auto)  // màu công thức $...$; auto = đen (thừa kế). Đặt màu để nhuộm cả bài
 
 // Gọi thẳng #vd/#tn/#ds/#tln/#tl/#hd/#lt/#vdtt/#phan — các hàm tự nhận
@@ -995,6 +1012,45 @@ typst compile --input ho-so=beamer de-mau.typ trinh-chieu.pdf
 
 Quy ước: trong `loi-giai:` của câu hỏi, **mỗi dấu `\` (xuống dòng) là một
 bước xuất hiện** khi trình chiếu; ở bản A4 chúng chỉ là xuống dòng thường.
+
+### Giãn dòng — `gian-dong`
+
+Khi một dòng có phân số, căn thức hoặc chỉ số **nhiều tầng**
+(`$-(11 pi)/5 = -(11 pi)/5 dot (180/pi) degree$`), tử số của dòng dưới dễ
+dính — thậm chí chồng — vào dòng trên. `gian-dong` là **hệ số nhân** vào
+khoảng cách dòng: `1.0` = mốc mặc định, `1.3` = giãn thêm 30%, `0.9` = thu
+lại 10%. Bốn cách dùng, phạm vi từ rộng đến hẹp:
+
+```typst
+// 1) TOÀN TÀI LIỆU — khai ở dòng #show
+#show: bai-giang.with(..., gian-dong: 1.25)
+#show: de-toan.with(..., gian-dong: 1.25)
+
+// 2) ĐỔI GIỮA BÀI — áp cho các slide + khung lời giải PHÍA SAU
+#gian-dong(1.4)
+...          // phần này giãn 1.4
+#gian-dong(1.0)   // trả về mốc mặc định
+
+// 3) RIÊNG MỘT CÂU — tham số gian-dong: của #vd/#tn/#ds/#tln/#tl/#hd/#lt/#vdtt
+#tn([Đề...?], ($1$, True($2$), $3$, $4$),
+  gian-dong: 1.5,
+  loigiai: [$-(11 pi)/5 = -396 degree$. \ Vậy...])
+
+// 4) RIÊNG MỘT KHỐI nội dung bất kì
+#voi-gian-dong(1.7)[
+  Đoạn này giãn 1.7; phần trước và sau không đổi.
+]
+```
+
+Mốc `1.0` ứng với leading gốc của từng hồ sơ (trình chiếu `0.62em` · A4 bài
+giảng `0.6em` · A4 đề thi `0.65em`) nên **một hệ số dùng chung được cho cả 3
+bản PDF**, và đặt `1.0` thì bố cục/số trang y như trước.
+
+Khung lời giải hiện dần ở beamer (`giai-buoc`) vốn đã rộng hơn thân slide
+(mốc `0.95em`); hệ số `gian-dong` nhân thêm vào mốc đó. Muốn ấn định độ dài
+tuyệt đối thì dùng `giai-buoc(..., gian: 1.2em)`.
+
+File thử: `thu-gian-dong.typ`.
 
 ### Kết thúc đề & bảng đáp án (`#het`, `#bang-dap-an`)
 
@@ -1025,6 +1081,66 @@ mỗi loại đánh số `1..n` độc lập theo thứ tự xuất hiện. Tham
 được — hàm tự tách thành từng ký tự để điền vào ô; nếu không tách được thì in
 nguyên nội dung vào một ô. Để in bảng có điều kiện, bọc trong `#if`:
 `#if muon-in-dap-an { bang-dap-an(ma-de: ma-de) }`.
+
+### Hoán vị — trộn đề (08/2026)
+
+Bật **một công tắc ở đầu file** là trộn được đề: thứ tự câu và thứ tự phương
+án tự đảo, đáp án + bảng đáp án tự chạy theo.
+
+```typst
+#let ho-so = sys.inputs.at("ho-so", default: "dethi")
+#let hoan-vi = false        // <- ĐỔI THÀNH true LÀ TRỘN (mặc định false)
+
+#show: de-toan.with(ho-so: ho-so, ma-de: "0101", hoan-vi: hoan-vi)
+```
+
+Nguyên tắc:
+
+- Hoán vị các **câu** trong cùng một **nhóm thể loại**: nhóm `tn` xáo với nhau,
+  nhóm `ds` xáo với nhau, nhóm `tln` xáo với nhau. Câu `tl` **giữ nguyên** thứ tự.
+- "Nhóm" = dãy câu **cùng loại đứng liền nhau** (chỉ cách nhau bằng dòng trống).
+  Gặp `#phan`, một đoạn văn xen giữa hay một câu khác loại là hết nhóm ⇒ câu
+  **không bao giờ nhảy qua tiêu đề phần**.
+- Hoán vị **4 phương án A/B/C/D** của câu `tn`. Các **ý a/b/c/d của câu `ds`
+  giữ nguyên**, không hoán vị (ý sau thường dựa vào ý trước).
+- Chỉ chạy ở bản in A4 (`dethi` / `loigiai`); trình chiếu `beamer` không trộn.
+
+| Tham số của `de-toan` | Ý nghĩa |
+| --- | --- |
+| `hoan-vi: false` | mặc định — giữ nguyên thứ tự soạn |
+| `hoan-vi: true` | trộn cả thứ tự câu lẫn phương án |
+| `hoan-vi: "cau"` | chỉ trộn thứ tự câu |
+| `hoan-vi: "pa"` | chỉ trộn phương án |
+| `mam: auto` | **mã trộn** — `auto` băm từ `ma-de`, nên `0101` và `0102` tự cho hai thứ tự khác nhau; hoặc đặt tay `mam: 7` |
+
+Bộ trộn là **tất định** (LCG có mầm, không dùng ngẫu nhiên thật): cùng một mầm
+luôn cho cùng một thứ tự, nên bản `dethi` và bản `loigiai` biên dịch hai lần
+vẫn trộn **giống hệt nhau** — bảng đáp án luôn khớp.
+
+```
+typst compile --input ho-so=dethi   de-mau.typ de-0101.pdf
+typst compile --input ho-so=loigiai de-mau.typ dapan-0101.pdf   # cùng thứ tự
+```
+
+Muốn ra nhiều mã đề từ MỘT file: đọc mã đề qua `sys.inputs` rồi đổi lúc biên dịch.
+
+```typst
+#let ma = sys.inputs.at("ma", default: "0101")
+#show: de-toan.with(ho-so: ho-so, ma-de: ma, hoan-vi: true)
+```
+
+Hai điều **phải nhớ**:
+
+- Câu `tn` viết theo **form cũ** `dap-an: "B"` (đáp án là chữ cái) **không được
+  trộn phương án** — trộn sẽ lệch. Muốn trộn thì bọc phương án đúng bằng
+  `True(...)`. Lib tự kiểm: câu nào không có `True(...)` thì bỏ qua, không xáo.
+- `khoa-pa: true` ở một câu `tn` ⇒ riêng câu đó giữ nguyên thứ tự phương án
+  (dùng cho câu kiểu "Cả A, B, C đều đúng").
+
+Tài liệu nào không đi qua `de-toan` thì dùng show-rule riêng:
+`#show: hoan-vi-de.with(true)` (hoặc `.with(true, mam: "0102")`).
+
+File thử: `thu-hoan-vi.typ`.
 
 ### Form mới của tn/ds/tln — đáp án gắn liền nội dung (khuyến nghị)
 

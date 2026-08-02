@@ -44,6 +44,20 @@
   )
 ]
 
+#slide(tieu-de: [Hàm số bậc hai])[
+  #chia-cot(
+    figure(do-thi-bac-hai(1, -2, -1, ten: $y = x^2 - 2x - 1$)),
+    [
+      #dinh-nghia[
+        Đồ thị hàm số $y = a x^2 + b x + c$ $(a != 0)$ là một parabol có đỉnh
+        $I((-b) / (2a), (-Delta) / (4a))$.
+      ]
+      #tam-giac-vuong(ten:"A", "B", "c")
+    ],
+  )
+]
+
+
 #slide(tieu-de: [Hàm số bậc ba: $y = x^3 - 3x^2 + 2$])[
   #chia-cot(
     figure(do-thi-bac-ba(1, -3, 0, 2, ten: $y = x^3 - 3x^2 + 2$)),
