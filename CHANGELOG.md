@@ -2,16 +2,63 @@
 
 Dự án dùng [SemVer](https://semver.org/lang/vi/).
 
-## Chưa phát hành
-
 > Gói cục bộ vẫn mang số **0.2.0** để không phải sửa
-> `@local/baigiang:0.2.0` trong các file bài giảng đã có. Khi gửi lên
-> Typst Universe thì đặt thành 0.3.0 (thêm tính năng, tương thích ngược).
+> `@local/baigiang:0.2.0` trong các file bài giảng đã có; số hiệu dưới đây là
+> số phát hành trên Typst Universe (`@preview/conic-toan`).
+
+## 0.3.2 — 02/08/2026
+
+### Thêm
+
+- **Hoán vị (trộn đề) ngay trong gói**: `de-toan(hoan-vi: ...)` —
+  `true` (trộn cả câu lẫn phương án) · `"cau"` · `"pa"` · `false`. Chỉ xáo các
+  câu **cùng thể loại đứng liền nhau** nên câu không nhảy qua `#phan`; ý a) b)
+  c) d) của `#ds` giữ nguyên. Mầm trộn băm từ `ma-de` (`mam:` để đặt tay) và
+  bộ sinh số là tất định, nên bản đề thi và bản lời giải luôn ra cùng thứ tự.
+  Chỉ chạy ở bản in A4, trình chiếu không trộn.
+- **Giãn dòng** `gian-dong` — hệ số nhân vào khoảng cách dòng, cho khi phân
+  số / căn thức nhiều tầng làm hai dòng dính nhau. Bốn phạm vi: cả tài liệu
+  (`bai-giang`/`de-toan(gian-dong: 1.25)`), đổi giữa bài (`#gian-dong(1.4)`),
+  riêng một câu (tham số `gian-dong:` của `#vd`/`#tn`/`#ds`/`#tln`/`#tl`/
+  `#hd`/`#lt`/`#vdtt`), riêng một khối (`#voi-gian-dong(1.7)[...]`).
+  Đặt `1.0` thì bố cục y như trước.
+- `ve-goc(A, O, B)` và `ve-goc-vuong(A, O, B)` — lối viết **đỉnh ở giữa** kiểu
+  TikZ (`pic angle = A--O--B`), song song với `goc(O, A, B)` sẵn có.
+- Chú thích `///` cho các hàm trong `baigiang.typ` và `ve.typ` để trình soạn
+  thảo (Tinymist) hiện gợi ý tham số khi gõ.
 
 ### Sửa
 
-- Khảo sát hàm số: mọi `lim` bọc `limits(lim)` để chỉ số đặt **dưới** ký hiệu
-  giới hạn thay vì bên cạnh.
+- README: ví dụ mục *Giãn dòng* viết `bai-giang.with(..., gian-dong: 1.25)` —
+  Typst đọc `...` trơ là toán tử spread nên báo lỗi cú pháp; thay bằng tham số
+  cụ thể.
+- `examples/main.typ`: bỏ slide thử nghiệm gọi `tam-giac-vuong` ngoài `#hinh`
+  khiến file không biên dịch được.
+
+## 0.3.1 — 30/07/2026
+
+### Sửa
+
+- **Bản 0.3.0 trên registry bị thiếu hàm** (script đồng bộ chết giữa chừng nên
+  thư mục nộp không được cập nhật). 0.3.1 bổ sung lại 134 hàm, trong đó có
+  trọn hai mô-đun `lib/da-dien.typ` (khối đa diện, thiết diện) và
+  `lib/oxyz-toan.typ` (vectơ, mặt phẳng, đường thẳng, mặt cầu, khoảng cách,
+  góc trong Oxyz). **Dùng 0.3.1 trở lên, đừng dùng 0.3.0.**
+
+### Thêm
+
+- `goc-luong-giac`, `duong-luon`, `diem-luon`, `nhan-cong`, `xoan-oc`,
+  `dieu-khien`.
+
+## 0.3.0 — 27/07/2026
+
+Bản đầu tiên lên [Typst Universe](https://typst.app/universe/package/conic-toan).
+
+### Thay đổi
+
+- Đổi tên gói `baigiang` → **`conic-toan`**; README có phần giới thiệu tiếng
+  Anh và ảnh minh hoạ.
+- Đổi tên hàm chia cột `cot()` → `chia-cot()` để không trùng `cot` (cotang).
 
 ### Thêm
 
@@ -21,6 +68,11 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
   song song, in trước làm dẫn nhập.
 - Cờ khoá hoán vị: `khoa-y:` (`#ds`) và `khoa-pa:` (`#tn`) — ghi vào metadata
   `<bg-da>` để công cụ trộn biết câu nào không được xáo.
+
+### Sửa
+
+- Khảo sát hàm số: mọi `lim` bọc `limits(lim)` để chỉ số đặt **dưới** ký hiệu
+  giới hạn thay vì bên cạnh.
 
 ## 0.2.0 — 07/2026
 

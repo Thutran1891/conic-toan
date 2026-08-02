@@ -1023,8 +1023,8 @@ lại 10%. Bốn cách dùng, phạm vi từ rộng đến hẹp:
 
 ```typst
 // 1) TOÀN TÀI LIỆU — khai ở dòng #show
-#show: bai-giang.with(..., gian-dong: 1.25)
-#show: de-toan.with(..., gian-dong: 1.25)
+#show: bai-giang.with(tieu-de: [CHƯƠNG I], gian-dong: 1.25)
+#show: de-toan.with(ho-so: ho-so, ma-de: "0101", gian-dong: 1.25)
 
 // 2) ĐỔI GIỮA BÀI — áp cho các slide + khung lời giải PHÍA SAU
 #gian-dong(1.4)
