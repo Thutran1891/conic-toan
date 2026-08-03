@@ -22,6 +22,19 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
   riêng một câu (tham số `gian-dong:` của `#vd`/`#tn`/`#ds`/`#tln`/`#tl`/
   `#hd`/`#lt`/`#vdtt`), riêng một khối (`#voi-gian-dong(1.7)[...]`).
   Đặt `1.0` thì bố cục y như trước.
+- **Chia cột phần câu hỏi**: `#show: chia-2-cot` (hai cột đều, tự cân bằng vì
+  Typst vốn rót đầy cột 1 trước) và `#show: chia-2-cot-lech(rong-trai: 70%)`
+  (cột trái đề, cột phải kẻ dòng cho học sinh làm bài). Đặt ở đâu thì áp dụng
+  từ đó trở xuống. **Bắt buộc** `#thoi-cot()` trước `#het()`/`#bang-dap-an()`
+  vì lệnh ngắt trang không chạy được bên trong cột. Câu trong cột vẫn trộn
+  được khi bật hoán vị.
+- `ke-het-trang` — kẻ dòng từ chỗ đặt lệnh xuống hết trang (không phải khai số
+  dòng); `them-trang: n` kẻ thêm n trang đầy.
+- **Chữ ôm hình** (`om-hinh`) — lời giải dài kèm hình nhỏ thì chữ ôm gọn quanh
+  hình thay vì để trống nửa cột. Cắt theo ĐOẠN (không cắt giữa dòng) nên công
+  thức lồng nhau không vỡ. **Bật mặc định**; tắt bằng
+  `#kieu-cau-hoi(om-hinh: false)` hoặc `voi-hinh(..., om: false)`. Nội dung
+  ngắn hơn hình thì giữ nguyên bố cục hai cột cũ.
 - `ve-goc(A, O, B)` và `ve-goc-vuong(A, O, B)` — lối viết **đỉnh ở giữa** kiểu
   TikZ (`pic angle = A--O--B`), song song với `goc(O, A, B)` sẵn có.
 - Chú thích `///` cho các hàm trong `baigiang.typ` và `ve.typ` để trình soạn
@@ -29,6 +42,15 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
 
 ### Sửa
 
+- **Bảng biến thiên / bảng xét dấu tự bù ô trống**: dãy `dau` phải dài
+  `2 × số mốc − 1` với hai đầu là ô trống `""`; thiếu 1–2 ô nay tự đoán đúng
+  đầu nào thiếu thay vì `array index out of bounds`. Thiếu quá 2 ô hoặc thừa
+  thì báo lỗi tiếng Việt nói rõ có bao nhiêu / cần bao nhiêu. Kèm theo: `dau`
+  nhận số trần (`0` thay `"0"`), `x` và `gia-tri` nhận chuỗi `"-oo"`/`"+oo"`
+  và số trần (`-5/3` ra phân số đẹp).
+- **Bảng biến thiên đẹp hơn**: mũi tên nay ngắm đúng **tim chữ số** (trước lệch
+  4–6pt vì khung chữ có phần trống ascender/descender), và vạch `‖` (điểm không
+  xác định) kẻ **kín ô** thay vì hở hai đầu.
 - README: ví dụ mục *Giãn dòng* viết `bai-giang.with(..., gian-dong: 1.25)` —
   Typst đọc `...` trơ là toán tử spread nên báo lỗi cú pháp; thay bằng tham số
   cụ thể. Khối lệnh biên dịch nhiều mã đề đánh dấu là ```` ```sh ```` để
