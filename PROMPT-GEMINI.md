@@ -114,6 +114,8 @@ Nếu tôi không nói gì khác: **đừng dùng hai thứ trên**; cần nới
   //   Đổi giữa bài: #gian-dong(1.4) (áp cho phần phía sau) — trả về mốc bằng
   //   #gian-dong(1.0). Riêng một câu: tham số gian-dong: của #vd/#tn/#ds/#tln/
   //   #tl/#hd/#lt/#vdtt. Riêng một khối: #voi-gian-dong(1.7)[ ... ].
+  //   Hệ số giãn CẢ khoảng cách giữa các DÒNG trong một đoạn (nối bằng \) LẪN
+  //   khoảng cách giữa hai ĐOẠN (chỗ để dòng trống) — từ 08/2026.
   //   Chỉ đặt khi tôi yêu cầu đổi khoảng cách dòng, hoặc khi thấy công thức
   //   nhiều tầng chắc chắn sẽ dính dòng.
   // mau-cong-thuc: auto  — MÀU MỌI CÔNG THỨC trong $...$ toàn file (cả 3 hồ sơ):
@@ -310,6 +312,51 @@ Dùng để xếp danh sách item a), b), c)... thành nhiều cột (trong thâ
 - Cần hiện dần TỪNG CỘT theo bước → bọc từng item bằng `lo(n)[...]`: `cot-item(so-cot: 2, lo(2)[...], lo(3)[...])`.
 - Cần hiện dần TỪNG DÒNG như thường → viết thẳng với `\`, ĐỪNG cho vào `cot-item`.
 
+### 3c. Chia cột PHẦN CÂU HỎI — `#chia-2-cot`, `#chia-2-cot-lech` (MỚI 08/2026)
+
+Hai lệnh bố cục dùng như **show-rule**: đặt ở đâu thì áp dụng **từ dòng đó trở xuống**. Chỉ tác dụng ở bản in A4 (`dethi`/`loigiai`); bản `beamer` tự bỏ qua.
+
+```typst
+#show: de-toan.with(ho-so: ho-so, tieu-de: [ĐỀ KIỂM TRA])
+
+#show: chia-2-cot          // từ đây trở xuống: câu hỏi xếp 2 cột ĐỀU nhau
+// hoặc
+#show: chia-2-cot-lech     // trái = câu hỏi, phải = chỗ kẻ dòng cho HS làm bài
+```
+
+- `#chia-2-cot(so: 2, khoang: 18pt, can: true)` — hai cột bằng nhau (đặt `so: 3` nếu muốn ba cột). Hợp với đề toàn câu trắc nghiệm ngắn, tiết kiệm giấy. Hai cột TỰ CÂN BẰNG chiều cao (`can: false` để tắt).
+- `#chia-2-cot-lech(rong-trai: 70%, khoang: 10pt, cao-dong: 9mm, mau: luma(65%), day: 0.4pt, ke: true, vach-ngan: true, tieu-de-phai: none)` — cột trái chứa câu hỏi (mặc định **70%** khổ chữ, đổi được), cột phải để trống có hàng kẻ ngang mờ + vạch dọc ngăn cột. Số hàng kẻ tự tính theo chiều cao thật của phần câu hỏi. `ke: false` = cột phải trắng trơn; `tieu-de-phai: [Bài làm]` = in nhạt một dòng ở đầu cột phải.
+
+**BẮT BUỘC:** đặt `#thoi-cot()` để ngừng chia cột TRƯỚC `#het()` và `#bang-dap-an()` — `#bang-dap-an` có `#pagebreak` mà lệnh ngắt trang không chạy được bên trong cột.
+
+```typst
+#show: chia-2-cot-lech.with(rong-trai: 65%, tieu-de-phai: [Bài làm])
+#tl(...)
+#tl(...)
+#thoi-cot()
+#het()
+#bang-dap-an()
+```
+
+Cả hai cũng dùng được dạng KHỐI cho một đoạn: `#chia-2-cot[ ... ]`, `#chia-2-cot-lech(rong-trai: 55%)[ ... ]`. Bật hoán vị (trộn đề) vẫn trộn được các câu nằm trong cột.
+
+⚠️ Hai lệnh này CHƯA có trong `@preview/conic-toan:0.3.2` — muốn dùng ngay thì import `@local/conic-toan:0.2.0` (sau khi chạy `DONG-GOI-LOCAL.bat`) hoặc `"baigiang.typ"`.
+
+### 3d. Kẻ dòng lấp đầy trang — `#ke-het-trang` (MỚI 08/2026)
+
+Đặt ở đâu thì kẻ dòng từ chỗ đó xuống HẾT TRANG ĐÓ, số dòng tự tính — dùng để chừa chỗ cho học sinh làm bài, KHÔNG tự lặp `#line` bằng vòng `for` nữa.
+
+```typst
+#ke-het-trang()                            // nét chấm, cách 9mm
+#ke-het-trang(cao-dong: 7mm, kieu: none)   // nét liền, dòng dày hơn
+#ke-het-trang(chua: 3cm)                   // chừa 3cm cuối trang
+#ke-het-trang(dai: 50%, them-trang: 1)     // nửa bề ngang + kẻ trọn 1 trang nữa
+```
+
+Tham số: `cao-dong: 9mm`, `mau: luma(65%)`, `day: 0.4pt`, `kieu: "dotted"` (`"dashed"`, `"dash-dotted"`, `none` = nét liền), `dai: 100%`, `chua: 0pt`, `them-trang: 0`. Chỉ dựng ở bản in A4; `beamer` tự bỏ qua.
+
+⚠️ Cũng CHƯA có trong `@preview/conic-toan:0.3.2`.
+
 ## 4. Khung file cho BÀI GIẢNG tự do (không phải đề)
 
 ```typst
@@ -394,8 +441,14 @@ Vài tiện ích ÍT DÙNG nhưng có sẵn (đừng tự viết lại):
   cho MỌI câu `#tl` phía sau ở bản `dethi` (từng câu vẫn ưu tiên `cho-trong:`).
 - `lo-da: n` (ở `#tn`/`#ds`/`#tln`) — bước lộ ĐÁP ÁN ở beamer, tách khỏi
   `lo-giai:` (bước lộ lời giải). Không khai thì đáp án hiện ở bước cuối.
-- `#voi-hinh(de, hinh, vi-tri: "right", ti-le: 0.46, duoi: none)` — ghép đề với
-  hình thành khối 2 cột; dùng khi cần bố cục mà `fig:`/`fig-pos:` không đủ.
+- `#voi-hinh(de, hinh, vi-tri: "right", ti-le: 0.46, duoi: none, om: auto)` — ghép
+  đề với hình thành khối 2 cột; dùng khi cần bố cục mà `fig:`/`fig-pos:` không đủ.
+- **CHỮ ÔM HÌNH (mặc định BẬT, 08/2026)**: với `fig:`/`fig-giai:` đặt bên
+  phải/trái, nếu nội dung DÀI hơn hình thì thư viện tự đặt các đoạn đầu cạnh
+  hình cho vừa chiều cao hình, phần còn lại tràn NGUYÊN BỀ RỘNG xuống dưới hình
+  (hết cảnh cột hình trống nửa trang). Chỗ cắt luôn ở ranh giới đoạn văn/công
+  thức tách dòng/bảng nên không cắt ngang công thức. Tắt: `#kieu-cau-hoi(om-hinh:
+  false)` toàn bài, hoặc `voi-hinh(..., om: false)` cho một chỗ.
 - `#tung-buoc([ý 1], [ý 2], [ý 3], tu: 2)` — hiện dần từng ý trong `#slide`
   tự tạo (gọn hơn gõ `#lo(2)`, `#lo(3)`… bằng tay; nhớ đặt `so-buoc` đủ lớn).
 - `tach-dong(nd)` / `tach-man(nd)` — TRẢ VỀ mảng dòng / mảng màn của một nội
@@ -451,6 +504,12 @@ Khung nội dung LÝ THUYẾT (không có lời giải kèm theo, gọi trực t
   dau: ("", "+", "0", "-", "0", "+", ""),
   gia-tri: ($-oo$, $2$, $-2$, $+oo$),
   huong: ("len", "xuong", "len"))
+// !!! `dau` dài 2n-1 nên HAI ĐẦU LUÔN LÀ Ô TRỐNG "" — lỗi hay gặp nhất là
+// viết ("+","0","-","0","+") (thiếu đúng 2 ô đó). Từ 08/2026 bbt và
+// bang-xet-dau TỰ BÙ ô trống ở đầu/cuối, nhưng VẪN PHẢI viết cho đủ.
+// Tự bù chỉ chèn ở ĐẦU/CUỐI; thiếu quá 2 ô hoặc thừa ô thì báo lỗi rõ ràng.
+// Cũng nhận (nhưng đừng lạm dụng): dau ghi số trần 0 thay cho "0"; x và
+// gia-tri ghi chuỗi "-oo"/"+oo" và số trần -5/3 -> tự quy về nội dung toán.
 // Tiệm cận đứng: kep: (1,) và gia-tri tại đó là cặp ($-oo$, $+oo$)
 // Khoảng hàm KHÔNG XÁC ĐỊNH -> gạch chéo: gach: (k,) với k là chỉ số khoảng
 // (khoảng k nằm giữa mốc k và k+1, tính từ 0); huong tại khoảng đó ghi "ngang",
