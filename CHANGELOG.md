@@ -22,6 +22,19 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
   riêng một câu (tham số `gian-dong:` của `#vd`/`#tn`/`#ds`/`#tln`/`#tl`/
   `#hd`/`#lt`/`#vdtt`), riêng một khối (`#voi-gian-dong(1.7)[...]`).
   Đặt `1.0` thì bố cục y như trước.
+- **`lib/mat-cong.typ` — nón/trụ tự chia nét liền · nét đứt** (`mat-non`,
+  `mat-tru`, `dinh-non`, `tron-ngang`, `mat-cong`, `ve-mat-cong`, `ve-truc-3d`).
+  Trước nay `hinh-non`/`hinh-tru` viết cứng "nửa trước liền, nửa sau đứt"; nay
+  bắn tia về phía người nhìn nên lo được **cả tự khuất lẫn hai khối che nhau**
+  (nón chui vào trụ, trụ nội tiếp nón…). Đường sinh biên tính giải tích. Trục
+  khối **đặt nghiêng được** (`nghieng:`, `huong:`, `truc:`), dùng phép chiếu
+  trực giao nên cả hình cùng một góc nhìn. Chưa hỗ trợ mặt cầu.
+- **Công thức khối trong phương án tự ép về TRONG DÒNG**: gõ `$ cases(...) $`
+  (có khoảng trắng sát `$`) là Typst hiểu công thức trình bày giữa dòng, làm mỗi
+  phương án chiếm cả một khối cao; nay `tn`/`ds` tự ép về trong dòng nên xếp đủ
+  4 cột như khi gõ `$cases(...)$`. Phương án là **hình/bảng giữ nguyên** bố cục.
+  Tắt riêng một câu bằng `trong-dong: false`, tắt cả bài bằng
+  `#kieu-cau-hoi(eq-trong-dong: false)`.
 - **Chia cột phần câu hỏi**: `#show: chia-2-cot` (hai cột đều, tự cân bằng vì
   Typst vốn rót đầy cột 1 trước) và `#show: chia-2-cot-lech(rong-trai: 70%)`
   (cột trái đề, cột phải kẻ dòng cho học sinh làm bài). Đặt ở đâu thì áp dụng
