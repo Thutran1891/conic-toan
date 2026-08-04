@@ -449,6 +449,14 @@ Vài tiện ích ÍT DÙNG nhưng có sẵn (đừng tự viết lại):
   (hết cảnh cột hình trống nửa trang). Chỗ cắt luôn ở ranh giới đoạn văn/công
   thức tách dòng/bảng nên không cắt ngang công thức. Tắt: `#kieu-cau-hoi(om-hinh:
   false)` toàn bài, hoặc `voi-hinh(..., om: false)` cho một chỗ.
+- **CÔNG THỨC TRONG PHƯƠNG ÁN LUÔN TRONG DÒNG (mặc định BẬT, 08/2026)**: viết
+  `$ cases(...) $` (có khoảng trắng sát hai dấu `$`) là công thức TRÌNH BÀY GIỮA
+  DÒNG, bị tách xuống dòng riêng và canh giữa — hệ 3 bpt khi đó trông khác hẳn hệ
+  2 bpt viết `$cases(...)$`. Thư viện nay tự ép mọi công thức khối trong PHƯƠNG ÁN
+  `#tn` và Ý `#ds` về dạng trong dòng, nên hai lối viết cho cùng bố cục. Tắt:
+  `#kieu-cau-hoi(eq-trong-dong: false)` toàn bài, hoặc `#tn(..., trong-dong:
+  false)` / `#ds(..., trong-dong: false)` cho một câu. Dù vậy khi soạn mới vẫn NÊN
+  viết `$cases(...)$` sát dấu `$` cho đúng ý đồ.
 - `#tung-buoc([ý 1], [ý 2], [ý 3], tu: 2)` — hiện dần từng ý trong `#slide`
   tự tạo (gọn hơn gõ `#lo(2)`, `#lo(3)`… bằng tay; nhớ đặt `so-buoc` đủ lớn).
 - `tach-dong(nd)` / `tach-man(nd)` — TRẢ VỀ mảng dòng / mảng màn của một nội
@@ -825,6 +833,67 @@ Khung nội dung LÝ THUYẾT (không có lời giải kèm theo, gọi trực t
 // · khoang-bien-thien(d) · khoang-tu-phan-vi(d); mọi hàm nhận thêm tan-so:
 // (bảng tần số). Ghép nhóm: thêm hậu tố -ghep-nhom, đối số (moc, tan-so).
 ```
+
+### 5d-bis. Nón & trụ có NÉT KHUẤT TỰ ĐỘNG, kể cả hai khối che nhau (mat-cong.typ)
+
+Dùng khi bài có NHIỀU khối tròn xoay lồng/cắt nhau — `hinh-non`/`hinh-tru` cũ
+chỉ vẽ được một khối đứng riêng. Engine bắn tia về phía người nhìn nên đoạn nào
+chui vào lòng khối kia TỰ thành nét đứt.
+
+```typ
+#mat-cong(
+  mat-non(r: 2, cao: 4, mau: red),
+  mat-tru(tam: (0, 2, 0), r: 2, cao: 4, mau: blue),   // trục nón là đường sinh trụ
+  cam: chieu-oxyz(k: 0.7, goc: 30deg), w: 9cm,
+)
+#mat-cong(mat-non(r: 2.6, cao: 4), mat-tru(r: 1.1, cao: 2))  // trụ nội tiếp nón
+#mat-cong(mat-non(r: 2, cao: 3.6), hien-khuat: false)         // bỏ hẳn nét đứt
+// đường phụ cũng tự chia liền/đứt:
+#mat-cong(mat-non(r: 2, cao: 4),
+  duong: ((pts: tron-ngang((0, 0, 1.6), 1.2), mau: green),))
+```
+
+`mat-non(tam:, r:, cao:, nghieng:, huong:, truc:, mau:, to:)` và `mat-tru(...)`
+chỉ MÔ TẢ khối (trả giá trị); `tam` là tâm mặt đáy, `cao` đo DỌC TRỤC.
+`mat-cong(...)` tự tạo khung; `ve-mat-cong(ctx, ...)` dùng khi vẽ vào khung có sẵn.
+
+**TRỤC KHỐI ĐẶT NGHIÊNG ĐƯỢC** — `nghieng` là góc giữa trục và Oz, `huong` là
+hướng ngả. Mặt đáy luôn vuông góc với trục nên trục nghiêng thì đáy và đường
+sinh nghiêng cùng, TOÀN THÂN khối nghiêng:
+
+```typ
+#mat-cong(mat-tru(r: 1.2, cao: 5, nghieng: 55deg, huong: 200deg))  // trụ nằm nghiêng
+#mat-cong(mat-non(r: 1.6, cao: 4.5, nghieng: 90deg))               // nón nằm ngang
+```
+
+**GÓC NGHIÊNG — mặc định ĐÃ ngay ngắn, ĐỪNG khai `cam:` nếu không cần.** Camera
+mặc định của `mat-cong` là chiếu TRỰC GIAO `chieu-truc-giao(ngang: 15deg,
+cao: 22deg)`: elip đáy có trục lớn NẰM NGANG, trục khối THẲNG ĐỨNG, đúng lối
+hình sách giáo khoa.
+
+⚠️ ĐỪNG khai `cam: chieu-oxyz(...)` cho hình khối tròn xoay — đó là phép chiếu
+XIÊN, nó làm đường tròn nằm ngang chiếu ra elip NGHIÊNG trong khi trục vẫn dựng
+đứng (đáy nghiêng mà trục đứng, nhìn vô lý). Chỉ dùng `chieu-oxyz` khi BẮT BUỘC
+phải khớp với hệ trục của hàm `oxyz`.
+
+Muốn kèm hệ trục Oxyz thì đưa qua `truc:` — trục sẽ vẽ bằng CHÍNH camera của
+khối nên cả khung hình chung một góc nhìn:
+
+```typ
+#mat-cong(
+  mat-non(r: 2, cao: 4), mat-tru(tam: (0, 2, 0), r: 2, cao: 4),
+  truc: (x: 2.6, y: 4.4, z: 4.6),
+)
+```
+
+ĐÁNH ĐỔI: chiếu trực giao thì Ox và Oy đều chếch xuống, không còn Oy nằm ngang
+như lối vẽ trục quen thuộc — hai điều đó loại trừ nhau về mặt hình học.
+
+Nếu vẫn dùng `oxyz` thì `k`/`goc` của `oxyz` PHẢI trùng `chieu-oxyz(k:, goc:)`.
+
+GIỚI HẠN: chỉ nón/trụ TRỤC ĐỨNG; ranh giới liền/đứt quét mẫu nên sai số cỡ một
+mắt lưới của đường vẽ (`n:` tăng thì mịn hơn). Phép thử che khuất là GIẢI TÍCH
+nên không bỏ sót nét khuất.
 
 ### 5e. Khối đa diện tổng quát, mặt phẳng Oxyz, thiết diện (da-dien.typ)
 
