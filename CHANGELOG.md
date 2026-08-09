@@ -6,6 +6,60 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
 > `@local/baigiang:0.2.0` trong các file bài giảng đã có; số hiệu dưới đây là
 > số phát hành trên Typst Universe (`@preview/conic-toan`).
 
+## 0.3.3 — 09/08/2026
+
+### Thêm
+
+- **`cao-that` — chống dính chữ ở phân số, căn thức.** Typst đóng khung công
+  thức TRONG DÒNG theo số đo phông chữ (cap-height → chân chữ, ≈6.83pt ở cỡ
+  10pt) chứ không theo nét vẽ, nên `measure($1/2$)` và `measure($0,5$)` ra cùng
+  một số trong khi phân số vẽ ra cao gấp đôi và tràn cả trên lẫn dưới. Hệ quả:
+  trong một đoạn thì tử số dòng dưới chạm mẫu dòng trên; trong ô của `grid`
+  (lưới phương án `#tn`, ý `#ds`, `cot-item`) thì phân số đè sang hàng trên —
+  chỗ này `gian-dong` **không** với tới được vì nó chỉ chạm `par.leading`.
+  Nay gói đo phần nét tràn thật rồi chèn một cột chống vô hình **rộng 0** ngay
+  trước công thức, nên dòng **và** ô tự nới đúng chỗ cần. Công thức thấp
+  (`$x$`, `$0,5$`, `$x_(n+1)^2$`) tràn dưới ngưỡng ⇒ không chèn gì, **bố cục
+  bài cũ không đổi một pt nào**. Bật sẵn; điều chỉnh bằng `#cao-that(false)`,
+  `#cao-that(them: 1pt)`, `#cao-that(hien: true)` (chẩn đoán, in số pt còn
+  thiếu sau mỗi công thức), `#kieu-cau-hoi(cao-that: false)` cho cả bài, hoặc
+  `#voi-cao-that[...]` cho một khối. Đúng cả khi tài liệu bật
+  `#show math.equation.where(block: false): it => math.display(it)`.
+- **`gian-dong` nay với tới LƯỚI và tới KHOẢNG CÁCH GIỮA HAI CÂU** — trước đây
+  hệ số chỉ ăn cho văn bản trong cùng một móc vuông, nên đặt `gian-dong: 3` thì
+  các dòng trong câu giãn gấp ba mà "Câu 2" vẫn dán sát ngay dưới ý c). Nay
+  khoảng cách giữa các hàng phương án, giữa các ý `#ds`, `cot-item(cach-hang:
+  auto)`, khoảng đề → phương án và khoảng giữa hai câu đều nhân cùng hệ số.
+  Hệ số `1.0` cho đúng số cũ.
+- **`mui-ten-2-dau`** — đường ghi kích thước: hai đầu mũi tên, số đo nằm giữa
+  thân, thân tự cắt chừa chỗ và lót nền. `trong: false` đưa chữ ra ngoài,
+  `vach:` vạch chặn hai đầu, `le:` lùi hai đầu, `ten-quay:` chữ nằm dọc. Đoạn
+  quá ngắn thì tự đưa chữ ra ngoài.
+- **`khung-vua(..muc, le:)`** — trả `(xmin:, xmax:, ymin:, ymax:)` ôm vừa các
+  đối tượng, rải thẳng vào `#hinh(..khung-vua(...))`. Sinh ra vì đường tròn
+  ngoại tiếp chìa ra ngoài đa giác nên rất hay tràn khung.
+- **`tron-qua-diem(ds)`** — đường tròn khớp bình phương bé nhất (Kåsa) qua một
+  mảng điểm; 3 điểm cho đúng kết quả `tam-ngoai-tiep`.
+- **`co-net(nd)`** — đo chiều cao NÉT VẼ thật của một nội dung (khác `measure`,
+  vốn chỉ trả khung phông chữ).
+- `phan-giac` thêm `vach: 0..3` (gạch ngang cung), `so-cung: 1..3`,
+  `dai-vach:`, `ten-goc:`, `lech:`.
+
+### Sửa
+
+- **Nhãn bị nét vẽ cắt ngang** — nhãn (`nhan`), `o-bo-tron` và ô kết quả của
+  `so-do-cay` đặt theo khung phông chữ nên phân số trong nhãn bị cắt. Nay lấy
+  `max(khung, biên nét vẽ)`. Chữ thường tràn 0 ⇒ hình cũ giữ nguyên bố cục.
+- **`duong-tron-ngoai-tiep` nhận cả ĐA GIÁC**: `(A, B, C)` như cũ hoặc một mảng
+  đỉnh. Nhãn tâm `huong-tam: auto` tự chọn phía thoáng nhất nên không rơi lên
+  cạnh; `ban-kinh: true` tự chọn đỉnh mà bán kính không nằm đè cạnh (tam giác
+  vuông chọn đỉnh góc vuông, không vẽ trùng cạnh huyền). Thêm `ten-r:`,
+  `canh:`, `to:`.
+- **Biểu đồ thống kê: tên trục hoành không còn bị trục vẽ xuyên qua** — trước
+  đặt ngay đầu mũi tên (`above-left`); nay để bên phải và tự nới `xmax` đúng
+  bằng bề rộng chữ, nên chữ cũng không tràn ra ngoài hình. Áp cho
+  `bieu-do-tan-so`, `da-giac-tan-so`, `bieu-do-cot`, `bieu-do-hop`.
+
 ## 0.3.2 — 02/08/2026
 
 ### Thêm

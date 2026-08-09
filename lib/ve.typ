@@ -141,10 +141,8 @@
   )
 }
 
-// Đầu mũi tên tại B, hướng A->B.
-#let dau-mui-ten(ctx, A, B, mau: black, kich: 7pt) = {
-  let a = toa-pt(ctx, A)
-  let b = toa-pt(ctx, B)
+// Đầu mũi tên tại b, hướng a->b (toạ độ pt, dùng nội bộ).
+#let _dau-pt(a, b, mau: black, kich: 7pt) = {
   let dx = b.at(0) - a.at(0)
   let dy = b.at(1) - a.at(1)
   let l = calc.sqrt(dx * dx + dy * dy)
@@ -164,6 +162,11 @@
     to: mau,
   )
 }
+
+// Đầu mũi tên tại B, hướng A->B.
+#let dau-mui-ten(ctx, A, B, mau: black, kich: 7pt) = _dau-pt(
+  toa-pt(ctx, A), toa-pt(ctx, B), mau: mau, kich: kich,
+)
 
 // ---------- Nguyên thuỷ chính ----------
 // (định nghĩa `doan` nằm NGAY SAU `nhan` vì có tuỳ chọn nhãn giữa đoạn)
@@ -190,6 +193,30 @@
   let dx = (B.at(0) - A.at(0)) * ctx.sx.pt()
   let dy = (B.at(1) - A.at(1)) * ctx.sy.pt()
   -calc.atan2(dx, dy)
+}
+
+// ---------- Đo nhãn theo BIÊN NÉT CHỮ ----------
+// Typst tính HỤT khung của công thức TRONG DÒNG: `measure($1/2$)` chỉ trả về
+// chiều cao MỘT DÒNG CHỮ (≈6.8pt ở cỡ 10pt) trong khi phân số vẽ ra cao gấp
+// đôi (≈12pt) và tràn cả trên lẫn dưới khung. Nhãn đặt theo khung đó nên bị
+// đường vẽ CẮT NGANG (phân số, căn bậc hai, chỉ số trên/dưới…). Đo lại bằng
+// top-edge/bottom-edge: "bounds" cho ra đúng biên nét chữ.
+// PHẢI gọi trong `context`. Số chữ thường (không tràn) cho kết quả nhỏ hơn
+// hoặc bằng khung, nên nơi dùng luôn lấy phần TRÀN = max(0, biên − khung):
+// chữ thường bù 0 ⇒ mọi hình cũ giữ nguyên bố cục.
+#let co-net(nd) = measure({
+  set text(top-edge: "bounds", bottom-edge: "bounds")
+  nd
+})
+
+// Phần nét chữ tràn ra NGOÀI khung, chia đều hai bên: (dx, dy) tính bằng length.
+#let _tran-net(nd) = {
+  let k = measure(nd)
+  let b = co-net(nd)
+  (
+    calc.max(0pt, b.width - k.width) / 2,
+    calc.max(0pt, b.height - k.height) / 2,
+  )
 }
 
 // Nhãn văn bản đặt cạnh điểm P.
@@ -221,9 +248,11 @@
     let nd = text(fill: mau, noi-dung)
     let nd2 = if quay == 0deg { nd } else { rotate(quay, reflow: true, nd) }
     let s = measure(nd2)
+    // bù phần nét chữ tràn ra ngoài khung (phân số, căn…) — xem `co-net`
+    let (bx, by) = _tran-net(nd2)
     place(
-      dx: p.at(0) - s.width / 2 + hd.at(0) * (cach + s.width / 2),
-      dy: p.at(1) - s.height / 2 + hd.at(1) * (cach + s.height / 2),
+      dx: p.at(0) - s.width / 2 + hd.at(0) * (cach + s.width / 2 + bx),
+      dy: p.at(1) - s.height / 2 + hd.at(1) * (cach + s.height / 2 + by),
       nd2,
     )
   }
@@ -287,6 +316,117 @@
   mui-ten(ctx, A, B, mau: mau, day: day, dut: dut)
   if ten != none {
     nhan(ctx, ((A.at(0) + B.at(0)) / 2, (A.at(1) + B.at(1)) / 2), ten, huong: huong, mau: mau)
+  }
+}
+
+// ---------- Mũi tên HAI ĐẦU (đường ghi số đo) ----------
+// Mũi tên có đầu ở CẢ HAI phía, kiểu đường ghi kích thước trong bản vẽ:
+// thường dùng để chú thích số đo đặt Ở GIỮA đoạn mũi tên.
+//   ten      : nội dung chú thích (vd $2a$, [5 cm]) — none = chỉ vẽ mũi tên
+//   trong    : chữ nằm CHÍNH GIỮA thân, thân bị cắt chừa chỗ (|<-- 5 cm -->|)
+//              auto = tự bật khi có `ten` và đoạn đủ dài để chứa chữ,
+//              không đủ dài thì tự đặt chữ ra ngoài (phía trên đoạn)
+//   huong    : chỗ đặt chữ khi KHÔNG nằm giữa thân
+//              (auto = vuông góc phía trên đoạn, như `doan`)
+//   ten-quay : true = chữ NẰM DỌC theo mũi tên (luôn đọc xuôi)
+//   vach     : true = kẻ vạch chặn vuông góc ở hai đầu (kiểu ghi kích thước)
+//   le       : lùi hai đầu mũi tên vào trong, để hở khỏi vật đang đo
+//   nen      : màu nền lót sau chữ khi chữ nằm giữa thân (none = không lót)
+// Ví dụ:
+//   mui-ten-2-dau(A, B, ten: [5 cm])                    // chữ giữa thân
+//   mui-ten-2-dau(A, B, ten: $2a$, trong: false)        // chữ trên đoạn
+//   mui-ten-2-dau((0, -0.4), (4, -0.4), ten: $h$, vach: true)
+/// Mũi tên HAI ĐẦU giữa A và B, kiểu đường ghi kích thước. `ten:` là số đo
+/// đặt GIỮA thân (`trong: false` để đưa chữ ra ngoài), `vach: true` kẻ vạch
+/// chặn hai đầu, `le:` lùi hai đầu vào trong cho hở khỏi vật đang đo.
+#let mui-ten-2-dau(
+  ctx, A, B,
+  mau: black, day: 1pt, kich: 7pt, dut: false,
+  ten: none, huong: auto, cach: 5pt, ten-quay: false, mau-ten: auto,
+  trong: auto, dem: 3pt, nen: white,
+  vach: false, dai-vach: 9pt,
+  le: 0pt,
+) = context {
+  let a0 = toa-pt(ctx, A)
+  let b0 = toa-pt(ctx, B)
+  let (dx, dy) = (b0.at(0) - a0.at(0), b0.at(1) - a0.at(1))
+  let l0 = calc.sqrt(dx * dx + dy * dy)
+  if l0 < 0.001 { return }
+  let (ux, uy) = (dx / l0, dy / l0)
+  let lp = calc.min(le.pt(), l0 / 2 - 0.5)
+  let a = (a0.at(0) + lp * ux, a0.at(1) + lp * uy)
+  let b = (b0.at(0) - lp * ux, b0.at(1) - lp * uy)
+  let l = l0 - 2 * lp
+  let mc = ((a.at(0) + b.at(0)) / 2, (a.at(1) + b.at(1)) / 2)
+  let mt = ((A.at(0) + B.at(0)) / 2, (A.at(1) + B.at(1)) / 2)
+  let mau-t = if mau-ten == auto { mau } else { mau-ten }
+
+  // Kích thước chữ (đo cả biên nét để phân số/căn không bị thân mũi tên cắt).
+  let nd = if ten == none { none } else {
+    let n = text(fill: mau-t, ten)
+    let q = if ten-quay {
+      let g = if a.at(0) <= b.at(0) { goc-truc(ctx, A, B) } else { goc-truc(ctx, B, A) }
+      rotate(g, reflow: true, n)
+    } else { n }
+    q
+  }
+  let (kw, kh, bw, bh) = if nd == none { (0pt, 0pt, 0pt, 0pt) } else {
+    let k = measure(nd)
+    let bn = co-net(nd)
+    (k.width, k.height, calc.max(k.width, bn.width), calc.max(k.height, bn.height))
+  }
+  // Bề ngang chỗ chữ chiếm DỌC THEO thân mũi tên + hai đầu mũi tên phải đủ chỗ.
+  let ho = bw.pt() * calc.abs(ux) + bh.pt() * calc.abs(uy) + 2 * dem.pt()
+  let o-giua = (
+    ten != none
+      and (if trong == auto { l > ho + 3.2 * kich.pt() } else { trong })
+  )
+
+  // Thân: cắt đôi chừa chỗ cho chữ nếu chữ nằm giữa
+  if o-giua {
+    let h2 = calc.min(ho / 2, l / 2 - 0.2)
+    doan-pt(a, (mc.at(0) - h2 * ux, mc.at(1) - h2 * uy), mau: mau, day: day, dut: dut)
+    doan-pt((mc.at(0) + h2 * ux, mc.at(1) + h2 * uy), b, mau: mau, day: day, dut: dut)
+  } else {
+    doan-pt(a, b, mau: mau, day: day, dut: dut)
+  }
+  _dau-pt(b, a, mau: mau, kich: kich)
+  _dau-pt(a, b, mau: mau, kich: kich)
+
+  // Vạch chặn hai đầu (kiểu đường ghi kích thước)
+  if vach {
+    let hv = dai-vach.pt() / 2
+    let (px, py) = (-uy, ux)
+    for q in (a0, b0) {
+      doan-pt(
+        (q.at(0) - hv * px, q.at(1) - hv * py),
+        (q.at(0) + hv * px, q.at(1) + hv * py),
+        mau: mau, day: day,
+      )
+    }
+  }
+
+  // Chú thích
+  if ten != none {
+    if o-giua {
+      if nen != none {
+        place(
+          dx: (mc.at(0) - bw.pt() / 2 - dem.pt() / 2) * 1pt,
+          dy: (mc.at(1) - bh.pt() / 2) * 1pt,
+          rect(width: bw + dem, height: bh, fill: nen, stroke: none),
+        )
+      }
+      place(dx: (mc.at(0) - kw.pt() / 2) * 1pt, dy: (mc.at(1) - kh.pt() / 2) * 1pt, nd)
+    } else {
+      nhan(
+        ctx, mt, ten,
+        huong: if huong == auto { _phap-tuyen(ctx, A, B) } else { huong },
+        cach: cach, mau: mau-t,
+        quay: if ten-quay {
+          if a.at(0) <= b.at(0) { goc-truc(ctx, A, B) } else { goc-truc(ctx, B, A) }
+        } else { 0deg },
+      )
+    }
   }
 }
 
@@ -957,6 +1097,47 @@
   (A.at(0) + t * ux, A.at(1) + t * uy)
 }
 
+// ---------- Cửa sổ khung vừa khít hình (TRẢ GIÁ TRỊ, không vẽ) ----------
+// Gom mọi điểm mà một đối tượng chiếm chỗ (nội bộ của khung-vua).
+#let _diem-cua(m) = {
+  if type(m) != array or m.len() == 0 { return () }
+  let so = (int, float)
+  if m.len() == 2 and type(m.at(0)) in so and type(m.at(1)) in so {
+    (m,)                                   // một ĐIỂM (x, y)
+  } else if m.len() == 2 and type(m.at(0)) == array and type(m.at(1)) in so {
+    let (O, r) = m                         // một ĐƯỜNG TRÒN (tâm, bán kính)
+    (
+      (O.at(0) - r, O.at(1)), (O.at(0) + r, O.at(1)),
+      (O.at(0), O.at(1) - r), (O.at(0), O.at(1) + r),
+    )
+  } else {
+    let ds = ()
+    for x in m { ds += _diem-cua(x) }      // mảng điểm / mảng lồng nhau
+    ds
+  }
+}
+
+// Cửa sổ toạ độ vừa khít các đối tượng truyền vào — để hình KHÔNG tràn ra
+// ngoài khung. Mỗi đối số là một ĐIỂM (x, y), một ĐƯỜNG TRÒN (tâm, bán kính),
+// hoặc một MẢNG gồm các thứ đó.
+//   #hinh(w: 5cm, ..khung-vua((A, B, C), (O, R)), ctx => { ... })
+// le: chừa lề quanh hình, tính theo TỈ LỆ cạnh lớn của hình (0.12 = 12%).
+/// TRẢ VỀ cửa sổ `(xmin:, xmax:, ymin:, ymax:)` vừa khít các điểm/đường tròn
+/// truyền vào, để rải thẳng vào `#hinh`:
+/// `#hinh(w: 5cm, ..khung-vua((A, B, C), (O, R)), ctx => { … })`.
+#let khung-vua(..muc, le: 0.12) = {
+  let ds = ()
+  for m in muc.pos() { ds += _diem-cua(m) }
+  if ds.len() == 0 { return (xmin: -5, xmax: 5, ymin: -4, ymax: 4) }
+  let xs = ds.map(P => P.at(0))
+  let ys = ds.map(P => P.at(1))
+  let (x1, x2) = (calc.min(..xs), calc.max(..xs))
+  let (y1, y2) = (calc.min(..ys), calc.max(..ys))
+  let d = calc.max(x2 - x1, y2 - y1, 0.001)
+  let m = d * le
+  (xmin: x1 - m, xmax: x2 + m, ymin: y1 - m, ymax: y2 + m)
+}
+
 // Tâm đường tròn ngoại tiếp tam giác ABC.
 #let tam-ngoai-tiep(A, B, C) = {
   let d = 2 * (A.at(0) * (B.at(1) - C.at(1)) + B.at(0) * (C.at(1) - A.at(1)) + C.at(0) * (A.at(1) - B.at(1)))
@@ -966,6 +1147,35 @@
   (
     (a2 * (B.at(1) - C.at(1)) + b2 * (C.at(1) - A.at(1)) + c2 * (A.at(1) - B.at(1))) / d,
     (a2 * (C.at(0) - B.at(0)) + b2 * (A.at(0) - C.at(0)) + c2 * (B.at(0) - A.at(0))) / d,
+  )
+}
+
+// Đường tròn ĐI QUA một dãy điểm — dùng cho đường tròn ngoại tiếp ĐA GIÁC.
+// 3 điểm: đúng bằng đường tròn ngoại tiếp tam giác. Nhiều hơn 3: khớp theo
+// bình phương bé nhất (đa giác NỘI TIẾP ĐƯỢC vẫn cho đúng đường tròn của nó,
+// đa giác vẽ hơi lệch thì cho đường tròn sát nhất — không lệch hẳn về 3 đỉnh
+// đầu như khi chỉ lấy 3 điểm).
+// TRẢ VỀ (tâm, bán kính).
+#let tron-qua-diem(ds) = {
+  let n = ds.len()
+  if n < 3 { panic("tron-qua-diem: cần ít nhất 3 điểm") }
+  let xm = ds.map(P => P.at(0)).sum() / n
+  let ym = ds.map(P => P.at(1)).sum() / n
+  let us = ds.map(P => P.at(0) - xm)
+  let vs = ds.map(P => P.at(1) - ym)
+  let s(f) = range(n).map(i => f(us.at(i), vs.at(i))).sum()
+  let suu = s((u, v) => u * u)
+  let svv = s((u, v) => v * v)
+  let suv = s((u, v) => u * v)
+  let a1 = (s((u, v) => u * u * u) + s((u, v) => u * v * v)) / 2
+  let a2 = (s((u, v) => v * v * v) + s((u, v) => v * u * u)) / 2
+  let d = suu * svv - suv * suv
+  if calc.abs(d) < 1e-12 { panic("tron-qua-diem: các điểm thẳng hàng") }
+  let uc = (a1 * svv - a2 * suv) / d
+  let vc = (a2 * suu - a1 * suv) / d
+  (
+    (xm + uc, ym + vc),
+    calc.sqrt(uc * uc + vc * vc + (suu + svv) / n),
   )
 }
 

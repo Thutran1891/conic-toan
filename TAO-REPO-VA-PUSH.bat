@@ -3,6 +3,30 @@ chcp 65001 >nul
 setlocal
 cd /d "%~dp0"
 
+rem =====================================================================
+rem  FILE CU (07/2026) - dung MOT LAN de tao kho lan dau, hoi ten tai
+rem  khoan roi tro remote sang https://github.com/<user>/baigiang.git.
+rem  Kho that nay TEN LA conic-toan, nen chay bay gio se `git remote
+rem  remove origin` roi gan remote SAI -> push hong, phai go tay lai.
+rem  Kho da tao roi: chi can DONG-BO-CONIC-TOAN.bat de commit + push.
+rem =====================================================================
+echo ============================================
+echo   *** FILE CU - TAO KHO LAN DAU, DOI REMOTE ***
+echo ============================================
+echo.
+echo  Kho conic-toan da tao tu 07/2026 va dang chay tot.
+echo  File nay se GO remote hien tai va tro sang .../baigiang.git (SAI TEN).
+echo.
+set "DONGY="
+set /p DONGY=Van muon chay file cu nay? Go: TOI HIEU  (Enter = thoat):
+if /i not "%DONGY%"=="TOI HIEU" (
+  echo.
+  echo Da thoat, khong lam gi ca.
+  echo.
+  pause
+  exit /b 0
+)
+
 echo ============================================
 echo   Dua goi baigiang 0.2.0 len GitHub
 echo ============================================

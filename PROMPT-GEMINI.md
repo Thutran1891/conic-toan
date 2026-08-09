@@ -53,9 +53,22 @@ trong 0.3.1** — dùng với `@preview` sẽ báo *unknown variable*:
 
 - `#gian-dong(k)`, `#voi-gian-dong(k)[...]`, tham số `gian-dong:` của
   `vd/tn/ds/tln/tl/hd/lt/vdtt` và `giai-buoc` (hệ số giãn dòng).
+- `#cao-that(...)`, `#voi-cao-that[...]`, tham số `cao-that:` của
+  `kieu-cau-hoi` (chiều cao thật của công thức trong dòng — xem mục 1c).
 
 Nếu tôi không nói gì khác: **đừng dùng hai thứ trên**; cần nới dòng thì báo lại
 để tôi cài bản @local. Mọi hàm khác trong tài liệu này đều đã có ở 0.3.1.
+
+### 1c. Dính chữ ở phân số — ĐỪNG chữa bằng `gian-dong`
+
+Typst đóng khung công thức TRONG DÒNG theo số đo phông chữ chứ không theo nét
+vẽ, nên phân số/căn thức tràn ra ngoài khung và dính vào dòng trên; trong ô của
+`grid` (phương án `#tn`, ý `#ds`, `cot-item`) thì đè hẳn sang hàng trên. Bản
+@local đã tự chữa việc này (cột chống vô hình, bật sẵn) — vì vậy:
+
+- **ĐỪNG đôn `gian-dong` lên 2–3 để chữa dính chữ.** Cứ để `gian-dong: 1.0`;
+  chỉ tăng khi muốn CẢ BÀI thoáng hơn.
+- Đừng chèn `#v(...)` hay dòng trống thủ công giữa các phương án cho "đỡ dính".
 
 ## 2. Khung file BẮT BUỘC cho đề kiểm tra / phiếu bài tập
 
@@ -636,9 +649,22 @@ Khung nội dung LÝ THUYẾT (không có lời giải kèm theo, gọi trực t
 // | trung-tuyen(P, A, B, ten-chan: $M$, so-vach: 1) — trung tuyến từ P tới AB,
 //   so-vach = số vạch đánh dấu hai nửa bằng nhau
 // | phan-giac(O, A, B, ten-chan: $D$, r-cung: 0.5) — phân giác trong góc O
-//   (đỉnh là đối số ĐẦU, giống goc/goc-vuong), tự vẽ 2 cung góc bằng nhau
+//   (đỉnh là đối số ĐẦU, giống goc/goc-vuong), tự vẽ 2 cung góc bằng nhau.
+//   Đánh dấu HAI GÓC BẰNG NHAU: vach: 1..3 (gạch ngang cung) hoặc so-cung: 1..3
+//   (cung đồng tâm); ten-goc: $alpha$ ghi nhãn ở CẢ HAI góc.
 // | duong-tron-noi-tiep(A, B, C, ten-tam: $I$, ban-kinh: true)
-//   (ngoại tiếp: duong-tron-ngoai-tiep; bàng tiếp: duong-tron-bang-tiep)
+//   (bàng tiếp: duong-tron-bang-tiep)
+// | duong-tron-ngoai-tiep — nhận TAM GIÁC (A, B, C) hoặc cả một MẢNG đỉnh
+//   ĐA GIÁC: duong-tron-ngoai-tiep((A, B, C, D, E), canh: true, ban-kinh: true,
+//   ten-r: $R$). Nhãn tâm tự né cạnh, bán kính tự chọn đỉnh không trùng cạnh.
+//   Chỉ TÍNH: tron-qua-diem(mảng đỉnh) -> (tâm, bán kính).
+//   ĐƯỜNG TRÒN NGOẠI TIẾP RẤT HAY TRÀN RA NGOÀI KHUNG — đặt khung bằng khung-vua:
+//     #let (O, R) = tron-qua-diem((A, B, C))
+//     #hinh(w: 5cm, ..khung-vua((A, B, C), (O, R)), ctx => { ... })
+// | mui-ten-2-dau(A, B, ten: [5 cm], vach: true) — mũi tên HAI ĐẦU kiểu đường
+//   ghi kích thước, số đo nằm GIỮA thân (thân tự cắt chừa chỗ, có nền lót).
+//   trong: false -> chữ ra ngoài thân · ten-quay: true -> chữ nằm dọc theo
+//   mũi tên · le: 3pt -> lùi hai đầu cho hở khỏi vật đang đo.
 // | da-giac-ten(dinh, ten: ($A$, $B$, $C$, $D$, $E$), to:, cham: true) —
 //   đa giác BẤT KÌ kèm chấm + tên đỉnh, hướng nhãn tự toả ra ngoài
 // goc (góc KHÔNG vuông) nhận thêm: to: rgb(255,170,0,70) (tô màu hình quạt),
@@ -1056,4 +1082,3 @@ Các ĐỒ THỊ dựng sẵn (`do-thi-bac-hai`, `do-thi-bac-ba`, `do-thi-trung-
 Lưu ý (07/2026): KHÔNG cần tự gõ dấu chấm cuối mỗi phương án `#tn` / ý `#ds` — thư viện tự thêm `.` khi thiếu (đã có `. ! ? … : ;`, kể cả bọc trong nháy/ngoặc, thì giữ nguyên; kết bằng danh sách/bảng/hình/`\`/công thức giữa dòng thì bỏ qua). Muốn tắt: `#kieu-cau-hoi(cham-cuoi: false)` toàn bài hoặc `cham: false` cho một câu.
 
 Bây giờ, hãy chờ tôi cung cấp nội dung (danh sách câu hỏi hoặc chủ đề bài giảng) và tạo file .typ theo đúng chuẩn trên.
-                                                                    

@@ -38,13 +38,25 @@
   m * p
 }
 
+// Chỗ trống phải nới thêm bên PHẢI khung để đặt TÊN TRỤC HOÀNH cạnh mũi tên.
+// Trước đây nhãn đặt "above-left" ngay tại đầu mũi tên nên nằm ĐÈ LÊN biểu đồ
+// (trục vẽ xuyên qua chữ). Nay nhãn lui hẳn sang phải đầu mũi tên, và khung
+// được nới đúng bằng bề rộng chữ để nhãn không tràn ra ngoài hình.
+// TRẢ VỀ số ĐƠN VỊ TOẠ ĐỘ cần cộng thêm vào xmax. PHẢI gọi trong `context`.
+#let _cho-ten-x(ten-x, w, base, co-chu: 10pt, cach: 5pt) = {
+  if ten-x == none { return 0 }
+  let s = measure(text(size: co-chu, ten-x))
+  let k = calc.min((s.width + cach) / w, 0.55)
+  base * k / (1 - k)
+}
+
 // Trục Ox + Oy (mũi tên), nhãn tên trục.
 #let _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y) = {
   doan(ctx, (x0, 0), (xb, 0), day: 0.9pt)
   dau-mui-ten(ctx, (x0, 0), (xb, 0))
   doan(ctx, (x0, 0), (x0, ytop), day: 0.9pt)
   dau-mui-ten(ctx, (x0, 0), (x0, ytop))
-  if ten-x != none { nhan(ctx, (xb, 0), ten-x, huong: "above-left", cach: 5pt) }
+  if ten-x != none { nhan(ctx, (xb, 0), ten-x, huong: "right", cach: 5pt) }
   if ten-y != none { nhan(ctx, (x0, ytop), ten-y, huong: "right", cach: 7pt) }
 }
 
@@ -104,9 +116,11 @@
   let x0 = m0 - b1 * 0.55        // trục tung đặt hụt sang trái nửa nhóm
   let xb = mn + bn * 0.7
   let ytop = calc.max(fmax * 1.18, by)
+  let xa = x0 - (xb - x0) * 0.02
+  context {
   hinh(
     w: w, h: h,
-    xmin: x0 - (xb - x0) * 0.02, xmax: xb,
+    xmin: xa, xmax: xb + _cho-ten-x(ten-x, w, xb - xa, co-chu: co-chu),
     ymin: -ytop * 0.16, ymax: ytop * 1.06,
     co-chu: co-chu,
     ctx => {
@@ -135,6 +149,7 @@
       if them != none { them(ctx) }
     },
   )
+  }
 }
 
 // =====================================================================
@@ -166,9 +181,11 @@
   let x0 = m0 - b1 * 0.55
   let xb = mn + bn * 0.7
   let ytop = calc.max(fmax * 1.18, by)
+  let xa = x0 - (xb - x0) * 0.02
+  context {
   hinh(
     w: w, h: h,
-    xmin: x0 - (xb - x0) * 0.02, xmax: xb,
+    xmin: xa, xmax: xb + _cho-ten-x(ten-x, w, xb - xa, co-chu: co-chu),
     ymin: -ytop * 0.16, ymax: ytop * 1.06,
     co-chu: co-chu,
     ctx => {
@@ -190,6 +207,7 @@
       if them != none { them(ctx) }
     },
   )
+  }
 }
 
 // =====================================================================
@@ -227,9 +245,11 @@
   let x0 = xs.first() - kc * 0.8
   let xb = xs.last() + kc * 0.8
   let ytop = calc.max(fmax * 1.18, by)
+  let xa = x0 - (xb - x0) * 0.02
+  context {
   hinh(
     w: w, h: h,
-    xmin: x0 - (xb - x0) * 0.02, xmax: xb,
+    xmin: xa, xmax: xb + _cho-ten-x(ten-x, w, xb - xa, co-chu: co-chu),
     ymin: -ytop * 0.16, ymax: ytop * 1.06,
     co-chu: co-chu,
     ctx => {
@@ -254,6 +274,7 @@
       if them != none { them(ctx) }
     },
   )
+  }
 }
 
 // =====================================================================
@@ -328,7 +349,12 @@
   let nb = 0.4           // nửa chiều cao hộp
   let nr = 0.2           // nửa chiều cao vạch râu min/max
   let ytr = -0.78        // cao độ trục số
-  hinh(w: w, h: h, xmin: xa, xmax: xb, ymin: -1.62, ymax: 1.05, co-chu: co-chu, ctx => {
+  context {
+  hinh(
+    w: w, h: h,
+    xmin: xa, xmax: xb + _cho-ten-x(ten, w, xb - xa, co-chu: co-chu),
+    ymin: -1.62, ymax: 1.05, co-chu: co-chu,
+    ctx => {
     // gióng nét đứt 5 đặc trưng xuống trục
     for x in (t.min, t.q1, t.q2, t.q3, t.max) {
       doan(ctx, (x, yc - nb), (x, ytr), mau: luma(55%), day: 0.6pt, dut: true)
@@ -345,7 +371,7 @@
     // trục số + vạch + 5 số
     doan(ctx, (xa, ytr), (xb, ytr), day: 0.9pt)
     dau-mui-ten(ctx, (xa, ytr), (xb, ytr))
-    nhan(ctx, (xb, ytr), ten, huong: "below", cach: 6pt)
+    nhan(ctx, (xb, ytr), ten, huong: "right", cach: 5pt)
     let dv = 2.6pt / ctx.sy
     for x in (t.min, t.q1, t.q2, t.q3, t.max) {
       doan(ctx, (x, ytr - dv), (x, ytr + dv), day: 0.9pt)
@@ -353,6 +379,7 @@
     }
     if them != none { them(ctx) }
   })
+  }
 }
 
 // =====================================================================

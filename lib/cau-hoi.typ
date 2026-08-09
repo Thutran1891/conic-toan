@@ -20,7 +20,7 @@
 //   -> đổi MỘT LẦN, đồng bộ toàn bài.
 // CHỪA CHỖ TL (bản in): #trong-tl(cao: 5cm) / #khong-trong-tl()
 // =====================================================================
-#import "slide.typ": _buoc-ht, _bd-cau, _bd-hd, _bd-lt, _bd-vdtt, _bd-tat-ca, _so-moi, _ho-so
+#import "slide.typ": _buoc-ht, _bd-cau, _bd-hd, _bd-lt, _bd-vdtt, _bd-tat-ca, _so-moi, _ho-so, _he-so-gian, _cao-that
 
 #let _hien-da = state("ch-hien-da", false)
 
@@ -209,14 +209,31 @@
 //   #kieu-cau-hoi(mau: rgb("#e67e22"), hinh: "luc-giac", hien-o: false)
 //   #kieu-cau-hoi(om-hinh: false)   // tắt chế độ chữ ôm hình từ đây trở đi
 //   #kieu-cau-hoi(eq-trong-dong: false)  // giữ nguyên $ ... $ khối như cũ
-#let kieu-cau-hoi(mau: auto, hinh: auto, hien-o: auto, cham-cuoi: auto, om-hinh: auto, eq-trong-dong: auto) = _kieu.update(k => (
-  mau: if mau == auto { k.mau } else { mau },
-  hinh: if hinh == auto { k.hinh } else { hinh },
-  hien-o: if hien-o == auto { k.at("hien-o", default: true) } else { hien-o },
-  cham: if cham-cuoi == auto { k.at("cham", default: true) } else { cham-cuoi },
-  om-hinh: if om-hinh == auto { k.at("om-hinh", default: true) } else { om-hinh },
-  eq-dong: if eq-trong-dong == auto { k.at("eq-dong", default: true) } else { eq-trong-dong },
-))
+//   #kieu-cau-hoi(cao-that: false)  // tắt cột chống chiều cao công thức
+// cao-that: công thức TRONG DÒNG có khai đúng chiều cao NÉT VẼ hay không
+//   (xem `_chong-net` của slide.typ). Mặc định BẬT — đây là thứ chống dính chữ
+//   ở phân số/căn thức mà `gian-dong` không với tới được.
+#let kieu-cau-hoi(mau: auto, hinh: auto, hien-o: auto, cham-cuoi: auto, om-hinh: auto, eq-trong-dong: auto, cao-that: auto) = {
+  _kieu.update(k => (
+    mau: if mau == auto { k.mau } else { mau },
+    hinh: if hinh == auto { k.hinh } else { hinh },
+    hien-o: if hien-o == auto { k.at("hien-o", default: true) } else { hien-o },
+    cham: if cham-cuoi == auto { k.at("cham", default: true) } else { cham-cuoi },
+    om-hinh: if om-hinh == auto { k.at("om-hinh", default: true) } else { om-hinh },
+    eq-dong: if eq-trong-dong == auto { k.at("eq-dong", default: true) } else { eq-trong-dong },
+  ))
+  // Cơ chế cao-that nằm ở state RIÊNG (slide.typ) vì bai-giang/de-toan phải
+  // đọc được nó mà slide.typ thì không import được cau-hoi.typ.
+  if cao-that != auto {
+    _cao-that.update(c => (
+      bat: cao-that,
+      nguong: c.at("nguong", default: 1pt),
+      them: c.at("them", default: 0pt),
+      chia: c.at("chia", default: 0.5),
+      hien: c.at("hien", default: false),
+    ))
+  }
+}
 
 // Ô tick/ô điền có được hiện không (đọc trong context).
 #let _hien-o() = _kieu.get().at("hien-o", default: true)
@@ -292,8 +309,12 @@
 }
 
 // Đóng khung cả câu khi boxed: true.
-#let _khung-cau(boxed, than) = block(
-  width: 100%, above: 10pt, below: 10pt,
+// Khoảng cách GIỮA HAI CÂU cũng nhân hệ số gian-dong: nếu không, đặt
+// gian-dong: 2 thì các dòng TRONG câu giãn gấp đôi mà "Câu 2" vẫn dán sát ngay
+// dưới ý cuối của câu trước — nhìn như các câu dính chùm vào nhau.
+// Hệ số 1.0 cho đúng 10pt như cũ ⇒ bài cũ không đổi bố cục.
+#let _khung-cau(boxed, than) = context block(
+  width: 100%, above: 10pt * _he-so-gian(), below: 10pt * _he-so-gian(),
   stroke: if boxed { 0.7pt + luma(45%) } else { none },
   inset: if boxed { 8pt } else { 0pt },
   radius: if boxed { 4pt } else { 0pt },
@@ -584,7 +605,8 @@
     let da = if vi-dung != none { ("A", "B", "C", "D", "E", "F").at(vi-dung) } else { dap-an }
     voi-hinh({ _dau-cau(diem: diem, prefix: prefix, num: num); cau }, hinh,
       vi-tri: fig-pos, be-rong: fig-width, duoi: {
-    v(6pt)
+    // khoảng cách ĐỀ → phương án cũng theo hệ số gian-dong (1.0 = 6pt như cũ)
+    context v(6pt * _he-so-gian())
     context {
       let hien = _da-hien(lo-da) and da != none
       // ÉP TRONG DÒNG TRƯỚC rồi mới chấm câu: sau khi ép, `$ ... $` không còn
@@ -602,7 +624,9 @@
         } else { cot }
         grid(
           columns: (1fr,) * so-cot,
-          row-gutter: 9pt, column-gutter: 12pt,
+          // gian-dong với tới CẢ khoảng cách giữa các hàng phương án
+          // (hệ số 1.0 = 9pt như cũ ⇒ bài cũ không đổi bố cục).
+          row-gutter: 9pt * _he-so-gian(), column-gutter: 12pt,
           ..cells,
         )
       })
@@ -733,7 +757,7 @@
   kieu-nhan: "a)",
   do-nhan-tay: true,       // dò nhãn a)/1)… gõ sẵn trong item -> không đánh chồng
   cach-cot: 14pt,
-  cach-hang: 8pt,
+  cach-hang: auto,         // auto = 8pt × hệ số gian-dong (1.0 ⇒ 8pt như cũ)
 ) = {
   let items = noi-dung.pos()
   let n = items.len()
@@ -761,7 +785,8 @@
     }
     grid(
       columns: (1fr,) * so,
-      column-gutter: cach-cot, row-gutter: cach-hang,
+      column-gutter: cach-cot,
+      row-gutter: if cach-hang == auto { 8pt * _he-so-gian() } else { cach-hang },
       align: left + top,
       ..cells,
     )
@@ -806,7 +831,7 @@
     } else { loi-giai }
     voi-hinh({ _dau-cau(diem: diem, prefix: prefix, num: num); cau }, hinh,
       vi-tri: fig-pos, be-rong: fig-width, duoi: {
-    v(4pt)
+    context v(4pt * _he-so-gian())
     context {
       let hien = _da-hien(lo-da) and dap-an != none
       let cac-y = _cham-ds(_ep-ds(cac-y, trong-dong), cham)
@@ -822,7 +847,7 @@
         grid(
           columns: (1fr, 26pt, 26pt),
           align: (left + horizon, center + horizon, center + horizon),
-          row-gutter: 8pt, column-gutter: 6pt,
+          row-gutter: 8pt * _he-so-gian(), column-gutter: 6pt,
           [], text(weight: "bold", fill: k-mau, size: 0.82em)[Đ],
           text(weight: "bold", fill: k-mau, size: 0.82em)[S],
           ..cac-y.enumerate().map(p => (
@@ -832,8 +857,9 @@
           )).flatten(),
         )
       } else {
+        let gy = 6pt * _he-so-gian()   // gian-dong với tới khoảng cách giữa các ý
         for j in range(cac-y.len()) {
-          block(above: 6pt, below: 6pt, {
+          block(above: gy, below: gy, {
             _the(nhan-y.at(j), duoi: ")")
             [ ]
             cac-y.at(j)
@@ -875,7 +901,7 @@
     let so-o = if box-count == auto { o-dien } else { box-count }
     voi-hinh({ _dau-cau(diem: diem, prefix: prefix, num: num); cau }, hinh,
       vi-tri: fig-pos, be-rong: fig-width, duoi: {
-    v(6pt)
+    context v(6pt * _he-so-gian())
     context {
       if _da-hien(lo-da) and dap-an != none {
         text(weight: "bold", fill: _luc)[Đáp án: ]
@@ -900,8 +926,8 @@
 // dau: thẻ đầu câu; loi-giai: chỉ hiện khi bật đáp án;
 // cho-trong: chừa chỗ trống khi in đề.
 #let _than-tl(dau, cau, loi-giai, cho-trong, lo-da, hinh: none,
-  hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = block(
-  width: 100%, above: 10pt, below: 10pt,
+  hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = context block(
+  width: 100%, above: 10pt * _he-so-gian(), below: 10pt * _he-so-gian(),
   {
     voi-hinh({ dau; cau }, hinh)
     context {

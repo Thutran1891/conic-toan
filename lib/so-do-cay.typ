@@ -27,15 +27,21 @@
 )
 
 // Ô chữ bo tròn đặt tâm tại P (toạ độ toán).
+// Kích thước ô lấy theo max(khung, biên nét chữ): công thức trong dòng như
+// $1/6$ bị Typst tính hụt chiều cao khung nên nếu chỉ đo khung thì phân số
+// sẽ thò ra ngoài ô (xem `co-net` trong ve.typ).
 #let o-bo-tron(ctx, P, nd, to: white, vien: auto, dem-x: 8pt, dem-y: 5pt, bk: 5pt, day: 0.8pt) = context {
   let s = measure(nd)
+  let b = co-net(nd)
+  let sw = calc.max(s.width, b.width)
+  let sh = calc.max(s.height, b.height)
   let p = toa(ctx, P)
   let v = if vien == auto { to.darken(35%) } else { vien }
   place(
-    dx: p.at(0) - s.width / 2 - dem-x,
-    dy: p.at(1) - s.height / 2 - dem-y,
+    dx: p.at(0) - sw / 2 - dem-x,
+    dy: p.at(1) - sh / 2 - dem-y,
     rect(
-      width: s.width + 2 * dem-x, height: s.height + 2 * dem-y,
+      width: sw + 2 * dem-x, height: sh + 2 * dem-y,
       radius: bk, fill: to, stroke: day + v,
     ),
   )
@@ -126,11 +132,14 @@
       // cột kết quả
       for q in r.kq {
         let s = measure(q.nd)
+        let b = co-net(q.nd)
+        let sw = calc.max(s.width, b.width)
+        let sh = calc.max(s.height, b.height)
         let p = toa(ctx, (xkq, q.y))
         place(
-          dx: p.at(0), dy: p.at(1) - s.height / 2 - dem-y,
+          dx: p.at(0), dy: p.at(1) - sh / 2 - dem-y,
           rect(
-            width: s.width + 2.4 * dem-x, height: s.height + 2 * dem-y,
+            width: sw + 2.4 * dem-x, height: sh + 2 * dem-y,
             radius: 5pt, fill: mau-kq, stroke: 0.8pt + vien-kq,
           ),
         )

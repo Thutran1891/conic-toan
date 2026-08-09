@@ -207,6 +207,8 @@ Mọi hình vẽ nằm trong `#hinh(...)` với hệ toạ độ toán học (y 
   duong-gap-khuc(ctx, ((0,0), (1,2), (3,1), (5,4)), mau: blue, dut: true) // gấp khúc A-B-C-D, đứt thật từng đoạn
   diem(ctx, (2, 3), ten: $M$, huong: "tren")      // điểm + nhãn
   mui-ten(ctx, (0, 0), (3, 2))                    // mũi tên
+  mui-ten-2-dau(ctx, (0, -0.6), (5, -0.6),        // mũi tên HAI ĐẦU: ghi số đo
+      ten: [5 cm], vach: true)                    // chữ nằm giữa thân
   vecto(ctx, (0, 0), (2, 3), ten: $arrow(u)$)     // vectơ có tên
   vecto(ctx, (0, 0), (2, 3), dut: true)           // vectơ nét đứt (cạnh khuất), đầu mũi tên vẫn liền
   duong-tron(ctx, (3, 2), 1.5)                    // đường tròn
@@ -226,6 +228,30 @@ Mọi hình vẽ nằm trong `#hinh(...)` với hệ toạ độ toán học (y 
 ```
 
 Hướng nhãn: `"tren" | "duoi" | "trai" | "phai" | "tren-trai" | "tren-phai" | "duoi-trai" | "duoi-phai" | "giua"`.
+
+**Mũi tên hai đầu — ghi số đo (`mui-ten-2-dau`)**
+
+Kiểu đường ghi kích thước trong bản vẽ: hai đầu đều có mũi tên, số đo đặt ở
+GIỮA thân (thân tự cắt chừa chỗ cho chữ, có nền lót nên nét không cắt qua chữ).
+
+```typst
+mui-ten-2-dau(A, B, ten: [5 cm])                  // chữ giữa thân
+mui-ten-2-dau(A, B, ten: $2a$, vach: true)        // + vạch chặn hai đầu
+mui-ten-2-dau(A, B, ten: $sqrt(29)$, trong: false)  // chữ đặt NGOÀI, trên đoạn
+mui-ten-2-dau(A, B, ten: [dài], trong: false, ten-quay: true)  // chữ nằm dọc
+mui-ten-2-dau(A, B, ten: $h$, le: 3pt)            // lùi hai đầu, hở khỏi vật đo
+```
+
+Đoạn ngắn không đủ chỗ chứa chữ thì hàm TỰ đưa chữ ra ngoài thân — không bao
+giờ đè lên mũi tên. `nen: none` để bỏ nền lót, `dem:` nới chỗ hở quanh chữ.
+
+**Nhãn có phân số / căn không còn bị nét vẽ cắt ngang**
+
+Typst tính HỤT khung của công thức trong dòng: `measure($1/2$)` chỉ cho chiều
+cao MỘT DÒNG CHỮ trong khi phân số vẽ ra cao gấp đôi và tràn cả trên lẫn dưới.
+`nhan` (và mọi hàm gọi qua nó: nhãn đoạn, nhãn góc, nhãn sơ đồ cây, nhãn biểu
+đồ…) nay đo thêm theo BIÊN NÉT CHỮ rồi bù đúng phần tràn đó. Chữ thường không
+tràn nên bù 0 — bố cục các hình cũ giữ nguyên.
 
 > **Vị trí ĐỈNH góc — hai lối viết.** `goc`/`goc-vuong` đặt đỉnh làm đối số
 > **ĐẦU**: `goc-vuong(O, A, B)` là góc vuông **tại O**. TikZ thì viết đỉnh ở
@@ -456,11 +482,43 @@ vẫn gọi thẳng như cũ.
   duong-cao(ctx, C, A, B, ten-chan: $H$)
   trung-tuyen(ctx, A, B, C, ten-chan: $M$)
   phan-giac(ctx, B, C, A, ten-chan: $D$)
+  phan-giac(ctx, B, C, A, vach: 1)                // 1 vạch: hai góc BẰNG NHAU
+  phan-giac(ctx, B, C, A, so-cung: 2)             // hoặc 2 cung đồng tâm
   trung-truc(ctx, A, B)
   duong-tron-ngoai-tiep(ctx, A, B, C)             // tâm O tự tính
   duong-tron-noi-tiep(ctx, A, B, C)
 })
 ```
+
+**Đường tròn ngoại tiếp ĐA GIÁC** — `duong-tron-ngoai-tiep` nhận cả một MẢNG
+đỉnh, không chỉ tam giác. Từ 4 đỉnh trở lên, tâm và bán kính khớp theo bình
+phương bé nhất (đa giác nội tiếp được vẫn cho ĐÚNG đường tròn của nó).
+
+```typst
+#let P = range(5).map(i => toa-cuc((0, 0), 1, 90 + i * 72))    // ngũ giác đều
+#duong-tron-ngoai-tiep(P, canh: true, ban-kinh: true, ten-r: $R$)
+#let (O, R) = tron-qua-diem(P)    // TRẢ VỀ (tâm, bán kính), không vẽ
+```
+
+Nhãn tâm tự chọn phía THOÁNG nhất nên không rơi lên cạnh đa giác (`huong-tam:`
+để chỉ định tay). `ban-kinh: true` cũng tự chọn đỉnh mà bán kính không nằm đè
+lên cạnh — vd tam giác vuông có tâm ở giữa cạnh huyền thì bán kính vẽ tới đỉnh
+góc vuông chứ không trùng cạnh huyền.
+
+**Khung vừa khít hình (`khung-vua`)** — đường tròn ngoại tiếp thường chìa ra
+ngoài đa giác nên rất dễ tràn khỏi `#hinh`. `khung-vua` trả về cửa sổ toạ độ
+vừa khít, rải thẳng vào `#hinh`:
+
+```typst
+#let (O, R) = tron-qua-diem((A, B, C))
+#hinh(w: 5cm, ..khung-vua((A, B, C), (O, R)), ctx => {
+  tam-giac(ctx, A, B, C)
+  duong-tron-ngoai-tiep(ctx, A, B, C, ban-kinh: true, ten-r: $R$)
+})
+```
+
+Mỗi đối số là một ĐIỂM `(x, y)`, một ĐƯỜNG TRÒN `(tâm, bán kính)`, hoặc một
+MẢNG gồm các thứ đó; `le:` chừa lề theo tỉ lệ cạnh lớn (mặc định `0.12`).
 
 Sẵn có thêm: `tu-giac`, `hinh-binh-hanh` (biết 3 đỉnh), `hinh-chu-nhat`,
 `hinh-thang`, `tiep-tuyen-tu-diem(ctx, O, r, M)` (hai tiếp tuyến + góc vuông),
@@ -1076,7 +1134,52 @@ Khung lời giải hiện dần ở beamer (`giai-buoc`) vốn đã rộng hơn 
 (mốc `0.95em`); hệ số `gian-dong` nhân thêm vào mốc đó. Muốn ấn định độ dài
 tuyệt đối thì dùng `giai-buoc(..., gian: 1.2em)`.
 
+Từ 08/2026 hệ số này còn giãn **khoảng cách giữa các hàng phương án** của
+`#tn`, giữa các ý của `#ds`, giữa các item của `cot-item`, và **khoảng cách từ
+đề xuống phương án** — trước đây nó không với tới những chỗ đó (chúng nằm trong
+ô của `grid` hoặc là khoảng trắng cố định, không phải khoảng cách dòng). Hệ số
+`1.0` vẫn cho đúng số cũ nên bài cũ không đổi bố cục.
+
+Lưu ý về vai trò: từ khi có `cao-that` (mục dưới), **`gian-dong` không còn là
+thứ để chữa dính chữ** — chữ dính đã được lib tự lo. `gian-dong` nay chỉ để
+làm cả bài thoáng hơn hoặc chặt lại theo ý người soạn.
+
 File thử: `thu-gian-dong.typ`.
+
+### Chiều cao thật của công thức trong dòng — `cao-that`
+
+Typst đóng khung công thức **trong dòng** theo số đo phông chữ (cap-height →
+đường chân chữ) chứ không theo nét vẽ: `measure($1/2$)` và `measure($0,5$)`
+cho **cùng** một chiều cao, trong khi phân số vẽ ra cao gần gấp đôi và tràn cả
+trên lẫn dưới khung. Vì thế phân số hay dính vào dòng trên, và trong ô của
+`grid` (phương án `#tn`, ý `#ds`, `cot-item`) thì đè hẳn sang hàng trên —
+`gian-dong` không chữa được vì nó chỉ chạm khoảng cách dòng.
+
+Lib so nét vẽ thật với **nét chữ thường** (chữ thường cũng tràn khỏi khung mà
+không ai kêu, vì `leading` đã chừa chỗ), rồi chèn một **cột chống vô hình rộng
+0pt** đúng bằng phần còn thiếu. Dòng và ô tự nới **đúng chỗ cần**; chữ thường
+và công thức thấp (`$x$`, `$0,5$`) không đổi một pt nào. Cơ chế **bật sẵn**
+trong `bai-giang` và `de-toan`, và đúng cả khi tài liệu bật kiểu LaTeX
+`#show math.equation.where(block: false): it => math.display(it)` (phân số to
+đẹp — cũng chính là cách viết làm dính chữ nặng nhất).
+
+```typst
+#cao-that(false)          // tắt từ đây trở đi
+#cao-that()               // bật lại
+#cao-that(them: 1pt)      // nới thêm 1pt mỗi phía cho công thức có tràn
+#kieu-cau-hoi(cao-that: false)   // tắt cho cả bài, khai cùng chỗ mau/hinh
+
+// Tài liệu KHÔNG đi qua bai-giang/de-toan thì áp cho một khối:
+#voi-cao-that[
+  Giá trị $11 pi/3$ và $17 pi/4$ trên hai dòng liền nhau. \
+  Dòng này không còn chạm vào dòng trên.
+]
+```
+
+Nhờ nó mà `gian-dong` để `1.0` là đủ; chỉ dùng `gian-dong` khi muốn cả bài
+thoáng hơn, chứ không phải để chữa dính chữ nữa.
+
+File thử: `thu-cao-that.typ`; bảng số đo đối chiếu: `thu-cao-that-chan-doan.typ`.
 
 ### Kết thúc đề & bảng đáp án (`#het`, `#bang-dap-an`)
 

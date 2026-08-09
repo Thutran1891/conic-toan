@@ -17,7 +17,7 @@
 //    hd = hoạt động, lt = luyện tập, vdtt = vận dụng thực tế;
 //    tên cũ mc/tf/sa và dòng tao-cau-hoi cũ vẫn dùng được)
 // =====================================================================
-#import "slide.typ": slide, muc, bai-giang, lo, vi-du, loi-giai, _ho-so, _la-sach, _buoc-ht, gian-dong, _gd, _dat-gian, _he-so-gian, _gian-ht, _bd-cau
+#import "slide.typ": slide, muc, bai-giang, lo, vi-du, loi-giai, _ho-so, _la-sach, _buoc-ht, gian-dong, _gd, _dat-gian, _he-so-gian, _gian-ht, _bd-cau, cao-that, _cao-that, _chong-net, voi-cao-that
 #import "cau-hoi.typ": cau-mc, cau-tf, cau-sa, cau-tl, cau-hd, cau-lt, cau-vdtt, bat-dap-an, tat-dap-an, voi-hinh, True, Dung, _la-y
 
 // Gộp tham số kiểu mới / kiểu cũ: ưu tiên giá trị kiểu mới nếu được đặt.
@@ -379,6 +379,10 @@
     // 0.65em = leading mặc định của Typst -> gian-dong: 1.0 giữ y nguyên bố cục.
     _dat-gian(0.65em, gian-dong)
     set par(justify: true, leading: 0.65em * gian-dong, spacing: 1.2em * gian-dong)
+    // Công thức TRONG DÒNG khai đúng chiều cao nét vẽ (phân số, căn, chỉ số
+    // chồng tầng) ⇒ dòng VÀ ô lưới phương án tự nới đúng chỗ cần, khỏi phải
+    // đôn `gian-dong` lên 3 rồi làm trống hoác chỗ khác. Tắt: #cao-that(false).
+    show math.equation.where(block: false): _chong-net
     if hs == "loigiai" { bat-dap-an() } else { tat-dap-an() }
     // ----- đầu đề thi -----
     grid(

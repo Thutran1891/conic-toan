@@ -54,6 +54,7 @@
   diem: (..a) => diem(ctx, ..a),
   cac-diem: (..a) => cac-diem(ctx, ..a),
   mui-ten: (..a) => mui-ten(ctx, ..a),
+  mui-ten-2-dau: (..a) => mui-ten-2-dau(ctx, ..a),
   vecto: (..a) => vecto(ctx, ..a),
   duong-cong: (..a) => duong-cong(ctx, ..a),
   duong-gap-khuc: (..a) => duong-gap-khuc(ctx, ..a),
@@ -188,6 +189,15 @@
 ///
 /// Mũi tên A -> B.
 #let mui-ten = _voi-ctx(mui-ten)
+/// `mui-ten-2-dau(A, B, mau: black, day: 1pt, kich: 7pt, dut: false, ten: none, huong: auto, cach: 5pt, ten-quay: false, mau-ten: auto, trong: auto, dem: 3pt, nen: white, vach: false, dai-vach: 9pt, le: 0pt)`
+///
+/// không đủ dài thì tự đặt chữ ra ngoài (phía trên đoạn)
+/// huong    : chỗ đặt chữ khi KHÔNG nằm giữa thân
+/// (auto = vuông góc phía trên đoạn, như `doan`)
+/// ten-quay : true = chữ NẰM DỌC theo mũi tên (luôn đọc xuôi)
+/// vach     : true = kẻ vạch chặn vuông góc ở hai đầu (kiểu ghi kích thước)
+/// le       : lùi hai đầu mũi tên vào trong, để hở khỏi vật đang đo
+#let mui-ten-2-dau = _voi-ctx(mui-ten-2-dau)
 /// `vecto(A, B, ten: none, huong: "tren", mau: black, day: 1.1pt, dut: false)`
 ///
 /// Vectơ A -> B kèm tên đặt ở trung điểm.
@@ -385,9 +395,14 @@
 ///
 /// Trung tuyến từ P đến trung điểm AB (kèm 2 vạch đánh dấu bằng nhau).
 #let trung-tuyen = _voi-ctx(trung-tuyen)
-/// `phan-giac(O, A, B, ten-chan: none, mau: green.darken(20%), day: 1pt, dut: false, r-cung: 0.5)`
+/// `phan-giac(O, A, B, ten-chan: none, mau: green.darken(20%), day: 1pt, dut: false, r-cung: 0.5, vach: 0, so-cung: 1, dai-vach: 6pt, lech: auto, ten-goc: none, cach-nhan: 1.9)`
 ///
 /// Phân giác trong góc O của tam giác OAB (kèm 2 cung đánh dấu góc bằng nhau).
+/// vach     : số VẠCH gạch ngang cung (0/1/2/3) — ký hiệu hai góc bằng nhau
+/// so-cung  : số CUNG đồng tâm vẽ ở mỗi góc (1/2/3)
+/// lech     : hệ số bán kính cung thứ hai so với cung thứ nhất
+/// (auto = 1.18 khi KHÔNG đánh dấu, = 1 khi có vạch/nhiều cung —
+/// vì hai góc bằng nhau thì phải vẽ cùng bán kính mới đúng quy ước)
 #let phan-giac = _voi-ctx(phan-giac)
 /// `trung-truc(A, B, dai: 1.5, mau: purple, day: 1pt, dut: true, so-vach: 1)`
 ///
@@ -427,9 +442,14 @@
 /// Hình thang: đáy lớn AB (dưới, dài a), đáy nhỏ DC (trên, dài b),
 /// cao c, lech: độ lệch ngang của D so với A.
 #let hinh-thang = _voi-ctx(hinh-thang)
-/// `duong-tron-ngoai-tiep(A, B, C, ten-tam: $O$, mau: blue, day: 1pt, ban-kinh: false)`
+/// `duong-tron-ngoai-tiep(..vi-tri, ten-tam: $O$, huong-tam: auto, mau: blue, day: 1pt, to: none, ban-kinh: false, dinh-r: auto, ten-r: none, canh: false, mau-canh: black)`
 ///
-/// Đường tròn ngoại tiếp tam giác ABC. ten-tam: nhãn tâm (vd $O$).
+/// Đường tròn ngoại tiếp TAM GIÁC hoặc ĐA GIÁC.
+/// duong-tron-ngoai-tiep(A, B, C)            — 3 đỉnh rời (lối cũ)
+/// duong-tron-ngoai-tiep((A, B, C, D, E))    — MỘT MẢNG đỉnh, đa giác tuỳ ý
+/// Từ 4 đỉnh trở lên, tâm/bán kính khớp theo bình phương bé nhất (đa giác nội
+/// tiếp được cho ra đúng đường tròn của nó — xem `tron-qua-diem`).
+/// ten-tam    : nhãn tâm (none = không ghi)
 #let duong-tron-ngoai-tiep = _voi-ctx(duong-tron-ngoai-tiep)
 /// `duong-tron-noi-tiep(A, B, C, ten-tam: $I$, mau: orange.darken(10%), day: 1pt, ban-kinh: false)`
 ///

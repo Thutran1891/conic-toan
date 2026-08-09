@@ -69,6 +69,109 @@
   body
 }
 
+// ----- CHIỀU CAO THẬT CỦA CÔNG THỨC TRONG DÒNG (chống dính chữ) -----
+// VÌ SAO CẦN: Typst đóng khung công thức TRONG DÒNG theo SỐ ĐO PHÔNG CHỮ
+// (cap-height → đường chân chữ, ≈6.83pt ở cỡ 10pt) chứ KHÔNG theo nét vẽ thật.
+// `measure($1/2$)` và `measure($0,5$)` vì thế ra CÙNG chiều cao, trong khi phân
+// số vẽ ra cao ≈12pt và TRÀN cả trên lẫn dưới khung. Hệ quả:
+//   • trong một đoạn: dòng không cao lên ⇒ tử số dòng dưới chạm mẫu dòng trên;
+//   • trong ô của `grid` (phương án #tn, ý #ds, `cot-item`): ô cũng lấy chiều
+//     cao HỤT đó ⇒ phân số đè sang hàng trên, mà `gian-dong` (chỉ chạm
+//     par.leading/par.spacing) KHÔNG với tới được.
+// Trước đây phải bù bằng `gian-dong: 3` — giãn ĐỀU cả bài, chỗ cần thì vừa,
+// chỗ chữ thường thì trống hoác.
+//
+// CÁCH CHỮA: đo nét vẽ thật (top-edge/bottom-edge: "bounds" — xem `co-net` của
+// ve.typ) rồi chèn một CỘT CHỐNG vô hình RỘNG 0 ngay trước công thức, cao đúng
+// phần nét nhô lên/thò xuống. Cột chống là hộp trong dòng nên Typst tính nó vào
+// chiều cao dòng VÀ chiều cao ô ⇒ dòng/ô tự nới ĐÚNG chỗ cần, chữ thường không
+// đổi một pt nào. Vì rộng 0 nên `measure(...).width` (chỗ `cot: auto` chọn số
+// cột) cũng không đổi.
+// CỐ Ý dùng cột chống chứ KHÔNG bọc công thức trong `box`: bọc box sẽ chặn
+// Typst ngắt dòng giữa công thức dài.
+//   bat    : bật/tắt toàn bộ cơ chế.
+//   nguong : nét tràn dưới mức này thì bỏ qua (khỏi chèn cột chống vô ích).
+//   them   : nới thêm bấy nhiêu ở MỖI phía (chỉ dùng khi muốn thoáng hơn nữa).
+#let _cao-that = state("bg-cao-that", (bat: true, nguong: 1pt, them: 0pt, chia: 0.5, hien: false))
+
+// #cao-that(false) — tắt từ đây trở đi;  #cao-that() — bật lại;
+// #cao-that(them: 1pt) — nới thêm 1pt mỗi phía cho mọi công thức có tràn nét.
+// Dùng SINK để nhận `bat` ở dạng ĐỐI SỐ VỊ TRÍ mà vẫn gọi được #cao-that().
+// hien: true — CHẨN ĐOÁN, in phần `thieu` (pt) màu đỏ ngay sau mỗi công thức.
+// Không thấy số đỏ nào hiện ra ⇒ bản lib đang chạy KHÔNG phải bản này.
+#let cao-that(..a, nguong: auto, them: auto, chia: auto, hien: auto) = {
+  let bat = if a.pos().len() > 0 { a.pos().first() } else { true }
+  _cao-that.update(c => (
+    bat: bat,
+    nguong: if nguong == auto { c.at("nguong", default: 1pt) } else { nguong },
+    them: if them == auto { c.at("them", default: 0pt) } else { them },
+    chia: if chia == auto { c.at("chia", default: 0.5) } else { chia },
+    hien: if hien == auto { c.at("hien", default: false) } else { hien },
+  ))
+}
+
+// (tren, duoi) = phần NÉT VẼ nhô lên trên / thò xuống dưới đường chân chữ.
+// CHỈ gọi trong `context`.
+#let _do-net(nd) = (
+  measure({ set text(top-edge: "bounds", bottom-edge: "baseline"); nd }).height,
+  measure({ set text(top-edge: "baseline", bottom-edge: "bounds"); nd }).height,
+)
+
+// ⚠️ KHÔNG tách được nét vẽ thành (trên, dưới) một cách đáng tin. Đã thử và
+// SAI: với công thức CAO (nhất là khi tài liệu bật `math.display` cho công
+// thức trong dòng — kiểu \displaystyle của LaTeX, người dùng rất hay dùng để
+// phân số to đẹp), hai phép đo một phía trả về CÙNG một số (đo được 17.31 /
+// 17.31 cho `$1/2$`), tức mỗi phép đo đã gồm cả hai phía ⇒ cộng lại là nới
+// GẤP ĐÔI. Đừng quay lại lối đó.
+//
+// LỐI ĐÚNG — TỰ HIỆU CHỈNH, chỉ dùng phép đo CẢ DÒNG (đáng tin):
+//   du  = nét vẽ dòng "mẫu + công thức" trừ nét vẽ dòng "mẫu"  → chỗ ink CẦN
+//   hop = khung dòng "mẫu + công thức" trừ khung dòng "mẫu"    → chỗ Typst CHO
+//   thieu = du − hop                                           → phần TRÀN
+// `thieu` chính là phần đè sang hàng trên/dòng trên. Cách này không phụ thuộc
+// vào việc Typst tính khung công thức thế nào, nên đúng với cả math.display,
+// cả phông chữ khác, cả cỡ chữ khác.
+#let _mau-chu = [Ág]
+
+#let _cao-ink(nd) = measure({
+  set text(top-edge: "bounds", bottom-edge: "bounds")
+  nd
+}).height
+
+// Cột chống vô hình + chính công thức. Thiếu ít hơn `nguong` ⇒ TRẢ NGUYÊN.
+// `chia` = phần `thieu` dồn xuống DƯỚI đường chân chữ (0.5 = chia đôi, hợp với
+// phân số vì tử tràn lên còn mẫu tràn xuống gần bằng nhau).
+#let _chong-net(nd) = context {
+  let c = _cao-that.get()
+  if not c.at("bat", default: true) { nd } else {
+    let mau = _mau-chu
+    let ca = [#mau#nd]
+    let du = _cao-ink(ca) - _cao-ink(mau)
+    let hop = measure(ca).height - measure(mau).height
+    let thieu = calc.max(0pt, du - hop)
+    let ng = c.at("nguong", default: 1pt)
+    let them = c.at("them", default: 0pt)
+    let chia = c.at("chia", default: 0.5)
+    // Chỉ chèn cột chống khi thật sự tràn; không tràn thì KHÔNG thêm gì cả.
+    if thieu > ng {
+      box(width: 0pt, height: measure(nd).height + thieu + 2 * them,
+        baseline: thieu * chia + them)
+    }
+    nd
+    // Chẩn đoán: #cao-that(hien: true) -> in số `thieu` màu đỏ sau công thức.
+    if c.at("hien", default: false) {
+      text(size: 6pt, fill: red, weight: "bold")[ (#calc.round(thieu.pt(), digits: 2))]
+    }
+  }
+}
+
+// Áp cơ chế cho MỘT khối bất kì (bai-giang/de-toan đã tự áp cho cả tài liệu):
+//   #voi-cao-that[ ... ]
+#let voi-cao-that(body) = {
+  show math.equation.where(block: false): _chong-net
+  body
+}
+
 // ----- Bộ đếm "đóng băng" theo slide -----
 // Slide hoạt hình được in thành nhiều trang lặp; nếu đếm kiểu thường thì
 // "Ví dụ 1" sẽ thành "Ví dụ 2, 3..." qua từng bước. Cách giải quyết:
@@ -434,6 +537,8 @@
     set text(font: phong, size: 11.5pt * ti-le-chu, lang: "vi", fill: rgb("#1c2833"))
     _dat-gian(0.6em, gian-dong)
     set par(justify: true, leading: 0.6em * gian-dong, spacing: _doan-nen * gian-dong)
+    // Công thức trong dòng khai ĐÚNG chiều cao nét vẽ ⇒ dòng/ô tự nới đúng chỗ.
+    show math.equation.where(block: false): _chong-net
     set heading(numbering: none)   // không đánh số — chỉ dùng thanh màu
     // Thanh tiêu đề màu thay cho heading (giữ heading để có bookmark + mục lục).
     show heading.where(level: 1): it => block(width: 100%, above: 16pt, below: 10pt,
@@ -466,6 +571,7 @@
     set text(font: phong, size: co-chu * ti-le-chu, lang: "vi", fill: rgb("#1c2833"))
     _dat-gian(0.62em, gian-dong)
     set par(justify: false, leading: 0.62em * gian-dong, spacing: _doan-nen * gian-dong)
+    show math.equation.where(block: false): _chong-net
 
     // ----- Trang bìa (1 trong 5 kiểu) -----
     _ve-bia(_kb, mau-chinh, mau-nhan, don-vi, logo, tieu-de, phu-de,

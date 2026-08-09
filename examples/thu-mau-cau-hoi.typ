@@ -3,11 +3,12 @@
 //  Biên dịch:  typst compile thu-mau-cau-hoi.typ
 //              typst compile thu-mau-cau-hoi.typ --input ho-so=loigiai
 // =====================================================================
-#import "../baigiang.typ": *
+// #import "../baigiang.typ": *
+#import "@preview/conic-toan:0.3.1": *
 
 #let ho-so = sys.inputs.at("ho-so", default: "dethi")
 
-// ---------- BẢNG MÀU DÙNG CHUNG (khai 1 lần, gọi lại nhiều nơi) ----------
+// ------------ BẢNG MÀU DÙNG CHUNG (khai 1 lần, gọi lại nhiều nơi) ----------
 #let m-xanh = rgb("#1f6fb2")
 #let m-luc  = rgb("#2e8b57")
 #let m-cam  = rgb("#e67e22")
@@ -53,7 +54,7 @@
 // =====================================================================
 // PHẦN II — kiểu CÓ TÔ: thẻ bo tròn nền cam, chữ trắng
 // =====================================================================
-#kieu-cau-hoi(mau: m-cam, hinh: "bo-tron")
+#kieu-cau-hoi(mau: m-cam, hinh: "luc-giac")
 
 #phan([PHẦN II. Câu trắc nghiệm đúng sai])
 
@@ -70,22 +71,22 @@
 #phan([PHẦN III. Tự luận])
 
 #dang([DẠNG 1: TÍNH TỈ SỐ LƯỢNG GIÁC KHI BIẾT ĐỘ DÀI CẠNH], mau: m-xanh)
-#kieu-cau-hoi(mau: m-xanh)
+#kieu-cau-hoi(mau: m-xanh, hinh: "chu-nhat")
 #tl([Cho tam giác $A B C$ vuông tại $A$, biết $A B = 6$ cm và $A C = 8$ cm. Tính $B C$ rồi tính $sin B$, $cos B$, $tan B$, $cot B$.],
   loigiai: [$B C = sqrt(6^2 + 8^2) = 10$ cm, suy ra $sin B = 8/10 = 4/5$.])
 
 #dang([DẠNG 2: ỨNG DỤNG TÍNH CHẤT HAI GÓC PHỤ NHAU], mau: m-luc)
-#kieu-cau-hoi(mau: m-luc)
+#kieu-cau-hoi(mau: m-luc, hinh: "bo-tron")
 #tl([Không dùng máy tính, hãy rút gọn $A = sin 25degree - cos 65degree$.],
   loigiai: [Vì $25degree$ và $65degree$ phụ nhau nên $cos 65degree = sin 25degree$, do đó $A = 0$.])
 
 #dang([DẠNG 3: SỬ DỤNG MÁY TÍNH CẦM TAY], mau: m-cam)
-#kieu-cau-hoi(mau: m-cam)
+#kieu-cau-hoi(mau: m-cam, hinh: "khong-to")
 #tl([Tìm số đo góc nhọn $x$ (làm tròn đến phút), biết $sin x = 0,2368$.],
   loigiai: [$x approx 13degree 42'$.])
 
 #dang([DẠNG 4: BÀI TOÁN THỰC TẾ], mau: m-tim)
-#kieu-cau-hoi(mau: m-tim)
+#kieu-cau-hoi(mau: m-tim, hinh: "")
 #tl([Một đoạn dốc dài $4$ m, đỉnh dốc cao $0,4$ m so với mặt bằng. Tính góc dốc $alpha$ (làm tròn đến phút).],
   loigiai: [$sin alpha = 0,4 / 4 = 0,1$ nên $alpha approx 5degree 44'$.])
 
