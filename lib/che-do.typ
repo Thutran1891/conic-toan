@@ -631,6 +631,8 @@
 //     ( [$A$], True([$B$]), [$C$], [$D$] ),   // đáp án đúng bọc True(...)
 //     loigiai: [Lời giải chi tiết],
 //     fig: none, fig-pos: "right", fig-width: 35%,  // hình kèm đề
+//     // fig-pos: "right"|"left"|"center"|"top"|"bottom"
+//     // ("center" = canh giữa, nằm giữa phần đề và các phương án)
 //     cols: 0,          // 0 = tự chọn số cột; 1/2/4 = cố định
 //     lines: 0,         // số dòng chừa làm bài (bản in đề)
 //     num: auto, prefix: "Câu", boxed: false,

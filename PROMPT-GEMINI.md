@@ -225,7 +225,10 @@ loi-giai: [
 // ⛔ TUYỆT ĐỐI KHÔNG đặt tieu-de: cho tn/ds/tln/tl (xem QUY TẮC BẮT BUỘC ở trên)
 #tn([Câu hỏi...?], ($x = 0$, True($x = 2$), $x = -2$, $x = 1$),
   loigiai: [Bước 1... \ Bước 2... \ . (Không chốt chọn đáp án vì đề còn đem đi trộn).])
-// Tuỳ chọn thêm: fig: (hình kèm đề), fig-pos: "right"|"left"|"top"|"bottom",
+// Tuỳ chọn thêm: fig: (hình kèm đề), fig-pos: "right"|"left"|"center"|"top"|"bottom"
+//   ("center" = hình canh giữa, đặt GIỮA phần đề và các phương án — hợp với BBT,
+//    bảng thống kê, đồ thị khổ rộng; "top"/"bottom" đẩy hình lên TRÊN cả đề /
+//    xuống DƯỚI cả phương án, ít khi dùng),
 // fig-width: 35% (bề rộng cột hình), lines: N (chừa N dòng làm bài bản in),
 // num: (ghi đè số câu), prefix: "Câu", boxed: true (đóng khung cả câu).
 // HÌNH KHÔNG CHỈ Ở ĐỀ — mọi dạng câu (vd/tn/ds/tln/tl/hd/lt/vdtt) còn nhận:
@@ -456,6 +459,7 @@ Vài tiện ích ÍT DÙNG nhưng có sẵn (đừng tự viết lại):
   `lo-giai:` (bước lộ lời giải). Không khai thì đáp án hiện ở bước cuối.
 - `#voi-hinh(de, hinh, vi-tri: "right", ti-le: 0.46, duoi: none, om: auto)` — ghép
   đề với hình thành khối 2 cột; dùng khi cần bố cục mà `fig:`/`fig-pos:` không đủ.
+  `vi-tri: "center"` cho hình canh giữa trên dòng riêng, nằm giữa `de` và `duoi`.
 - **CHỮ ÔM HÌNH (mặc định BẬT, 08/2026)**: với `fig:`/`fig-giai:` đặt bên
   phải/trái, nếu nội dung DÀI hơn hình thì thư viện tự đặt các đoạn đầu cạnh
   hình cho vừa chiều cao hình, phần còn lại tràn NGUYÊN BỀ RỘNG xuống dưới hình

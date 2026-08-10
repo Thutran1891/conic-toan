@@ -6,6 +6,21 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
 > `@local/baigiang:0.2.0` trong các file bài giảng đã có; số hiệu dưới đây là
 > số phát hành trên Typst Universe (`@preview/conic-toan`).
 
+## 0.3.4 — chưa phát hành
+
+### Thêm
+
+- **`fig-pos: "center"` — hình canh GIỮA, nằm giữa đề và các phương án.** Trước
+  đây chỉ có bốn chỗ đặt: `"right"`/`"left"` (hình ở cột bên, chữ ôm quanh),
+  `"top"` (hình lên trên cả dòng đề — trông kỳ vì tách khỏi câu hỏi) và
+  `"bottom"` (hình xuống dưới cả bốn phương án — người đọc phải nhìn ngược lên).
+  Với hình khổ rộng (bảng biến thiên, bảng thống kê, đồ thị lớn) thì không chỗ
+  nào đúng cả. Nay `"center"` đặt hình trên dòng riêng, canh giữa, ở giữa phần
+  đề và phần phương án / ý hỏi — đúng lối trình bày đề thi. Dùng được cho `#tn`,
+  `#ds`, `#tln` (`fig-pos:`) lẫn hình kèm lời giải (`fig-giai-pos:`) và
+  `#voi-hinh(..., vi-tri: "center")`. Giá trị `fig-pos` viết sai nay báo lỗi
+  ngay kèm danh sách giá trị hợp lệ, thay vì âm thầm rơi về `"right"`.
+
 ## 0.3.3 — 09/08/2026
 
 ### Thêm

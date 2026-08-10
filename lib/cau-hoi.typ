@@ -437,12 +437,22 @@
 //     canh giữa — đặt sau phần đề `de`, trước phần `duoi` (phương án/ý hỏi).
 // LƯU Ý: truyền hình TRỰC TIẾP (hinh: ve-do-thi(...)), KHÔNG bọc align/block
 // quanh hình — bọc thêm sẽ đo sai bề rộng.
-// vi-tri ("right" | "left" | "top" | "bottom"): vị trí hình so với đề;
+// vi-tri ("right" | "left" | "center" | "top" | "bottom"): vị trí hình so với đề;
+//   • "right"/"left"  — hình nằm cột phải/cột trái, chữ ôm quanh hình;
+//   • "center"        — hình canh GIỮA trên DÒNG RIÊNG, nằm giữa phần đề và
+//                       phần phương án/ý hỏi (dùng cho hình khổ lớn: BBT,
+//                       bảng thống kê, đồ thị rộng);
+//   • "top"           — hình lên TRÊN cả đề bài;
+//   • "bottom"        — hình xuống DƯỚI cả phương án.
 // be-rong: auto = ôm đúng bề rộng hình (hình rộng tự xuống dòng riêng),
 //          hoặc chỉ định (35%, 5cm...) = cột hình chiếm đúng bề rộng đó.
+//          Với "center"/"top"/"bottom" thì be-rong KHÔNG có tác dụng (hình
+//          đã chiếm trọn bề ngang).
 // om: chữ ÔM hình — auto = theo kieu-cau-hoi(om-hinh:), mặc định BẬT;
 //     false = giữ lối 2 cột cũ (cột hình có thể trống nhiều phía dưới).
 #let voi-hinh(de, hinh, duoi: none, ti-le: 0.46, khoang: 14pt, vi-tri: "right", be-rong: auto, om: auto) = {
+  assert(vi-tri in ("right", "left", "center", "top", "bottom"),
+    message: "vi-tri (fig-pos) chỉ nhận \"right\" | \"left\" | \"center\" | \"top\" | \"bottom\", nhận được: " + repr(vi-tri))
   let rieng = block(width: 100%, above: 8pt, below: 8pt, align(center, hinh))
   if hinh == none {
     de
@@ -450,6 +460,10 @@
   } else if vi-tri == "top" {
     rieng
     de
+    duoi
+  } else if vi-tri == "center" {
+    de
+    rieng
     duoi
   } else if vi-tri == "bottom" {
     de
@@ -522,7 +536,7 @@
 
 // Khối "Hướng dẫn giải" dùng chung cho cả 4 dạng.
 // hinh: hình kèm LỜI GIẢI — bố cục 2 cột/hàng riêng như voi-hinh
-// (vi-tri: "right"|"left"|"top"|"bottom"; be-rong: auto hoặc chỉ định).
+// (vi-tri: "right"|"left"|"center"|"top"|"bottom"; be-rong: auto hoặc chỉ định).
 #let _khoi-giai(lg, hinh: none, vi-tri: "right", be-rong: auto) = block(
   width: 100%, inset: (left: 11pt, top: 4pt, bottom: 4pt),
   stroke: (left: 2.5pt + _luc), above: 8pt,

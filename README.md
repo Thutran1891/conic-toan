@@ -1388,7 +1388,9 @@ vẫn dùng được song song.
   ( [$A$], True([$B$]), [$C$], [$D$] ),   // đáp án đúng bọc True(...)
   loigiai: [Lời giải chi tiết],
   // Tuỳ chọn:
-  fig: none, fig-pos: "right", fig-width: 35%,  // hình: vị trí right/left/top/bottom,
+  fig: none, fig-pos: "right", fig-width: 35%,  // hình: vị trí right/left/center/top/bottom
+                                                // ("center" = canh giữa, nằm giữa phần đề
+                                                //  và các phương án),
                                                 // bề rộng cột hình (auto = ôm hình)
   cols: 0,           // 0 = tự chia cột; 1/2/4 = cố định
   lines: 0,          // số dòng chừa làm bài (chỉ bản in đề)
