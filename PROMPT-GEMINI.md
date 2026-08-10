@@ -202,7 +202,7 @@ QUY ƯỚC VÀNG: trong `loi-giai:`, **mỗi dấu `\` là một bước xuất 
 
 ⛔ **QUY TẮC BẮT BUỘC — KHÔNG viết `tieu-de:` cho 4 dạng đề thi `#tn`, `#ds`, `#tln`, `#tl`.** Lý do: ở chế độ `dethi`/`loigiai` (bản in) tieu-de bị bỏ qua hoàn toàn; ở beamer nếu bỏ, slide dùng nhãn mặc định trung tính ("Trắc nghiệm" / "Đúng — Sai" / "Trả lời ngắn" / "Tự luận"). Câu hỏi không dính tiêu đề riêng ⇒ có thể **trộn đề, xáo trật tự, ghép giữa các file** mà không lộ nguồn gốc bài học. Các dạng bài giảng `#vd`, `#hd`, `#lt`, `#vdtt` **VẪN GIỮ** `tieu-de:` bình thường vì chúng đứng trong bài giảng cần nêu chủ đề slide.
 
-QUY ƯỚC LỜI GIẢI DÀI: phần chưa lộ KHÔNG chiếm chỗ (như `\pause` của LaTeX beamer) nên lời giải dài không còn sinh trang trắng đệm; khi nội dung thật sự vượt một trang, slide tự ngắt trang và lặp lại đầu/chân trang. Tuy vậy, để mỗi màn hình gọn đẹp (học sinh không phải nhìn trang bị ngắt giữa chừng): nếu lời giải quá 15 dòng, hoặc đề bài đã chiếm nhiều chỗ (có bảng biến thiên/đồ thị/hình vẽ) mà lời giải quá 10 dòng, NÊN chèn dòng `#sang-man \` vào điểm ngắt hợp lý (ranh giới giữa các ý a), b)… hoặc giữa các giai đoạn giải) — phần sau dấu này chuyển sang slide kế tiếp với nhãn "Hướng dẫn giải (tiếp)". Dấu này bị bỏ qua ở bản in A4 nên cứ an tâm chèn. Ví dụ:
+QUY ƯỚC LỜI GIẢI DÀI: phần chưa lộ KHÔNG chiếm chỗ (như `\pause` của LaTeX beamer) nên lời giải dài không còn sinh trang trắng đệm. Từ 10/08/2026, khi lời giải vẫn cao hơn thân slide thì thư viện **TỰ ĐO và TỰ NGẮT** phần dư sang slide "Hướng dẫn giải (tiếp)" (đề dài quá thì slide đầu chỉ có đề) — không còn cảnh đề bài bị in lại xen giữa các trang lời giải. Muốn giữ nếp cũ cho một tài liệu: `#tu-ngat-man(false)`. Tuy vậy máy chỉ cắt cho VỪA TRANG, không biết đâu là chỗ ngắt HỢP NGHĨA, nên vẫn NÊN tự chèn dòng `#sang-man \` tại ranh giới giữa các ý a), b)… hoặc giữa các giai đoạn giải khi lời giải quá 15 dòng (quá 10 dòng nếu đề đã có bảng biến thiên/đồ thị/hình vẽ). Dấu này bị bỏ qua ở bản in A4 nên cứ an tâm chèn. ⚠️ Đặt `#sang-man` trên MỘT DÒNG RIÊNG và nhớ dấu `\` ở CUỐI dòng chữ ngay trước nó — viết dính vào dòng trên thì dấu vẫn ăn nhưng ngắt sai chỗ. Ví dụ:
 
 ```typst
 loi-giai: [
@@ -1064,7 +1064,7 @@ XÁC dạng căn thức); `hien-so` chỉ cho số nguyên/phân số; số vô 
   TLN đặt đáp án (content) ngay sau đề bài? (Nếu buộc dùng form cũ:
   `dap-an` đúng kiểu TN = `"B"`, ĐS = `(true, false, ...)`, TLN = content.)
 - [ ] Mỗi `loi-giai:` được tách 2–4 dòng bằng `\`, dòng cuối là kết luận?
-- [ ] Lời giải dài (>5–6 dòng, hoặc >3 dòng khi đề có hình/bảng) đã chèn `#sang-man \` tại điểm ngắt hợp lý?
+- [ ] Lời giải dài (>5–6 dòng, hoặc >3 dòng khi đề có hình/bảng) đã chèn `#sang-man \` tại điểm ngắt hợp lý, trên DÒNG RIÊNG, và dòng chữ ngay trước nó có `\` ở cuối?
 - [ ] `#vd`/`#hd`/`#lt`/`#vdtt` có `tieu-de:` ngắn gọn; `#tn`/`#ds`/`#tln`/`#tl` **KHÔNG** có `tieu-de:` (để tiện trộn đề)?
 - [ ] Hoạt động SGK (HĐ1, HĐ2...) dùng `#hd`, luyện tập củng cố dùng `#lt`, bài "Vận dụng" thực tế dùng `#vdtt` (không dùng nhầm `#tl`)?
 - [ ] Toán học đặt trong `$...$`, văn bản tiếng Việt có dấu đầy đủ?
