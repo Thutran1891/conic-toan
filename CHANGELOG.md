@@ -47,6 +47,15 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
 
 ### Sửa
 
+- **`chia-2-cot` nay cân cột cả khi phần câu hỏi DÀI nhiều trang** — trước đây
+  chỉ cân được thân gọn trong một trang; đề dài hơn thế thì TRANG CUỐI cột trái
+  chạy hết trang còn cột phải bỏ trắng, tốn hẳn nửa tờ giấy. Nay các trang phía
+  trước vẫn để Typst rót tự nhiên (chặt nhất, nó chẻ được cả một câu dài làm
+  đôi), riêng phần nằm trên trang cuối được chia đều cho các cột. Một đề thử 25
+  câu có hình rút từ 7 xuống 6 trang. Thân gõ bằng `#for` cũng chia được (trước
+  đó Typst gói cả lô vào MỘT phần tử nên không có mối nào để ngắt cột). Đề
+  không chia cột, hoặc vùng chia cột gọn trong một trang, thì bố cục **không
+  đổi một pt nào**.
 - **Nhãn bị nét vẽ cắt ngang** — nhãn (`nhan`), `o-bo-tron` và ô kết quả của
   `so-do-cay` đặt theo khung phông chữ nên phân số trong nhãn bị cắt. Nay lấy
   `max(khung, biên nét vẽ)`. Chữ thường tràn 0 ⇒ hình cũ giữ nguyên bố cục.
