@@ -70,3 +70,32 @@
   loi-giai: [Phương trình $x^2 - 1 = 0$ có hai nghiệm $x = plus.minus 1$.],
   fig-giai: do-thi-mau, fig-giai-pos: "center",
 )
+
+= Các dạng TỰ LUẬN nay cũng nhận fig-pos
+
+#vd([Ví dụ: khảo sát đồ thị $y = x^2 - 1$ dưới đây, `fig-pos: "center"`.],
+  fig: do-thi-mau, fig-pos: "center",
+  loigiai: [Đỉnh $I(0; -1)$, bề lõm hướng lên.],
+)
+
+#tl([Câu tự luận, `fig-pos: "center"` — hình nằm giữa đề và chỗ chừa làm bài.],
+  fig: do-thi-mau, fig-pos: "center",
+  cho-trong: 2cm,
+  loigiai: [Dựa vào đồ thị.],
+)
+
+#tl([Câu tự luận `fig-pos: "left"` — hình sang cột trái, chữ ôm bên phải. Viết
+  thêm mấy dòng cho đủ dài để thấy chữ ôm quanh hình: hàm số đạt giá trị nhỏ
+  nhất tại $x = 0$, đồng biến trên $(0; +oo)$ và nghịch biến trên $(-oo; 0)$.],
+  fig: do-thi-mau, fig-pos: "left",
+  loigiai: [Xét dấu $y' = 2x$.],
+)
+
+#hd([Hoạt động với `fig-pos: "center"`.], fig: do-thi-mau, fig-pos: "center",
+  loigiai: [Quan sát đồ thị.])
+
+#lt([Luyện tập với `fig-pos: "center"`.], fig: do-thi-mau, fig-pos: "center",
+  loigiai: [Làm tương tự ví dụ.])
+
+#vdtt([Vận dụng thực tế với `fig-pos: "bottom"`.], fig: do-thi-mau, fig-pos: "bottom",
+  loigiai: [Áp vào bài toán thực tế.])

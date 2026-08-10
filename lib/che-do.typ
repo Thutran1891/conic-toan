@@ -587,6 +587,7 @@
 }
 
 #let vd(noi-dung, loi-giai: none, loigiai: none, diem: none, hinh: none, fig: none,
+  fig-pos: "right", fig-width: auto,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
   gian-dong: auto, tieu-de: [Ví dụ]) = context {
   let loi-giai = _uu-tien(loigiai, loi-giai)
@@ -596,7 +597,7 @@
   if _la-sach(_ho-so.get()) {
     // Ví dụ: LUÔN hiện lời giải, kể cả trong hồ sơ "dethi".
     _voi-gian(gd, {
-      vi-du(voi-hinh(noi-dung, hinh))
+      vi-du(voi-hinh(noi-dung, hinh, vi-tri: fig-pos, be-rong: fig-width))
       if loi-giai != none {
         _mt-loi-giai(voi-hinh(_ghep(loi-giai), hg, vi-tri: fig-giai-pos, be-rong: fig-giai-width))
       }
@@ -604,7 +605,7 @@
   } else {
     let dung(dg, co-de) = if co-de {
       _voi-gian(gd, [
-        #vi-du(voi-hinh(noi-dung, hinh))
+        #vi-du(voi-hinh(noi-dung, hinh, vi-tri: fig-pos, be-rong: fig-width))
         #_giai-kem-hinh(giai-buoc(dg, nhan: [Lời giải. ], gian-dong: gd, do: true), hg, fig-giai-pos, fig-giai-width, do: true)
       ])
     } else {
@@ -617,7 +618,7 @@
     slide(tieu-de: tieu-de, so-buoc: if man.at(0).len() > 0 { 1 + man.at(0).len() }
       else if man.len() > 1 { 1 } else { 2 })[
       #_voi-gian(gd, [
-        #vi-du(voi-hinh(noi-dung, hinh))
+        #vi-du(voi-hinh(noi-dung, hinh, vi-tri: fig-pos, be-rong: fig-width))
         #_giai-kem-hinh(giai-buoc(man.at(0), nhan: [Lời giải. ], gian-dong: gd), hg, fig-giai-pos, fig-giai-width)
       ])
     ]
@@ -810,15 +811,16 @@
 
 // Bộ dựng chung cho 4 dạng "kiểu tự luận" (TL/HĐ/LT/VDTT).
 #let _dang-tl(ham-cau, cau, loi-giai, diem, cho-trong, hinh, tieu-de,
+  h-pos: "right", h-width: auto,
   hg: none, hg-pos: "right", hg-width: auto, gd: auto) = context {
   if _la-sach(_ho-so.get()) {
     _voi-gian(gd, ham-cau(cau, loi-giai: _ghep(loi-giai), diem: diem,
-      cho-trong: cho-trong, hinh: hinh,
+      cho-trong: cho-trong, hinh: hinh, fig-pos: h-pos, fig-width: h-width,
       hinh-giai: hg, fig-giai-pos: hg-pos, fig-giai-width: hg-width))
   } else {
     let dung(dg, co-de) = if co-de {
       _voi-gian(gd, [
-        #ham-cau(cau, diem: diem, hinh: hinh)
+        #ham-cau(cau, diem: diem, hinh: hinh, fig-pos: h-pos, fig-width: h-width)
         #_giai-kem-hinh(giai-buoc(dg, gian-dong: gd, do: true), hg, hg-pos, hg-width, do: true)
       ])
     } else {
@@ -831,7 +833,7 @@
     slide(tieu-de: tieu-de, so-buoc: if man.at(0).len() > 0 { 1 + man.at(0).len() }
       else if man.len() > 1 { 1 } else { 2 })[
       #_voi-gian(gd, [
-        #ham-cau(cau, diem: diem, hinh: hinh)
+        #ham-cau(cau, diem: diem, hinh: hinh, fig-pos: h-pos, fig-width: h-width)
         #_giai-kem-hinh(giai-buoc(man.at(0), gian-dong: gd), hg, hg-pos, hg-width)
       ])
     ]
@@ -840,10 +842,10 @@
 }
 
 // (loigiai:/fig:/fig-giai: là bí danh kiểu mới của loi-giai:/hinh:/hinh-giai:)
-#let tl(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Tự luận]) = _dang-tl(cau-tl, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
-#let hd(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Hoạt động]) = _dang-tl(cau-hd, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
-#let lt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Luyện tập]) = _dang-tl(cau-lt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
-#let vdtt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Vận dụng]) = _dang-tl(cau-vdtt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let tl(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Tự luận]) = _dang-tl(cau-tl, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let hd(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Hoạt động]) = _dang-tl(cau-hd, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let lt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Luyện tập]) = _dang-tl(cau-lt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let vdtt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Vận dụng]) = _dang-tl(cau-vdtt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
 
 #let phan(ten, ngan: none) = context {
   if _la-sach(_ho-so.get()) {

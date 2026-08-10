@@ -1419,7 +1419,8 @@ vẫn dùng được song song.
 ```
 
 `loigiai:`/`fig:` cũng dùng được cho `#vd/#tl/#hd/#lt/#vdtt` (bí danh của
-`loi-giai:`/`hinh:`).
+`loi-giai:`/`hinh:`), kèm cả `fig-pos:`/`fig-width:` — tám dạng câu nhận cùng
+một bộ tham số hình.
 
 ### Lời giải gắn từng ý của `#ds` — an toàn khi trộn đề hoán vị ý
 

@@ -273,6 +273,7 @@ loi-giai: [
 // TL — tự luận; cho-trong: chừa chỗ làm bài trên bản đề in
 #tl([Đề bài...], 
   loi-giai: [Bước 1... \ Bước 2... \ Kết luận.])
+// #vd/#tl/#hd/#lt/#vdtt cũng nhận fig:/fig-pos:/fig-width: y như #tn/#ds/#tln.
 
 // HĐ — câu HOẠT ĐỘNG (khởi động / khám phá kiến thức, kiểu "HĐ1, HĐ2" SGK):
 // hình thức giống #tl, thẻ "HĐN" màu cam, bộ đếm RIÊNG (không lẫn "Câu N").

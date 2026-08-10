@@ -940,10 +940,11 @@
 // dau: thẻ đầu câu; loi-giai: chỉ hiện khi bật đáp án;
 // cho-trong: chừa chỗ trống khi in đề.
 #let _than-tl(dau, cau, loi-giai, cho-trong, lo-da, hinh: none,
+  fig-pos: "right", fig-width: auto,
   hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = context block(
   width: 100%, above: 10pt * _he-so-gian(), below: 10pt * _he-so-gian(),
   {
-    voi-hinh({ dau; cau }, hinh)
+    voi-hinh({ dau; cau }, hinh, vi-tri: fig-pos, be-rong: fig-width)
     context {
       if _da-hien(lo-da) and loi-giai != none {
         _khoi-giai(loi-giai, hinh: hinh-giai, vi-tri: fig-giai-pos, be-rong: fig-giai-width)
@@ -969,8 +970,11 @@
 
 // ---------- TL: tự luận ----------
 #let cau-tl(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
+  fig: none, fig-pos: "right", fig-width: auto,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
-  _dau-cau(diem: diem), cau, loi-giai, cho-trong, lo-da, hinh: hinh,
+  _dau-cau(diem: diem), cau, loi-giai, cho-trong, lo-da,
+  hinh: if hinh != none { hinh } else { fig },
+  fig-pos: fig-pos, fig-width: fig-width,
   hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
   fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
 )
@@ -980,8 +984,11 @@
 // trong thân câu khi có nhiều ý hỏi).
 #let _cam-hd = rgb("#d35400")
 #let cau-hd(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
+  fig: none, fig-pos: "right", fig-width: auto,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
-  _dau-rieng([HĐ], _bd-hd, _cam-hd, diem), cau, loi-giai, cho-trong, lo-da, hinh: hinh,
+  _dau-rieng([HĐ], _bd-hd, _cam-hd, diem), cau, loi-giai, cho-trong, lo-da,
+  hinh: if hinh != none { hinh } else { fig },
+  fig-pos: fig-pos, fig-width: fig-width,
   hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
   fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
 )
@@ -991,8 +998,11 @@
 // #luyen-tap (slide.typ) nên số thứ tự liên tục dù trộn hai kiểu.
 #let _vang-lt = rgb("#b9770e")
 #let cau-lt(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
+  fig: none, fig-pos: "right", fig-width: auto,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
-  _dau-rieng([Luyện tập~], _bd-lt, _vang-lt, diem), cau, loi-giai, cho-trong, lo-da, hinh: hinh,
+  _dau-rieng([Luyện tập~], _bd-lt, _vang-lt, diem), cau, loi-giai, cho-trong, lo-da,
+  hinh: if hinh != none { hinh } else { fig },
+  fig-pos: fig-pos, fig-width: fig-width,
   hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
   fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
 )
@@ -1001,8 +1011,11 @@
 // Thẻ "Vận dụng 1", "Vận dụng 2"... — bộ đếm riêng, hình thức như TL.
 #let _tim-vdtt = rgb("#8e44ad")
 #let cau-vdtt(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
+  fig: none, fig-pos: "right", fig-width: auto,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
-  _dau-rieng([Vận dụng~], _bd-vdtt, _tim-vdtt, diem), cau, loi-giai, cho-trong, lo-da, hinh: hinh,
+  _dau-rieng([Vận dụng~], _bd-vdtt, _tim-vdtt, diem), cau, loi-giai, cho-trong, lo-da,
+  hinh: if hinh != none { hinh } else { fig },
+  fig-pos: fig-pos, fig-width: fig-width,
   hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
   fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
 )

@@ -20,6 +20,14 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
   `#ds`, `#tln` (`fig-pos:`) lẫn hình kèm lời giải (`fig-giai-pos:`) và
   `#voi-hinh(..., vi-tri: "center")`. Giá trị `fig-pos` viết sai nay báo lỗi
   ngay kèm danh sách giá trị hợp lệ, thay vì âm thầm rơi về `"right"`.
+- **`fig-pos:` / `fig-width:` nay có ở CẢ TÁM dạng câu.** `#vd`, `#tl`, `#hd`,
+  `#lt`, `#vdtt` (và `#cau-tl`/`#cau-hd`/`#cau-lt`/`#cau-vdtt`) trước đây chỉ
+  nhận `fig-giai-pos:` cho hình kèm lời giải, còn hình ở ĐỀ thì luôn bị ép sang
+  cột phải, không có tham số nào chỉnh — tài liệu vẫn ghi là "mọi dạng câu".
+  Nay năm dạng này nhận đúng bộ `fig:` / `fig-pos:` / `fig-width:` như
+  `#tn`/`#ds`/`#tln`. Bốn dạng kiểu tự luận cũng nhận thêm bí danh `fig:` cho
+  `hinh:` ở tầng `#cau-tl`/`#cau-hd`/`#cau-lt`/`#cau-vdtt`. Không khai gì thì
+  mặc định vẫn là `"right"` ⇒ bài cũ giữ nguyên bố cục.
 
 ## 0.3.3 — 09/08/2026
 
