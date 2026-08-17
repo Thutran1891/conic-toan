@@ -1,7 +1,7 @@
 // thu-bieu-do.typ — KIỂM TRA biểu đồ thống kê (07/2026)
 // Biên dịch:  typst compile thu-bieu-do.typ
 #import "../baigiang.typ": *
-// #import "@preview/conic-toan:0.3.0"
+// #import "@preview/conic-toan:0.3.3"
 
 #set page(margin: 1.6cm)
 #set text(size: 11pt, lang: "vi")

@@ -18,7 +18,7 @@
 //    tên cũ mc/tf/sa và dòng tao-cau-hoi cũ vẫn dùng được)
 // =====================================================================
 #import "slide.typ": slide, muc, bai-giang, lo, vi-du, loi-giai, _ho-so, _la-sach, _buoc-ht, gian-dong, _gd, _dat-gian, _he-so-gian, _gian-ht, _bd-cau, cao-that, _cao-that, _chong-net, voi-cao-that, _vung-than
-#import "cau-hoi.typ": cau-mc, cau-tf, cau-sa, cau-tl, cau-hd, cau-lt, cau-vdtt, bat-dap-an, tat-dap-an, voi-hinh, True, Dung, _la-y
+#import "cau-hoi.typ": cau-mc, cau-tf, cau-sa, cau-tl, cau-hd, cau-lt, cau-vdtt, cau-kham-pha, cau-trai-nghiem, cau-thao-luan, bat-dap-an, tat-dap-an, voi-hinh, True, Dung, _la-y
 
 // Gộp tham số kiểu mới / kiểu cũ: ưu tiên giá trị kiểu mới nếu được đặt.
 #let _uu-tien(moi, cu) = if moi != none { moi } else { cu }
@@ -846,6 +846,10 @@
 #let hd(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Hoạt động]) = _dang-tl(cau-hd, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
 #let lt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Luyện tập]) = _dang-tl(cau-lt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
 #let vdtt(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Vận dụng]) = _dang-tl(cau-vdtt, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+// 3 hình thức hoạt động SGK — KHÔNG đánh số (Khám phá / Trải nghiệm / Thảo luận)
+#let kham-pha(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Khám phá]) = _dang-tl(cau-kham-pha, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let trai-nghiem(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Trải nghiệm]) = _dang-tl(cau-trai-nghiem, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
+#let thao-luan(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, gian-dong: auto, tieu-de: [Thảo luận]) = _dang-tl(cau-thao-luan, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, gd: gian-dong)
 
 #let phan(ten, ngan: none) = context {
   if _la-sach(_ho-so.get()) {

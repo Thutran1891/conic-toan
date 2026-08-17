@@ -20,7 +20,7 @@
 //   -> đổi MỘT LẦN, đồng bộ toàn bài.
 // CHỪA CHỖ TL (bản in): #trong-tl(cao: 5cm) / #khong-trong-tl()
 // =====================================================================
-#import "slide.typ": _buoc-ht, _bd-cau, _bd-hd, _bd-lt, _bd-vdtt, _bd-tat-ca, _so-moi, _ho-so, _he-so-gian, _cao-that
+#import "slide.typ": _buoc-ht, _bd-cau, _bd-vd, _bd-hd, _bd-lt, _bd-vdtt, _bd-tat-ca, _so-moi, _ho-so, _he-so-gian, _cao-that
 
 #let _hien-da = state("ch-hien-da", false)
 
@@ -29,16 +29,24 @@
 
 #let bat-dap-an() = _hien-da.update(true)
 #let tat-dap-an() = _hien-da.update(false)
-// Đặt lại số thứ tự cho CẢ 8 dạng câu (Câu tn/ds/tln/tl + Ví dụ + Hoạt động
-// + Luyện tập + Vận dụng thực tế):
-//   #dat-lai-cau()  hoặc  #dat-lai-cau(0)  -> đánh lại từ 1;
-//   #dat-lai-cau(3)                        -> đánh tiếp từ 4; ... tương tự.
-#let dat-lai-cau(..so) = {
+// Đặt lại số thứ tự — MỖI thể loại có bộ đếm & hàm đặt lại RIÊNG:
+//   #dat-lai-cau()       -> chỉ nhóm "Câu" (tn/ds/tln/tl); KHÔNG đụng vd/hd/lt/vdtt
+//   #dat-lai-cau-vd()    -> Ví dụ            #dat-lai-cau-hd()   -> Hoạt động
+//   #dat-lai-cau-lt()    -> Luyện tập        #dat-lai-cau-vdtt() -> Vận dụng thực tế
+//   #dat-lai-cau-tat-ca()-> đặt lại CẢ 5 nhóm cùng lúc (hành vi cũ của dat-lai-cau)
+// Không tham số hoặc `(0)` -> đánh lại từ 1; `(3)` -> đánh tiếp từ 4; ...
+#let _dat-lai-bd(bd, n) = {
+  bd.goc.update(n)
+  bd.cnt.update(0)
+}
+#let dat-lai-cau(..so) = _dat-lai-bd(_bd-cau, so.pos().at(0, default: 0))
+#let dat-lai-cau-vd(..so) = _dat-lai-bd(_bd-vd, so.pos().at(0, default: 0))
+#let dat-lai-cau-hd(..so) = _dat-lai-bd(_bd-hd, so.pos().at(0, default: 0))
+#let dat-lai-cau-lt(..so) = _dat-lai-bd(_bd-lt, so.pos().at(0, default: 0))
+#let dat-lai-cau-vdtt(..so) = _dat-lai-bd(_bd-vdtt, so.pos().at(0, default: 0))
+#let dat-lai-cau-tat-ca(..so) = {
   let n = so.pos().at(0, default: 0)
-  for bd in _bd-tat-ca {
-    bd.goc.update(n)
-    bd.cnt.update(0)
-  }
+  for bd in _bd-tat-ca { _dat-lai-bd(bd, n) }
 }
 
 // ---------- Chừa chỗ trống sau câu TL/HĐ/LT/VDTT (chỉ ở BẢN IN, khi ẩn đáp án) ----------
@@ -968,6 +976,16 @@
   h(6pt)
 }
 
+// Thẻ đầu câu KHÔNG đánh số + màu RIÊNG (Khám phá, Trải nghiệm, Thảo luận —
+// dạng hoạt động một-lần của SGK, nhãn không mang số thứ tự).
+#let _dau-nhan(nhan, mau, diem) = {
+  _the([#nhan], mau: mau)
+  if diem != none {
+    text(weight: "bold", fill: mau, size: 0.86em)[ (#diem điểm)]
+  }
+  h(6pt)
+}
+
 // ---------- TL: tự luận ----------
 #let cau-tl(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
   fig: none, fig-pos: "right", fig-width: auto,
@@ -1014,6 +1032,43 @@
   fig: none, fig-pos: "right", fig-width: auto,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
   _dau-rieng([Vận dụng~], _bd-vdtt, _tim-vdtt, diem), cau, loi-giai, cho-trong, lo-da,
+  hinh: if hinh != none { hinh } else { fig },
+  fig-pos: fig-pos, fig-width: fig-width,
+  hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
+  fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
+)
+
+// ---------- 3 HÌNH THỨC HOẠT ĐỘNG SGK — KHÔNG đánh số (Kết nối tri thức) ----
+// Nhãn "Khám phá" / "Trải nghiệm" / "Thảo luận" như thẻ HĐ nhưng KHÔNG mang số
+// thứ tự (hoạt động một-lần); hình thức thân như TL (dùng được cot-item, hình,
+// lời giải, lo-da…). Mỗi loại một màu riêng.
+#let _luc-kham-pha = rgb("#16a085")     // xanh lục (khám phá)
+#let cau-kham-pha(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
+  fig: none, fig-pos: "right", fig-width: auto,
+  fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
+  _dau-nhan([Khám phá], _luc-kham-pha, diem), cau, loi-giai, cho-trong, lo-da,
+  hinh: if hinh != none { hinh } else { fig },
+  fig-pos: fig-pos, fig-width: fig-width,
+  hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
+  fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
+)
+
+#let _luc-trai-nghiem = rgb("#27ae60")  // xanh lá (trải nghiệm)
+#let cau-trai-nghiem(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
+  fig: none, fig-pos: "right", fig-width: auto,
+  fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
+  _dau-nhan([Trải nghiệm], _luc-trai-nghiem, diem), cau, loi-giai, cho-trong, lo-da,
+  hinh: if hinh != none { hinh } else { fig },
+  fig-pos: fig-pos, fig-width: fig-width,
+  hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
+  fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
+)
+
+#let _lam-thao-luan = rgb("#2980b9")    // xanh dương (thảo luận)
+#let cau-thao-luan(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
+  fig: none, fig-pos: "right", fig-width: auto,
+  fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
+  _dau-nhan([Thảo luận], _lam-thao-luan, diem), cau, loi-giai, cho-trong, lo-da,
   hinh: if hinh != none { hinh } else { fig },
   fig-pos: fig-pos, fig-width: fig-width,
   hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },

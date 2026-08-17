@@ -96,6 +96,17 @@
   let g = if type(goc) == angle { goc } else { goc * 1deg }
   (tam.at(0) + bk * calc.cos(g), tam.at(1) + bk * calc.sin(g))
 }
+// Dựng điểm M sao cho tia AM = tia AB QUAY quanh A một góc lượng giác `goc`
+// (số trần = ĐỘ, dương = ngược kim đồng hồ) và AM = `r`. Nói cách khác, góc
+// định hướng (AB, AM) = `goc`. Dùng dựng đỉnh tam giác biết một cạnh + một góc.
+//   let M = dung-diem(A, B, 60, 3)     // góc BAM = 60°, AM = 3
+/// TRẢ VỀ điểm M: tia AM là tia AB quay quanh A góc lượng giác `goc`
+/// (số trần = độ, dương ngược kim đồng hồ), độ dài AM = `r`. Không vẽ gì.
+#let dung-diem(A, B, goc, r) = {
+  let g = if type(goc) == angle { goc } else { goc * 1deg }
+  let base = calc.atan2(B.at(0) - A.at(0), B.at(1) - A.at(1))
+  toa-cuc(A, r, base + g)
+}
 // Ghép thêm một phép biến hình f vào ctx (nội bộ; phép cũ làm trước, f làm sau).
 #let _ghep-bien-doi(ctx, f) = {
   let cu = ctx.at("bien-doi", default: none)
@@ -300,6 +311,35 @@
   place(dx: p.at(0) - bk, dy: p.at(1) - bk, circle(radius: bk, fill: mau, stroke: none))
   if ten != none {
     nhan(ctx, P, ten, huong: huong, cach: cach, mau: if mau-ten == auto { mau } else { mau-ten })
+  }
+}
+
+// Đặt nhãn cho nhiều điểm, VỊ TRÍ nhãn xác định bằng GÓC LƯỢNG GIÁC (thay cho
+// tên hướng "above"/"below"…). Mỗi mục là một tuple:
+//   (P, nội-dung, goc)                — bán kính & màu lấy mặc định
+//   (P, nội-dung, goc, ban-kinh)      — ban-kinh là ĐỘ DÀI trang (vd 8pt)
+//   (P, nội-dung, goc, ban-kinh, mau) — kèm màu riêng
+// `goc` là góc lượng giác (số trần = ĐỘ, dương = ngược kim đồng hồ; nhãn đặt
+// về phía góc đó so với điểm). Phần tử sau `goc` nhận diện theo kiểu: color ->
+// màu, còn lại -> bán kính, nên thứ tự ban-kinh/mau linh hoạt.
+//   nhan-goc((A, $A$, 210), (B, $B$, -30, 9pt), (C, $C$, 90, 8pt, red))
+/// Đặt nhãn nhiều điểm theo GÓC LƯỢNG GIÁC. Mỗi mục:
+/// `(P, nội-dung, goc[, ban-kinh][, mau])` — `goc` số trần = độ, dương ngược
+/// kim đồng hồ; `ban-kinh` là độ dài trang (khoảng cách điểm→nhãn).
+#let nhan-goc(ctx, ..muc, mau: black, ban-kinh: 6pt) = {
+  for m in muc.pos() {
+    let P = m.at(0)
+    let nd = m.at(1)
+    let goc = m.at(2)
+    let r = ban-kinh
+    let c = mau
+    for x in m.slice(3) {
+      if type(x) == color { c = x } else { r = x }
+    }
+    let g = if type(goc) == angle { goc } else { goc * 1deg }
+    // hướng trên TRANG (y hướng XUỐNG) theo góc lượng giác (y toán hướng lên)
+    let hd = (calc.cos(g), -calc.sin(g))
+    nhan(ctx, P, nd, huong: hd, cach: r, mau: c)
   }
 }
 
@@ -1048,7 +1088,13 @@
 #let ve-goc-vuong(ctx, A, O, B, ..tuy-chon) = goc-vuong(ctx, O, A, B, ..tuy-chon)
 
 // ---------- Đánh dấu đoạn bằng nhau (1..3 vạch tại trung điểm) ----------
-#let danh-dau(ctx, A, B, so: 1, dai: 6pt, mau: black, day: 1pt) = {
+// so     : số vạch song song (1/2/3…) tại trung điểm đoạn.
+// nghieng: góc NGHIÊNG của vạch so với pháp tuyến đoạn (0deg = vuông góc như cũ);
+//          đặt ~20–30deg cho kiểu vạch chéo "/" "//" "///".
+// cheo   : true = mỗi mốc vẽ dấu CHÉO NHAU "✕" (hai vạch ±góc); khi đó `nghieng`
+//          = nửa góc mở của dấu ✕ (mặc định 30deg nếu để 0deg).
+#let danh-dau(ctx, A, B, so: 1, dai: 6pt, mau: black, day: 1pt,
+              nghieng: 0deg, cheo: false) = {
   let a = toa-pt(ctx, A)
   let b = toa-pt(ctx, B)
   let dx = b.at(0) - a.at(0)
@@ -1057,18 +1103,32 @@
   if l == 0 { return }
   let ux = dx / l
   let uy = dy / l
-  let px = -uy
-  let py = ux
   let m = ((a.at(0) + b.at(0)) / 2, (a.at(1) + b.at(1)) / 2)
   let hd = dai.pt() / 2
+  // vẽ MỘT vạch tại tâm c, nghiêng góc g so với pháp tuyến (−uy, ux) của đoạn.
+  let mot-vach(c, g) = {
+    let cs = calc.cos(g)
+    let sn = calc.sin(g)
+    // pháp tuyến p = (−uy, ux); tiếp tuyến u = (ux, uy)
+    // vạch nghiêng: v = cos(g)·p + sin(g)·u
+    let vx = -uy * cs + ux * sn
+    let vy = ux * cs + uy * sn
+    doan-pt(
+      (c.at(0) - hd * vx, c.at(1) - hd * vy),
+      (c.at(0) + hd * vx, c.at(1) + hd * vy),
+      mau: mau, day: day,
+    )
+  }
   for i in range(so) {
     let t = (i - (so - 1) / 2) * 3.2
     let c = (m.at(0) + t * ux, m.at(1) + t * uy)
-    doan-pt(
-      (c.at(0) - hd * px, c.at(1) - hd * py),
-      (c.at(0) + hd * px, c.at(1) + hd * py),
-      mau: mau, day: day,
-    )
+    if cheo {
+      let g = if nghieng == 0deg { 30deg } else { nghieng }
+      mot-vach(c, g)
+      mot-vach(c, -g)
+    } else {
+      mot-vach(c, nghieng)
+    }
   }
 }
 

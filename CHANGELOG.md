@@ -28,6 +28,38 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
   `#tn`/`#ds`/`#tln`. Bốn dạng kiểu tự luận cũng nhận thêm bí danh `fig:` cho
   `hinh:` ở tầng `#cau-tl`/`#cau-hd`/`#cau-lt`/`#cau-vdtt`. Không khai gì thì
   mặc định vẫn là `"right"` ⇒ bài cũ giữ nguyên bố cục.
+- **Bộ hàm hình tròn mới.** `giao-duong-thang-duong-tron((A, B), (O, r))` trả
+  mảng giao điểm của đường thẳng và đường tròn, sắp theo chiều `A→B` (`()` không
+  cắt · `(P,)` tiếp xúc · `(P1, P2)` cắt). `tiep-tuyen-tai-diem(ctx, O, r, M)`
+  vẽ tiếp tuyến qua `M` vuông góc bán kính `OM` (`dai` = nửa độ dài đoạn, auto =
+  `1.4·r`). `dung-diem(A, B, goc, r)` trả điểm `M` sao cho tia `AM` = tia `AB`
+  quay quanh `A` một góc lượng giác `goc` (độ, dương ngược kim đồng hồ) và
+  `AM = r`. `nhan-goc(ctx, ..muc)` đặt nhãn nhiều điểm, phía đặt nhãn xác định
+  bằng góc lượng giác thay cho tên hướng — mỗi mục là tuple `(P, nd, goc)`,
+  nhận thêm bán kính/màu tuỳ chọn.
+- **`dut:` cho `duong-tron-ngoai-tiep` và `duong-tron-noi-tiep`** — vẽ đường
+  tròn nét đứt (`dut: false` mặc định ⇒ bài cũ không đổi).
+- **`an` / `hien-khoang` — hoạt hình BIẾN MẤT cho trình chiếu (beamer).** Đối
+  xứng của `lo`: `#an(n)[…]` hiện từ đầu rồi biến mất từ bước `n` (mặc định dồn
+  các phần tử lên, `giu-cho: true` để giữ chỗ). `#hien-khoang(tu, den)[…]` chỉ
+  hiện trong khoảng bước `[tu, den)`. Ghép `#an(n)[cũ] #lo(n)[mới]` = thay thế
+  phần tử tại chỗ cùng một bước. Bản in (`ho-so` không phải beamer) hiện hết như
+  `lo`/`chi`.
+- **Nhãn của `bpt` nay nằm nghiêng theo chiều đường.** `bpt(...)` thêm
+  `nghieng-ten: true` (mặc định) xoay chữ nhãn theo phương đường và đặt nhãn ôm
+  sát đường theo pháp tuyến; `huong-ten` khi đó chỉ còn `"above"`/`"below"` chọn
+  phía. `cach-ten: 3pt` chỉnh khoảng cách. `nghieng-ten: false` giữ nguyên lối
+  cũ (chữ nằm ngang). Mỗi `bpt` cũng nhận riêng `goc-gach:` / `buoc-gach:` thay
+  vì dùng chung của `mien-nghiem`.
+- **`dat-lai-cau` tách theo thể loại.** `dat-lai-cau()` nay chỉ đặt lại bộ đếm
+  nhóm Câu (`tn`/`ds`/`tln`/`tl`); thêm `dat-lai-cau-vd` / `-hd` / `-lt` /
+  `-vdtt` (mỗi hàm một bộ đếm) và `dat-lai-cau-tat-ca()` giữ hành vi cũ (đặt lại
+  cả năm nhóm). File đề cũ gọi `#dat-lai-cau()` không đổi hành vi.
+- **Ba hình thức hoạt động SGK: `kham-pha` / `trai-nghiem` / `thao-luan`.**
+  Nhãn "Khám phá."/"Trải nghiệm."/"Thảo luận." theo lối SGK — hoạt động một lần,
+  KHÔNG mang số thứ tự (khác `hd`/`lt`/`vdtt`). Mỗi dạng có màu riêng và bản nội
+  dòng `cau-kham-pha` / `cau-trai-nghiem` / `cau-thao-luan` để dùng làm một bước
+  bên trong `#slide` (dạng gọi thẳng tự tạo slide nên không lồng được).
 
 ## 0.3.3 — 09/08/2026
 

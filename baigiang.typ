@@ -51,6 +51,7 @@
   doan: (..a) => doan(ctx, ..a),
   cac-doan: (..a) => cac-doan(ctx, ..a),
   nhan: (..a) => nhan(ctx, ..a),
+  nhan-goc: (..a) => nhan-goc(ctx, ..a),
   diem: (..a) => diem(ctx, ..a),
   cac-diem: (..a) => cac-diem(ctx, ..a),
   mui-ten: (..a) => mui-ten(ctx, ..a),
@@ -106,6 +107,7 @@
   duong-tron-bang-tiep: (..a) => duong-tron-bang-tiep(ctx, ..a),
   ve-truc-tam: (..a) => ve-truc-tam(ctx, ..a),
   tiep-tuyen-tu-diem: (..a) => tiep-tuyen-tu-diem(ctx, ..a),
+  tiep-tuyen-tai-diem: (..a) => tiep-tuyen-tai-diem(ctx, ..a),
   // tron-xoay.typ
   ve-khoi-xoay: (..a) => ve-khoi-xoay(ctx, ..a),
   ve-mien-xoay: (..a) => ve-mien-xoay(ctx, ..a),
@@ -169,6 +171,15 @@
 /// quay: góc xoay chữ (vd 90deg, -45deg, hoặc goc-truc(...)). Mặc định 0deg.
 /// Đặt chữ/công thức tại điểm P. `huong` là phía đặt chữ so với P
 #let nhan = _voi-ctx(nhan)
+/// `nhan-goc(..muc, mau: black, ban-kinh: 6pt)`
+///
+/// Đặt nhãn cho nhiều điểm, VỊ TRÍ nhãn xác định bằng GÓC LƯỢNG GIÁC (thay cho
+/// tên hướng "above"/"below"…). Mỗi mục là một tuple:
+/// (P, nội-dung, goc)                — bán kính & màu lấy mặc định
+/// (P, nội-dung, goc, ban-kinh)      — ban-kinh là ĐỘ DÀI trang (vd 8pt)
+/// (P, nội-dung, goc, ban-kinh, mau) — kèm màu riêng
+/// `goc` là góc lượng giác (số trần = ĐỘ, dương = ngược kim đồng hồ; nhãn đặt
+#let nhan-goc = _voi-ctx(nhan-goc)
 /// `diem(P, ten: none, huong: "tren", bk: 2pt, mau: black, cach: 6pt, mau-ten: black)`
 ///
 /// Điểm (chấm tròn) + nhãn tuỳ chọn.
@@ -285,8 +296,13 @@
 /// Ký hiệu góc vuông TẠI O theo lối TikZ: ĐỈNH nằm GIỮA — `ve-goc-vuong(A, O, B)`.
 /// Cùng bộ tuỳ chọn với `goc-vuong` (r, mau, day).
 #let ve-goc-vuong = _voi-ctx(ve-goc-vuong)
-/// `danh-dau(A, B, so: 1, dai: 6pt, mau: black, day: 1pt)`
+/// `danh-dau(A, B, so: 1, dai: 6pt, mau: black, day: 1pt, nghieng: 0deg, cheo: false)`
 ///
+/// so     : số vạch song song (1/2/3…) tại trung điểm đoạn.
+/// nghieng: góc NGHIÊNG của vạch so với pháp tuyến đoạn (0deg = vuông góc như cũ);
+/// đặt ~20–30deg cho kiểu vạch chéo "/" "//" "///".
+/// cheo   : true = mỗi mốc vẽ dấu CHÉO NHAU "✕" (hai vạch ±góc); khi đó `nghieng`
+/// = nửa góc mở của dấu ✕ (mặc định 30deg nếu để 0deg).
 #let danh-dau = _voi-ctx(danh-dau)
 /// `ve-ham(f, tu: auto, den: auto, n: 150, mau: blue, day: 1.3pt, dut: false)`
 ///
@@ -442,7 +458,7 @@
 /// Hình thang: đáy lớn AB (dưới, dài a), đáy nhỏ DC (trên, dài b),
 /// cao c, lech: độ lệch ngang của D so với A.
 #let hinh-thang = _voi-ctx(hinh-thang)
-/// `duong-tron-ngoai-tiep(..vi-tri, ten-tam: $O$, huong-tam: auto, mau: blue, day: 1pt, to: none, ban-kinh: false, dinh-r: auto, ten-r: none, canh: false, mau-canh: black)`
+/// `duong-tron-ngoai-tiep(..vi-tri, ten-tam: $O$, huong-tam: auto, mau: blue, day: 1pt, dut: false, to: none, ban-kinh: false, dinh-r: auto, ten-r: none, canh: false, mau-canh: black)`
 ///
 /// Đường tròn ngoại tiếp TAM GIÁC hoặc ĐA GIÁC.
 /// duong-tron-ngoai-tiep(A, B, C)            — 3 đỉnh rời (lối cũ)
@@ -451,7 +467,7 @@
 /// tiếp được cho ra đúng đường tròn của nó — xem `tron-qua-diem`).
 /// ten-tam    : nhãn tâm (none = không ghi)
 #let duong-tron-ngoai-tiep = _voi-ctx(duong-tron-ngoai-tiep)
-/// `duong-tron-noi-tiep(A, B, C, ten-tam: $I$, mau: orange.darken(10%), day: 1pt, ban-kinh: false)`
+/// `duong-tron-noi-tiep(A, B, C, ten-tam: $I$, mau: orange.darken(10%), day: 1pt, dut: false, ban-kinh: false)`
 ///
 /// Đường tròn nội tiếp tam giác ABC.
 #let duong-tron-noi-tiep = _voi-ctx(duong-tron-noi-tiep)
@@ -477,6 +493,15 @@
 ///
 /// Hai tiếp tuyến kẻ từ điểm M ngoài đường tròn (O; r).
 #let tiep-tuyen-tu-diem = _voi-ctx(tiep-tuyen-tu-diem)
+/// `tiep-tuyen-tai-diem(O, r, M, dai: auto, mau: black, day: 1pt, dut: false)`
+///
+/// Dựng tiếp tuyến của đường tròn (O; r) TẠI điểm M (M nằm trên đường tròn):
+/// đoạn thẳng qua M, VUÔNG GÓC với bán kính OM.
+/// dai : nửa độ dài đoạn tiếp tuyến (auto = 1.4·r); đơn vị toạ độ toán.
+/// mau / day / dut : kiểu nét của đoạn tiếp tuyến.
+/// M không cần chính xác trên đường tròn — hướng tiếp tuyến lấy theo OM thực tế.
+/// Tiếp tuyến của (O; r) TẠI điểm M: đoạn qua M vuông góc OM.
+#let tiep-tuyen-tai-diem = _voi-ctx(tiep-tuyen-tai-diem)
 
 // tron-xoay.typ — khối tròn xoay (khoi-tron-xoay tự tạo khung, không kê ở đây)
 /// `ve-khoi-xoay(f, a, b, g: none, ngang: true, k: 0.26, mau: blue, day: 1.2pt, mau-to: rgb(70, 130, 200, 60), duong-sinh: true, truc-mo: true, mat-cat: none, mau-mat-cat: rgb(235, 130, 40, 120), ten-ban-kinh: auto, ten-mat-cat: auto, n: 120)`

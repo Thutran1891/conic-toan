@@ -788,6 +788,38 @@
   else if _buoc-ht.get() == n { body } else if giu-cho { hide(body) }
 }
 
+// ---------- Hoạt hình BIẾN MẤT từng bước (đối xứng #lo) ----------
+// Như hiệu ứng "thoát" (exit) của PowerPoint: phần tử hiện từ đầu rồi
+// BIẾN MẤT khi tới bước n.
+//   #an(2)[...]                — hiện ở bước 1, BIẾN MẤT từ bước 2 trở đi.
+//                                Mặc định KHÔNG giữ chỗ: nội dung phía dưới
+//                                dồn lên lấp chỗ (như #lo).
+//   #an(2, giu-cho: true)[...] — biến mất nhưng CHỪA khoảng trống, bố cục
+//                                phía dưới đứng yên (dùng cho slide gói gọn
+//                                một trang).
+// Kết hợp #lo + #an để thay thế phần tử tại một vị trí, ví dụ hiện đáp án
+// sai ở bước 2 rồi xoá đi ở bước 3 và cho đáp án đúng hiện lên:
+//   #an(3)[đáp án tạm]  #lo(3)[đáp án đúng]
+// Bản in (dethi/loigiai) HIỆN HẾT như #lo — muốn bản in chỉ giữ trạng thái
+// cuối thì đặt phần biến mất trong #chi (chỉ hiện đúng một bước).
+#let an(n, giu-cho: false, body) = context {
+  if _la-sach(_ho-so.get()) or _buoc-ht.get() < n { body }
+  else if giu-cho { hide(body) }
+}
+
+// Hiện TRONG MỘT KHOẢNG bước: xuất hiện ở bước `tu`, biến mất ở bước `den`
+// (khoảng nửa mở [tu, den) — tức hiện ở các bước tu..den−1). Bằng đúng
+// #lo(tu) + #an(den) gộp lại.
+//   #hien-khoang(2, 4)[...]    — hiện ở bước 2 và 3, biến mất từ bước 4.
+#let hien-khoang(tu, den, giu-cho: false, body) = context {
+  if _la-sach(_ho-so.get()) { body }        // bản in: hiện hết
+  else {
+    let k = _buoc-ht.get()
+    if k >= tu and k < den { body }
+    else if giu-cho { hide(body) }
+  }
+}
+
 // Danh sách hiện dần từng ý; ý đầu tiên xuất hiện ở bước `tu`.
 //   #tung-buoc([ý 1], [ý 2], [ý 3])   // trong slide có so-buoc đủ lớn
 #let tung-buoc(tu: 2, ..cac-y) = {

@@ -220,7 +220,9 @@ Mọi hình vẽ nằm trong `#hinh(...)` với hệ toạ độ toán học (y 
   goc-vuong(ctx, (0,0), (5,0), (0,4))             // ký hiệu vuông góc
   ve-goc(ctx, (5,0), (0,0), (3,4), ten: $alpha$)  // = goc, nhưng ĐỈNH ở GIỮA (lối TikZ)
   ve-goc-vuong(ctx, (5,0), (0,0), (0,4))          // = goc-vuong, ĐỈNH ở GIỮA (lối TikZ)
-  danh-dau(ctx, (0,0), (5,0), so: 2)              // vạch "bằng nhau"
+  danh-dau(ctx, (0,0), (5,0), so: 2)              // 2 vạch "bằng nhau"
+  danh-dau(ctx, (0,0), (5,0), so: 2, nghieng: 25deg) // vạch CHÉO "//"
+  danh-dau(ctx, (0,0), (5,0), cheo: true)         // dấu ✕ (chéo nhau)
   ve-ham(ctx, x => x*x/4, mau: blue)              // đồ thị hàm bất kỳ
   to-vung(ctx, x => x*x/4, 0, 3)                  // tô miền dưới đồ thị
   nhan(ctx, (3, 4), [chú thích], huong: "phai")
@@ -415,7 +417,11 @@ ngoài [0, 1] là điểm trên đường kéo dài), `hinh-chieu(P, A, B)`,
 `tam-bang-tiep(A, B, C)` → `(J, r)` (tâm + bán kính đường tròn bàng tiếp
 **trong góc A**; muốn góc B thì gọi `tam-bang-tiep(B, C, A)`),
 `tiep-diem`, `giao-hai-duong-tron`,
-`giao-duong-thang(A, B, C, D)` (giao 2 đường thẳng AB, CD).
+`giao-duong-thang(A, B, C, D)` (giao 2 đường thẳng AB, CD),
+`giao-duong-thang-duong-tron((A, B), (O, r))` (giao đường thẳng AB với đường
+tròn (O; r) → MẢNG điểm: rỗng nếu không cắt, 1 điểm nếu tiếp xúc, 2 điểm nếu
+cắt), `dung-diem(A, B, goc, r)` (dựng điểm M: tia AM là tia AB quay quanh A một
+góc lượng giác `goc` (độ, dương ngược kim đồng hồ) và AM = `r`).
 
 Giao với đường cong (07/2026): `giao-ham(f, g, tu, den)` trả về MẢNG giao điểm
 của 2 đồ thị y = f(x), y = g(x) trên [tu, den]; đường thẳng qua 2 điểm đổi thành
@@ -522,7 +528,18 @@ MẢNG gồm các thứ đó; `le:` chừa lề theo tỉ lệ cạnh lớn (m�
 
 Sẵn có thêm: `tu-giac`, `hinh-binh-hanh` (biết 3 đỉnh), `hinh-chu-nhat`,
 `hinh-thang`, `tiep-tuyen-tu-diem(ctx, O, r, M)` (hai tiếp tuyến + góc vuông),
+`tiep-tuyen-tai-diem(O, r, M, dai: auto, dut: false)` (tiếp tuyến TẠI điểm M
+trên đường tròn — đoạn qua M vuông góc OM; `dai` = nửa độ dài đoạn),
 `duong-tron-luong-giac(so-do: 55deg)` (hình hoàn chỉnh, tự tạo khung).
+
+Nhãn theo GÓC LƯỢNG GIÁC — `nhan-goc(..muc)` đặt nhãn nhiều điểm, phía đặt nhãn
+xác định bằng góc (thay tên hướng): mỗi mục `(P, nội-dung, goc)` /
+`(P, nội-dung, goc, ban-kinh)` / `(P, nội-dung, goc, ban-kinh, mau)`, `goc` số
+trần = độ (dương ngược kim đồng hồ), `ban-kinh` là độ dài trang (điểm→nhãn).
+Ví dụ `nhan-goc((A, $A$, 0), (B, $B$, 120, 8pt), (C, $C$, 240, 8pt, red))`.
+
+`duong-tron-ngoai-tiep` và `duong-tron-noi-tiep` nhận thêm `dut: true` để vẽ
+đường tròn bằng NÉT ĐỨT. File thử các hàm này: `thu-hinh-tron-moi.typ`.
 
 **Trực tâm & đường tròn bàng tiếp (07/2026)** — trọn bộ công cụ tam giác:
 
@@ -654,11 +671,22 @@ Mỗi hàm gói bằng `ham(...)`; `giao-diem: auto` chấm đỏ giao điểm t
 Quy ước SGK: gạch phần **không** là miền nghiệm; biên nét đứt nếu BPT ngặt.
 Mỗi BPT `a·x + b·y (dau) c` khai báo bằng `bpt(a, b, c, dau: "<=")`:
 
+Nhãn `ten:` mặc định **NẰM NGHIÊNG theo chiều đường thẳng** (tự đọc xuôi, không
+lộn ngược); đặt tại điểm `ten-tai:` (0..1 dọc đoạn nhìn thấy). `huong-ten:` chọn
+**phía** đặt nhãn so với đường: `"above"` (trên) hoặc `"below"` (dưới). Muốn chữ
+nằm ngang như cũ thì `nghieng-ten: false` (khi đó `huong-ten` nhận mọi hướng
+`"above"/"below"/"left"/"right"/…`). Khoảng cách tới đường: `cach-ten:`.
+
+Kiểu gạch chéo đặt được RIÊNG cho từng BPT (giống `mau-gach`): `goc-gach:` (góc)
+và `buoc-gach:` (bước) trong `bpt(...)` — `auto` = theo giá trị chung khai ở
+`mien-nghiem`.
+
 ```typst
 #mien-nghiem(bpt(4, 5, -8, dau: "<"), giao-truc: auto)   // 4x + 5y < −8
 #mien-nghiem(                                            // hệ BPT + tô miền
-  bpt(3, -2, -9, mau: red, ten: $3x - 2y = -9$, ten-tai: 0.7, huong-ten: "left"),
-  bpt(-3, 5, 18, mau: green.darken(25%)),
+  bpt(3, -2, -9, mau: red, ten: $3x - 2y = -9$, ten-tai: 0.7, huong-ten: "above"),
+  bpt(-3, 5, 18, mau: green.darken(25%), ten: $-3x + 5y = 18$, huong-ten: "below",
+    goc-gach: 135deg),                                   // gạch riêng đường này
   to-mien: rgb(40, 90, 200, 35),
   xmin: -7.5, xmax: 2.5, ymin: -1.5, ymax: 5,
 )
@@ -933,14 +961,20 @@ File thử: `thu-bbt-bu-dau.typ`.
 Bảy dạng: MC/TF/SA/TL đánh số "Câu N" liên tục chung; **HĐ** (hoạt động)
 đánh "HĐ1, HĐ2...", **Luyện tập** đánh "Luyện tập 1, 2..." (chung bộ đếm
 với khung `#luyen-tap`) và **Vận dụng** đánh "Vận dụng 1, 2..." — mỗi loại
-bộ đếm riêng. **Một công tắc** đổi giữa bản giáo viên
+bộ đếm riêng. Ngoài ra có 3 hình thức hoạt động SGK **KHÔNG đánh số**:
+`#kham-pha` (Khám phá, xanh lục), `#trai-nghiem` (Trải nghiệm, xanh lá),
+`#thao-luan` (Thảo luận, xanh dương) — thân giống `#hd` (dùng được `loi-giai:`,
+`hinh:`, `lo-da:`, `cot-item`…). **Một công tắc** đổi giữa bản giáo viên
 (hiện đáp án, tô xanh) và bản chiếu cho học sinh: `#bat-dap-an()` / `#tat-dap-an()`.
 Ở chế độ **beamer**, công tắc tự BẬT sẵn (kể cả khi dùng `bai-giang` trực tiếp,
 không qua `de-toan`) — đáp án được đánh dấu ở bước `lo-da` (bước cuối) của mỗi câu;
 muốn ẩn thì gọi `#tat-dap-an()`.
-Sang đề mới đánh số lại: `#dat-lai-cau()` (hoặc `#dat-lai-cau(0)`) đặt lại
-**cả 8 dạng câu** — Câu (tn/ds/tln/tl), Ví dụ, Hoạt động, Luyện tập, Vận dụng
-thực tế — về 1; `#dat-lai-cau(3)` đánh tiếp từ 4 (tổng quát `n` → từ n + 1).
+Đánh số lại — MỖI thể loại có bộ đếm & hàm đặt lại RIÊNG (không còn đặt lại
+tất cả cùng lúc): `#dat-lai-cau()` chỉ nhóm **Câu** (tn/ds/tln/tl);
+`#dat-lai-cau-vd()` Ví dụ, `#dat-lai-cau-hd()` Hoạt động, `#dat-lai-cau-lt()`
+Luyện tập, `#dat-lai-cau-vdtt()` Vận dụng thực tế; `#dat-lai-cau-tat-ca()` đặt
+lại cả 5 nhóm cùng lúc (hành vi cũ). Không tham số hoặc `(0)` → về 1;
+`(3)` → đánh tiếp từ 4 (tổng quát `n` → từ n + 1).
 
 ```typst
 // MC — 4 phương án, cot: 1 | 2 | 4
@@ -991,10 +1025,27 @@ Chân trang đánh số theo slide (không tăng theo bước).
   #lo(2, giu-cho: true)[Ẩn nhưng giữ chỗ — chỉ dùng khi slide chắc chắn gọn 1 trang.]
   #chi(2)[Chỉ hiện đúng ở bước 2 (mặc định giữ chỗ).]
   #chi(3, giu-cho: false)[Chỉ hiện ở bước 3, không giữ chỗ.]
+  #an(3)[Hiện từ đầu rồi BIẾN MẤT ở bước 3 (hiệu ứng "thoát" của PowerPoint;
+         mặc định không giữ chỗ, nội dung dưới dồn lên).]
+  #hien-khoang(2, 4)[Chỉ hiện ở bước 2–3, biến mất từ bước 4.]
   #tung-buoc([ý 1 — bước 2], [ý 2 — bước 3])   // danh sách hiện dần
   #buoc(hien-dan: true, [Bước giải 1...], [Bước giải 2...])
 ]
 ```
+
+`#an(n)` là bản đối xứng của `#lo(n)`: `#lo` cho nội dung **hiện ra**, `#an`
+cho nội dung **biến mất**. Ghép hai lệnh để **thay thế** phần tử tại chỗ — hiện
+nội dung tạm rồi xoá đi, cho nội dung mới hiện lên cùng bước:
+
+```typst
+#slide(tieu-de: [Thay thế], so-buoc: 3)[
+  #an(3)[$x = 1$ (giá trị tạm)]     // biến mất ở bước 3
+  #lo(3)[$x = 2$ (giá trị đúng)]    // hiện lên ở bước 3
+]
+```
+
+Bản in (`dethi`/`loigiai`) hiện hết như `#lo`; muốn bản in chỉ giữ trạng thái
+cuối thì đặt phần biến mất trong `#chi`.
 
 Với câu hỏi, dùng `lo-da` để **đề hiện trước, đáp án lộ sau**:
 
@@ -1104,6 +1155,9 @@ Soạn đề MỘT LẦN trong file kiểu `de-mau.typ`, xuất được 3 bản
   tieu-de: [Luyện tập 1])      // câu luyện tập — thẻ "Luyện tập 1"
 #vdtt([Bài toán thực tế...], loi-giai: [Gọi $x$... \ Vậy...],
   tieu-de: [Vận dụng])         // câu vận dụng — thẻ "Vận dụng 1"
+#kham-pha([Từ định lí côsin, hãy viết công thức tính $cos A$...])   // thẻ "Khám phá" (không số)
+#trai-nghiem([Vẽ một tam giác $A B C$, đo các cạnh và góc $A$...])  // thẻ "Trải nghiệm"
+#thao-luan([Liệu $sin A$ và diện tích $S$ có tính được theo các cạnh?])  // thẻ "Thảo luận"
 ```
 
 Xuất cả 3 bản không cần sửa file:

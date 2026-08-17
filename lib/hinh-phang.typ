@@ -239,7 +239,7 @@
 #let duong-tron-ngoai-tiep(
   ctx, ..vi-tri,
   ten-tam: $O$, huong-tam: auto,
-  mau: blue, day: 1pt, to: none,
+  mau: blue, day: 1pt, dut: false, to: none,
   ban-kinh: false, dinh-r: auto, ten-r: none,
   canh: false, mau-canh: black,
 ) = {
@@ -247,7 +247,7 @@
   let dinh = if ds.len() == 1 { ds.at(0) } else { ds }
   if dinh.len() < 3 { panic("duong-tron-ngoai-tiep: cần ít nhất 3 đỉnh") }
   let (O, r) = tron-qua-diem(dinh)
-  duong-tron(ctx, O, r, mau: mau, day: day, to: to)
+  duong-tron(ctx, O, r, mau: mau, day: day, dut: dut, to: to)
   if canh { da-giac(ctx, dinh, mau: mau-canh, day: 1.1pt) }
   if ban-kinh {
     // đỉnh nào có bán kính nằm THOÁNG nhất (không trùng cạnh đa giác)
@@ -267,9 +267,9 @@
 }
 
 // Đường tròn nội tiếp tam giác ABC.
-#let duong-tron-noi-tiep(ctx, A, B, C, ten-tam: $I$, mau: orange.darken(10%), day: 1pt, ban-kinh: false) = {
+#let duong-tron-noi-tiep(ctx, A, B, C, ten-tam: $I$, mau: orange.darken(10%), day: 1pt, dut: false, ban-kinh: false) = {
   let (I, r) = tam-noi-tiep(A, B, C)
-  duong-tron(ctx, I, r, mau: mau, day: day)
+  duong-tron(ctx, I, r, mau: mau, day: day, dut: dut)
   if ten-tam != none { diem(ctx, I, ten: ten-tam, huong: "tren") }
   if ban-kinh {
     let H = hinh-chieu(I, A, B)
@@ -382,6 +382,57 @@
     diem(ctx, T1, ten: ten-tiep.at(0), huong: huong-ra(T1, O))
     diem(ctx, T2, ten: ten-tiep.at(1), huong: huong-ra(T2, O))
   }
+}
+
+// ---------- Tiếp tuyến TẠI một điểm trên đường tròn ----------
+// Dựng tiếp tuyến của đường tròn (O; r) TẠI điểm M (M nằm trên đường tròn):
+// đoạn thẳng qua M, VUÔNG GÓC với bán kính OM.
+//   dai : nửa độ dài đoạn tiếp tuyến (auto = 1.4·r); đơn vị toạ độ toán.
+//   mau / day / dut : kiểu nét của đoạn tiếp tuyến.
+// M không cần chính xác trên đường tròn — hướng tiếp tuyến lấy theo OM thực tế.
+/// Tiếp tuyến của (O; r) TẠI điểm M: đoạn qua M vuông góc OM.
+/// `tiep-tuyen-tai-diem(O, r, M, dai: auto, mau: black, day: 1pt, dut: false)`.
+#let tiep-tuyen-tai-diem(ctx, O, r, M, dai: auto, mau: black, day: 1pt, dut: false) = {
+  let dx = M.at(0) - O.at(0)
+  let dy = M.at(1) - O.at(1)
+  let l = calc.sqrt(dx * dx + dy * dy)
+  if l < 1e-9 { panic("tiep-tuyen-tai-diem: M trùng tâm O") }
+  // vectơ đơn vị VUÔNG GÓC với OM (hướng tiếp tuyến)
+  let tx = -dy / l
+  let ty = dx / l
+  let d = if dai == auto { r * 1.4 } else { dai }
+  let P1 = (M.at(0) - d * tx, M.at(1) - d * ty)
+  let P2 = (M.at(0) + d * tx, M.at(1) + d * ty)
+  doan(ctx, P1, P2, mau: mau, day: day, dut: dut)
+}
+
+// Giao điểm ĐƯỜNG THẲNG AB với ĐƯỜNG TRÒN (O; r).
+//   duong : cặp điểm (A, B) xác định đường thẳng
+//   tron  : cặp (O, r) — tâm và bán kính
+// TRẢ VỀ MẢNG điểm giao, sắp theo chiều A -> B:
+//   () rỗng nếu không cắt · một điểm (P,) nếu TIẾP XÚC · (P1, P2) nếu cắt.
+//   let gd = giao-duong-thang-duong-tron((A, B), (O, r))
+#let giao-duong-thang-duong-tron(duong, tron) = {
+  let (A, B) = duong
+  let (O, r) = tron
+  let dx = B.at(0) - A.at(0)
+  let dy = B.at(1) - A.at(1)
+  let l = calc.sqrt(dx * dx + dy * dy)
+  if l < 1e-9 { panic("giao-duong-thang-duong-tron: A trùng B") }
+  let ux = dx / l
+  let uy = dy / l
+  // chân đường vuông góc H từ O xuống AB
+  let t = (O.at(0) - A.at(0)) * ux + (O.at(1) - A.at(1)) * uy
+  let H = (A.at(0) + t * ux, A.at(1) + t * uy)
+  let d2 = calc.pow(khoang-cach(O, H), 2)
+  let r2 = r * r
+  if d2 > r2 + 1e-9 { return () }                      // không cắt
+  let h = calc.sqrt(calc.max(0, r2 - d2))
+  if h < 1e-9 { return ((H.at(0), H.at(1)),) }          // tiếp xúc
+  (
+    (H.at(0) - h * ux, H.at(1) - h * uy),
+    (H.at(0) + h * ux, H.at(1) + h * uy),
+  )
 }
 
 // Giao điểm hai đường tròn (O1;r1), (O2;r2): trả về (P1, P2).

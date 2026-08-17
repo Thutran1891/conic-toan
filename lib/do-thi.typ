@@ -1122,17 +1122,28 @@
 // =====================================================================
 // Một BPT: a·x + b·y (dau) c.   dau: "<=", ">=", "<", ">"
 //   mau      : màu đường thẳng; mau-gach: auto = cùng màu (nhạt hơn)
+//   goc-gach : GÓC gạch chéo RIÊNG cho bpt này; auto = theo goc-gach chung
+//              của mien-nghiem (giống lối mau-gach). buoc-gach: bước gạch riêng
 //   ten      : nhãn đường thẳng (vd $d: 4x + 5y = -8$); ten-tai: 0..1 vị trí
-//              dọc theo đoạn nhìn thấy; huong-ten: hướng nhãn
+//              dọc theo đoạn nhìn thấy tại điểm đặt nhãn
+//   nghieng-ten : true (mặc định) = chữ NẰM NGHIÊNG theo chiều đường thẳng
+//              (tự đọc xuôi, không lộn ngược); false = chữ nằm ngang như cũ
+//   huong-ten : PHÍA đặt nhãn tại điểm đó — "above" hoặc "below". Khi nghiêng,
+//              đây là phía trên/dưới so với đường (theo pháp tuyến); khi không
+//              nghiêng vẫn nhận mọi hướng cũ ("above"/"below"/"left"/tuple…)
+//   cach-ten : khoảng cách từ đường tới nhãn
 #let bpt(
   a, b, c,
   dau: "<=",
   mau: red, day: 1.1pt,
-  mau-gach: auto,
+  mau-gach: auto, goc-gach: auto, buoc-gach: auto,
   ten: none, ten-tai: 0.78, huong-ten: "above",
+  nghieng-ten: true, cach-ten: 3pt,
 ) = (
   a: a, b: b, c: c, dau: dau, mau: mau, day: day,
-  mau-gach: mau-gach, ten: ten, ten-tai: ten-tai, huong-ten: huong-ten,
+  mau-gach: mau-gach, goc-gach: goc-gach, buoc-gach: buoc-gach,
+  ten: ten, ten-tai: ten-tai, huong-ten: huong-ten,
+  nghieng-ten: nghieng-ten, cach-ten: cach-ten,
 )
 
 // Đoạn nhìn thấy của đường a·x + b·y = c trong cửa sổ (none nếu ngoài).
@@ -1186,8 +1197,11 @@
       let (a, b, c) = if d.dau in ("<=", "<") { (d.a, d.b, d.c) } else { (-d.a, -d.b, -d.c) }
       let loai = cat-nua-mp(khung, -a, -b, -c)   // nửa mặt phẳng a·x + b·y ≥ c
       let mg = if d.mau-gach == auto { d.mau.lighten(25%) } else { d.mau-gach }
+      // góc/bước gạch RIÊNG của từng bpt (auto = theo giá trị chung của mien-nghiem)
+      let gg = if d.at("goc-gach", default: auto) == auto { goc-gach } else { d.goc-gach }
+      let bg = if d.at("buoc-gach", default: auto) == auto { buoc-gach } else { d.buoc-gach }
       if loai.len() >= 3 {
-        gach-mien(ctx, loai, goc: goc-gach, buoc: buoc-gach, mau: mg)
+        gach-mien(ctx, loai, goc: gg, buoc: bg, mau: mg)
       }
     }
     truc(ctx)
@@ -1200,7 +1214,31 @@
         doan(ctx, A, B, mau: d.mau, day: d.day, dut: d.dau in ("<", ">"))
         if d.ten != none {
           let P = chia(A, B, d.ten-tai)
-          nhan(ctx, P, d.ten, huong: d.huong-ten, mau: d.mau, cach: 7pt)
+          let cach = d.at("cach-ten", default: 3pt)
+          if d.at("nghieng-ten", default: true) {
+            // chữ nằm nghiêng theo chiều đường; PHÍA above/below theo pháp tuyến.
+            // Đặt SÁT đường: lệch = cach + nửa bề DÀY chữ (vuông góc đường) —
+            // KHÔNG dùng offset của `nhan` (offset đó theo nửa khung ĐÃ XOAY, với
+            // nhãn dài + đường xiên thì khung rất to nên nhãn bị đẩy xa đường).
+            let xuoi = toa-pt(ctx, A).at(0) <= toa-pt(ctx, B).at(0)
+            let ang = if xuoi { goc-truc(ctx, A, B) } else { goc-truc(ctx, B, A) }
+            let n = _phap-tuyen(ctx, A, B)                 // pháp tuyến hướng LÊN (trang)
+            if d.huong-ten in ("below", "duoi") { n = (-n.at(0), -n.at(1)) }
+            context {
+              let nd = text(fill: d.mau, d.ten)
+              let nd2 = rotate(ang, reflow: true, nd)
+              let s = measure(nd2)                         // khung sau khi xoay (canh giữa)
+              let off = cach + measure(nd).height / 2      // bề dày chữ, vuông góc đường
+              let p = toa(ctx, P)
+              place(
+                dx: p.at(0) - s.width / 2 + n.at(0) * off,
+                dy: p.at(1) - s.height / 2 + n.at(1) * off,
+                nd2,
+              )
+            }
+          } else {
+            nhan(ctx, P, d.ten, huong: d.huong-ten, mau: d.mau, cach: cach)
+          }
         }
       }
       if giao-truc == auto {
