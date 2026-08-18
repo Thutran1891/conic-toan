@@ -61,6 +61,18 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
   dòng `cau-kham-pha` / `cau-trai-nghiem` / `cau-thao-luan` để dùng làm một bước
   bên trong `#slide` (dạng gọi thẳng tự tạo slide nên không lồng được).
 
+### Sửa
+
+- **Ctx ngầm không còn panic bên trong `measure`.** Các hàm vẽ gọi được KHÔNG
+  cần `ctx` (bộ bọc `_voi-ctx` tự lấy khung `#hinh` đang vẽ qua một ngăn xếp
+  `state`). Nhưng nội dung dựng trong `measure(...)` không được đưa vào tài liệu
+  nên ngăn xếp đó đọc ra rỗng, khiến bộ bọc `panic` và làm HỎNG cả lần biên dịch
+  ở bản `beamer` (tự ngắt màn phải đo thử một slide) và ở `cot: auto` của câu
+  trắc nghiệm có hình trong phương án. Nay ngăn xếp rỗng trong `measure` được BỎ
+  QUA lặng lẽ — phép đo không đổi vì `#hinh` là `box` cố định, nét vẽ đều
+  `place` — còn hàm vẽ đặt thật sự NGOÀI mọi `#hinh` để lại một dấu đỏ nhỏ thay
+  vì dừng biên dịch. Bản in không đổi.
+
 ## 0.3.3 — 09/08/2026
 
 ### Thêm
