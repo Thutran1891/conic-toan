@@ -61,6 +61,14 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
   dòng `cau-kham-pha` / `cau-trai-nghiem` / `cau-thao-luan` để dùng làm một bước
   bên trong `#slide` (dạng gọi thẳng tự tạo slide nên không lồng được).
 
+### Thay đổi
+
+- **`so-do-cay`: nhãn xác suất của nhánh đi XUỐNG đặt phía DƯỚI cạnh.** Trước
+  đây nhãn xác suất trên mọi cạnh đều đặt phía TRÊN đường; với nhánh rẽ xuống
+  (nút con thấp hơn nút cha) thì nhãn bị chen vào chỗ rẽ. Nay nhánh đi xuống đặt
+  nhãn dưới cạnh (nhánh đi lên/ngang giữ nguyên phía trên), cân đối với các nhánh
+  trên cho cây gọn hơn. Chữ vẫn quay theo cạnh, đọc xuôi.
+
 ### Sửa
 
 - **Ctx ngầm không còn panic bên trong `measure`.** Các hàm vẽ gọi được KHÔNG
