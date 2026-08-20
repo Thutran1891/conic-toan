@@ -123,7 +123,7 @@
   mat-phang-oxyz: (..a) => mat-phang-oxyz(ctx, ..a),
   mat-phang-bh: (..a) => mat-phang-bh(ctx, ..a),
   ve-thiet-dien: (..a) => ve-thiet-dien(ctx, ..a),
-  // mat-cong.typ — nón/trụ có nét khuất tự động (mat-cong tự tạo khung, không kê)
+  // mat-cong.typ — nón/trụ/cầu có nét khuất tự động (mat-cong tự tạo khung, không kê)
   ve-mat-cong: (..a) => ve-mat-cong(ctx, ..a),
   ve-truc-3d: (..a) => ve-truc-3d(ctx, ..a),
 )
@@ -552,15 +552,21 @@
 #let ve-thiet-dien = _voi-ctx(ve-thiet-dien)
 
 // ---------------------------------------------------------------------
-// mat-cong.typ — nón / trụ có NÉT KHUẤT TỰ ĐỘNG (kể cả hai khối che nhau).
-// `mat-non`, `mat-tru`, `dinh-non` TRẢ GIÁ TRỊ ⇒ KHÔNG kê ở đây.
-// `mat-cong` tự tạo khung hình ⇒ cũng KHÔNG kê.
+// mat-cong.typ — nón / trụ / CẦU / ĐA DIỆN, NÉT KHUẤT TỰ ĐỘNG kể cả hai khối
+// che nhau. `mat-non`, `mat-tru`, `khoi-cau`, `khoi-da-dien`, `dinh-non`,
+// `tron-ngang` TRẢ GIÁ TRỊ ⇒ KHÔNG kê ở đây. `mat-cong` tự tạo khung ⇒ cũng
+// KHÔNG kê. `khoi-da-dien` là đường đi THỨ HAI cho khối đa diện (có che khuất
+// chéo với mặt cong); `da-dien`/`ve-da-dien` cũ giữ nguyên, không đụng tới.
+// ⚠️ Khối cầu tên là `khoi-cau`, KHÔNG phải `mat-cau` — `mat-cau(I, R)` là
+// KIỂU DỮ LIỆU mặt cầu của `oxyz-toan.typ`, mà file đó import SAU mat-cong.typ
+// (dòng 10 sau dòng 9) nên đặt trùng tên là bị che, lỗi "missing argument: I".
 // ---------------------------------------------------------------------
 /// `ve-mat-cong(..khoi, cam: auto, mau: black, day: 1.1pt, to: none, hien-khuat: true, mau-khuat: auto, day-khuat: auto, n: 48, duong: (), truc: none, truoc: none, them: none)`
 ///
-/// Vẽ một hoặc nhiều khối nón/trụ trục đứng, TỰ chia nét liền/đứt bằng cách
-/// bắn tia về phía người nhìn — lo cả tự khuất lẫn hai khối che nhau.
-/// ve-mat-cong(mat-non(r: 2, cao: 4), mat-tru(tam: (0, 2, 0), r: 2, cao: 4))
+/// Vẽ một hoặc nhiều khối nón/trụ/cầu/đa diện (trục đặt nghiêng được), TỰ chia
+/// nét liền/đứt bằng cách bắn tia về phía người nhìn — lo cả tự khuất lẫn hai
+/// khối che nhau.
+/// ve-mat-cong(mat-non(r: 2, cao: 4), khoi-cau(tam: (0, 0, 5), r: 1.4))
 #let ve-mat-cong = _voi-ctx(ve-mat-cong)
 /// `ve-truc-3d(cam, x: 3, y: 4, z: 4, am: 0.4, dm: 0.55, ten: ($x$, $y$, $z$), ten-goc: $O$, huong-ten: ("below-left", "below-right", "left"), huong-goc: "below-right", mau: black, day: 0.9pt, cach: 5pt)`
 ///

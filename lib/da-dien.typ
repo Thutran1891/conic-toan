@@ -562,8 +562,16 @@
   dai: a, rong: a, cao: a, ten: ten,
 )
 // Tứ diện đều cạnh a: đáy đều bán kính a/√3, chiều cao a·√(2/3).
-#let khoi-tu-dien-deu(a: 3, ten: auto) = khoi-chop(
-  day-deu(3, a / calc.sqrt(3)),
+// `pha` = góc quay ĐÁY. Mặc định 270° (từ 0.3.5; các bản trước là 210°):
+// A ra TRÁI, C ra PHẢI, B ra TRƯỚC-DƯỚI, D trên đỉnh, cạnh khuất là AC —
+// bốn mặt đều "thoáng", không mặt nào bị nhìn nghiêng thành nét mỏng.
+// Dáng đẹp nhất khi xem bằng `cam: chieu-truc-giao(ngang: 25deg, cao: 25deg)`.
+// Muốn dáng CŨ thì đặt `pha: 210deg` (hoặc `pha: auto` — lấy pha chung của
+// đa giác đều 3 cạnh).
+// ⚠️ ĐỪNG dùng `chieu-xien` với k·cos(goc) ≈ 1/√3 = 0.577 (vd goc: 15deg,
+// k: 0.6): hai đỉnh đáy chồng lên nhau trên trang, một mặt co lại thành nét.
+#let khoi-tu-dien-deu(a: 3, pha: 270deg, ten: auto) = khoi-chop(
+  day-deu(3, a / calc.sqrt(3), pha: pha),
   (0, 0, a * calc.sqrt(2 / 3)),
   ten: if ten == auto { ($A$, $B$, $C$, $D$) } else { ten },
 )

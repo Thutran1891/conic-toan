@@ -6,7 +6,78 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
 > `@local/baigiang:0.2.0` trong các file bài giảng đã có; số hiệu dưới đây là
 > số phát hành trên Typst Universe (`@preview/conic-toan`).
 
-## 0.3.4 — chưa phát hành
+## 0.3.5 — chưa phát hành
+
+### Thêm
+
+- **`khoi-cau` — khối cầu cho engine `mat-cong`, nét khuất tự động.** Trước đây
+  engine bắn tia chỉ biết nón và trụ; ghi chú cũ nói mặt cầu phải "tính elip
+  riêng" nên chưa làm. Thật ra không cần: dưới phép chiếu song song bất kì (kể
+  cả chiếu xiên), tia nhìn tiếp xúc mặt cầu đúng trên **đường tròn lớn vuông
+  góc hướng nhìn**, nên đường bao dựng bằng `tron-ngang(tâm, r, truc: hướng
+  nhìn)` rồi chiếu ra elip một cách tự nhiên. Nhờ đi chung một lượt bắn tia,
+  cầu che — và bị che bởi — nón, trụ, đa diện trong cùng lời gọi `mat-cong`.
+  Có `xich-dao:` (mặc định bật) và `kinh-tuyen:`; `nghieng:`/`huong:`/`truc:`
+  đổi TRỤC CỰC nên chỉ xoay xích đạo và kinh tuyến, KHÔNG đổi đường bao.
+  ⚠️ Tên là `khoi-cau` chứ không phải `mat-cau` — `mat-cau(I, R)` đã là kiểu
+  dữ liệu mặt cầu của `oxyz-toan`, đặt trùng tên là bị che.
+  ⚠️ Cầu **nội tiếp** nón/trụ vẽ trong CÙNG lời gọi sẽ ra gần như toàn nét
+  đứt: engine coi khối là đặc và không trong suốt, mà cầu nội tiếp thì nằm hẳn
+  trong lòng khối kia. Muốn dáng "trong suốt" kiểu SGK thì vẽ cầu ở một lời
+  gọi `mat-cong` riêng rồi chồng lên.
+- **`khoi-da-dien` — đa diện đi được vào engine bắn tia, che khuất CHÉO giữa
+  hai engine.** Trước đây đa diện (`da-dien`) và mặt cong (`mat-cong`) là hai
+  đường vẽ tách biệt: vẽ chung một hình thì mỗi bên tự lo nét khuất của mình,
+  cạnh hộp không bị mặt cầu làm đứt và ngược lại. Nay `khoi-da-dien` nhận
+  thẳng các khối dựng sẵn của `da-dien` (`..khoi-lap-phuong(a: 3)`) và tham
+  gia cùng một lượt bắn tia, nên nón đâm qua hộp hay cầu nằm trong lập phương
+  đều ra nét khuất đúng. **`da-dien` cũ không bị sửa một dòng nào** và vẫn
+  dùng bình thường; với một khối đứng riêng, hai đường vẽ cho kết quả liền/đứt
+  **khớp từng cạnh** (đã đối chiếu lập phương, chóp tứ giác đều, tứ diện đều,
+  lăng trụ lục giác đều).
+- **Hình kèm lời giải hiện ở MỌI màn của bản trình chiếu.** Lời giải dài hơn
+  một slide thì trước đây hình `fig-giai:` chỉ nằm ở màn đầu, các màn "(tiếp)"
+  trắng hình — đang chiếu phải nhớ lại hình vừa xem. Nay hình lặp lại ở mọi
+  màn của cùng một câu, cả màn tự ngắt lẫn màn do `#sang-man`. Phép đo chia
+  màn cũng tính luôn chỗ của hình nên màn "(tiếp)" không còn bị tràn. Tắt cho
+  cả tài liệu bằng `#hinh-moi-man(false)`, tắt riêng một câu bằng
+  `fig-giai-moi-man: false` (có ở `#vd`/`#tn`/`#ds`/`#tln` và 7 dạng tự luận).
+- **`fig-giai:` nhận cả một MẢNG hình — mỗi ý một hình.** Hình thứ *i* dành
+  cho màn LOGIC thứ *i* (màn do `#sang-man` ngắt), hết mảng thì các màn sau
+  giữ hình cuối. Màn do máy TỰ ngắt vì tràn trang giữ nguyên hình của ý nó
+  thuộc về, nên một ý dài bị cắt làm mấy màn vẫn hiện đúng hình của ý đó. Ở
+  hai bản A4 (không có khái niệm màn), lời giải được cắt theo `#sang-man` rồi
+  ghép **từng ý với hình của ý đó** thành một khối hai cột riêng — hình ý b)
+  nằm ngang tầm lời giải ý b), không bị dồn lên cạnh ý a); ý nào vượt quá số
+  hình trong mảng thì không có hình.
+- **`khoi-tu-dien-deu` có thêm tham số `pha:`** — góc quay của tam giác đáy.
+
+### Thay đổi
+
+- **Dáng mặc định của `khoi-tu-dien-deu` đổi từ `pha: 210deg` sang
+  `pha: 270deg`.** Ở 210°, camera chiếu xiên nào có `k · cos(goc)` gần
+  `1/√3 ≈ 0,577` (ví dụ `chieu-xien(goc: 15deg, k: 0.6)`) sẽ chiếu hai đỉnh
+  đáy vào cùng một đường dọc: một mặt co lại thành một nét, hình đọc không ra.
+  Dáng mới giữ cả bốn mặt "thoáng" — A trái, C phải, B trước-dưới, D đỉnh,
+  cạnh khuất là AC. Muốn dáng cũ thì đặt `pha: 210deg` (hoặc `pha: auto`).
+  ⚠️ Với chiếu XIÊN thì tứ diện đều LUÔN có một mặt bị nhìn nghiêng, xoay đáy
+  không chữa được — muốn bốn mặt thoáng phải dùng `chieu-truc-giao`.
+  ⚠️ Hình tứ diện đều để `h: auto` sẽ cao thêm chút ít vì tỉ lệ khung đổi từ
+  1,10 xuống 1,00; các file có tứ diện nên soi lại chỗ ngắt trang.
+
+### Lưu ý khi nâng cấp
+
+- File cũ nào đã tự chèn hình vào nội dung màn `#sang-man` thì nay hiện **hai
+  hình** — bỏ hình chèn tay đó đi, hoặc đặt `fig-giai-moi-man: false` cho câu
+  đó. Câu không khai `fig-giai:` thì không đổi gì, và hai bản A4 giữ nguyên
+  bố cục cũ.
+- Đừng tự dựng `#grid` để đặt hình bên trong `loi-giai:`: làm thế thư viện
+  không biết là có hình nên (a) không lặp lại được ở các màn sau, và (b) cả
+  lời giải trở thành **một** phần tử nên bộ tự-ngắt-màn không cắt được, slide
+  tràn thì phần dư trôi sang trang sau còn hình nằm lại trang trước. Hãy đưa
+  hình ra `fig-giai:`.
+
+## 0.3.4 — 18/08/2026
 
 ### Thêm
 

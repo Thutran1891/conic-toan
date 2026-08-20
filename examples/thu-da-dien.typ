@@ -5,6 +5,8 @@
 //   4. mat-phang-oxyz — mặt phẳng cắt 3 trục, trục sau mặt phẳng tự đứt
 //   5. mat-phang-bh — mặt phẳng lơ lửng
 //   6. thiet-dien — cắt khối lồi bởi mặt phẳng (liền/đứt theo mặt chứa cạnh)
+//   7. tứ diện đều: pha mới 270°, dáng chuẩn (trung tuyến + đường cao),
+//      ca camera HỎNG k·cos(goc) ≈ 1/√3, hồi quy pha: auto = 210°
 #import "../baigiang.typ": *
 
 #set page(margin: 1.3cm)
@@ -260,3 +262,55 @@ $A C'$ (phần nằm trong khối tự đứt, hai đầu ở đỉnh nên liề
    $H$ (trên cạnh $S C$): *#_bi-khoi-che(H, e, tt)* ·
    $S$ (đỉnh): *#_bi-khoi-che(S, e, tt)*]
 }
+
+= 7. Tứ diện đều — pha mới, dáng chuẩn, ca camera hỏng
+
+Dáng MẶC ĐỊNH mới `pha: 270deg` (0.3.5) đặt cạnh dáng CŨ `pha: 210deg`. Hình
+trái là dáng chuẩn theo SGK: trung tuyến $A M$ của đáy (nét đứt vì đáy khuất),
+đường cao $D O$ hạ xuống trọng tâm đáy kèm ký hiệu vuông góc, và $D M$ liền vì
+nằm trên mặt trước $B C D$.
+
+#let _td = khoi-tu-dien-deu(a: 3.4)
+#let (tA, tB, tC, tD) = _td.dinh
+#let tM = trung-diem-3d(tB, tC)
+#let tO = tam-3d((tA, tB, tC))
+
+#grid(columns: 2, column-gutter: 10pt,
+  da-dien(.._td, w: 6.2cm, to: teal.lighten(88%),
+    cam: chieu-truc-giao(ngang: 25deg, cao: 25deg),
+    diem: ((tM, $M$), (tO, $O$)),
+    duong: ((tA, tM), (tD, tM), (tD, tO, (vuong: tA))),
+  ),
+  {
+    let cu = khoi-tu-dien-deu(a: 3.4, pha: 130deg)
+    let (A, B, C, D) = cu.dinh
+    da-dien(..cu, w: 6.2cm, to: luma(93%),
+      cam: chieu-truc-giao(ngang: 25deg, cao: 25deg),
+      diem: ((trung-diem-3d(B, C), $M$), (tam-3d((A, B, C)), $O$)),
+      duong: ((A, trung-diem-3d(B, C)), (D, trung-diem-3d(B, C))),
+    )
+  },
+)
+
+Ba camera trên CÙNG khối mặc định: giá trị HỎNG `chieu-xien(goc: 15deg,
+k: 0.6)` (k·cos ≈ 1/√3 — hai đỉnh đáy chồng nhau, một mặt co thành nét) ·
+chiếu xiên mặc định · chiếu trực giao. Hình đầu phải nhìn thấy rõ là xấu; hai
+hình sau phải mở thoáng cả bốn mặt.
+
+#grid(columns: 3, column-gutter: 6pt,
+  da-dien(.._td, w: 4.4cm, to: red.lighten(90%),
+    cam: chieu-xien(goc: 15deg, k: 0.6)),
+  da-dien(.._td, w: 4.4cm, to: teal.lighten(88%)),
+  da-dien(.._td, w: 4.4cm, to: teal.lighten(88%),
+    cam: chieu-truc-giao(ngang: 25deg, cao: 25deg)),
+)
+
+HỒI QUY — `pha: auto` phải cho ĐÚNG dáng cũ (pha chung của tam giác đều,
+$210 degree$); hai hình dưới phải TRÙNG KHÍT từng nét:
+
+#grid(columns: 2, column-gutter: 10pt,
+  da-dien(..khoi-tu-dien-deu(a: 3.2, pha: auto), w: 5.6cm,
+    to: orange.lighten(88%)),
+  da-dien(..khoi-tu-dien-deu(a: 3.2, pha: 210deg), w: 5.6cm,
+    to: orange.lighten(88%)),
+)

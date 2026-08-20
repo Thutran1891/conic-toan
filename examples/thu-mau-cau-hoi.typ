@@ -4,7 +4,7 @@
 //              typst compile thu-mau-cau-hoi.typ --input ho-so=loigiai
 // =====================================================================
 // #import "../baigiang.typ": *
-#import "@preview/conic-toan:0.3.3": *
+#import "@preview/conic-toan:0.3.4": *
 
 #let ho-so = sys.inputs.at("ho-so", default: "dethi")
 

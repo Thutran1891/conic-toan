@@ -214,6 +214,28 @@ loi-giai: [
 ],
 ```
 
+HÌNH KÈM LỜI GIẢI KHI CÓ NHIỀU MÀN (19/08/2026): trước đây hình `fig-giai:`
+chỉ nằm ở màn ĐẦU, các màn "(tiếp)" trắng hình nên đang chiếu phải nhớ lại
+hình vừa xem; vì thế người soạn hay chèn hình bằng tay vào từng màn
+`#sang-man`. **Nay KHÔNG phải làm thế nữa** — hình tự lặp lại ở mọi màn của
+cùng một câu (cả màn tự ngắt lẫn màn `#sang-man`), và phép đo chia màn cũng
+đã tính chỗ của hình nên màn "(tiếp)" không bị tràn. ⚠️ **ĐỪNG chèn hình vào
+nội dung màn `#sang-man` nữa — sẽ thành HAI hình.** Muốn giữ nếp cũ:
+`#hinh-moi-man(false)` cho cả tài liệu, hoặc `fig-giai-moi-man: false` cho
+riêng một câu.
+
+CÂU NHIỀU Ý, MỖI Ý MỘT HÌNH: truyền cả MẢNG — `fig-giai: (hinh-y-a, hinh-y-b)`
+— hình thứ i dành cho màn thứ i, hết mảng thì giữ hình cuối; đặt `#sang-man` ở
+ranh giới a) / b) là mỗi màn hiện đúng hình của ý đang giải. Bản A4 cắt lời
+giải theo `#sang-man` rồi ghép từng ý với hình của ý đó thành một khối hai cột
+riêng, nên hình ý b) nằm ngang tầm lời giải ý b).
+
+⚠️ **TUYỆT ĐỐI KHÔNG tự dựng `#grid(columns: ...)` để đặt hình bên trong
+`loi-giai:`.** Thư viện sẽ không biết là có hình ⇒ hình không lặp lại được ở
+các màn sau, mà cả lời giải thành MỘT phần tử nên bộ tự-ngắt-màn cũng không
+cắt được: slide tràn thì phần dư bị đẩy sang trang sau còn hình nằm lại trang
+trước. Hình kèm lời giải LUÔN đưa ra `fig-giai:`.
+
 ```typst
 // VÍ DỤ (luôn hiện lời giải, kể cả trong đề thi)
 #vd([Đề bài...], loi-giai: [Ý 1. \ Ý 2.], tieu-de: [Tên slide])
@@ -233,7 +255,10 @@ loi-giai: [
 // num: (ghi đè số câu), prefix: "Câu", boxed: true (đóng khung cả câu).
 // HÌNH KHÔNG CHỈ Ở ĐỀ — mọi dạng câu (vd/tn/ds/tln/tl/hd/lt/vdtt) còn nhận:
 //   fig-giai: (hình kèm LỜI GIẢI, bí danh hinh-giai) + fig-giai-pos/fig-giai-width
-//   — bố cục 2 cột như hình kèm đề; beamer: hình hiện cùng bước đầu lời giải.
+//   — bố cục 2 cột như hình kèm đề; beamer: hình hiện cùng bước đầu lời giải,
+//   và LẶP LẠI ở mọi màn "(tiếp)" của câu đó (cả màn tự ngắt lẫn màn #sang-man)
+//   nên không phải chèn hình tay vào từng màn nữa. Tắt: #hinh-moi-man(false)
+//   cho cả tài liệu, hoặc fig-giai-moi-man: false cho riêng một câu.
 // Hình trong PHƯƠNG ÁN (tn) / Ý (ds): nhúng thẳng vào content của phương án,
 //   nên đặt cols: cố định, ví dụ:
 //   #tn([Đồ thị nào của $y = x^2$?], (
@@ -905,7 +930,7 @@ Khung nội dung LÝ THUYẾT (không có lời giải kèm theo, gọi trực t
 // (bảng tần số). Ghép nhóm: thêm hậu tố -ghep-nhom, đối số (moc, tan-so).
 ```
 
-### 5d-bis. Nón & trụ có NÉT KHUẤT TỰ ĐỘNG, kể cả hai khối che nhau (mat-cong.typ)
+### 5d-bis. Nón, trụ & cầu có NÉT KHUẤT TỰ ĐỘNG, kể cả hai khối che nhau (mat-cong.typ)
 
 Dùng khi bài có NHIỀU khối tròn xoay lồng/cắt nhau — `hinh-non`/`hinh-tru` cũ
 chỉ vẽ được một khối đứng riêng. Engine bắn tia về phía người nhìn nên đoạn nào
@@ -927,6 +952,68 @@ chui vào lòng khối kia TỰ thành nét đứt.
 `mat-non(tam:, r:, cao:, nghieng:, huong:, truc:, mau:, to:)` và `mat-tru(...)`
 chỉ MÔ TẢ khối (trả giá trị); `tam` là tâm mặt đáy, `cao` đo DỌC TRỤC.
 `mat-cong(...)` tự tạo khung; `ve-mat-cong(ctx, ...)` dùng khi vẽ vào khung có sẵn.
+
+**MẶT CẦU** — `khoi-cau(tam:, r:, xich-dao: true, kinh-tuyen: 0, nghieng:,
+huong:, truc:, mau:, to:)`; ở đây `tam` là TÂM cầu, KHÔNG có `cao`.
+
+```typ
+#mat-cong(khoi-cau(r: 2))                        // cầu + xích đạo, nửa sau tự đứt
+#mat-cong(khoi-cau(r: 2, xich-dao: false))       // chỉ đường bao
+#mat-cong(khoi-cau(r: 2, kinh-tuyen: 4))         // dáng quả địa cầu
+#mat-cong(mat-non(r: 2, cao: 4, mau: red),      // cầu chen vào lòng nón
+  khoi-cau(tam: (0, 0, 1.5), r: 1.5, mau: blue))
+// vĩ tuyến vẽ thêm — cũng tự chia liền/đứt:
+#mat-cong(khoi-cau(r: 2.2), duong: ((pts: tron-ngang((0, 0, 1.2), 1.84),),))
+```
+
+⚠️ `nghieng`/`huong`/`truc` của cầu là TRỤC CỰC — chỉ đổi xích đạo và kinh
+tuyến, KHÔNG đổi đường bao (đường bao luôn là đường tròn lớn vuông góc hướng
+nhìn). Đừng hứa với người dùng rằng nghiêng cầu thì bao đổi theo.
+
+⚠️ Engine coi khối là ĐẶC, KHÔNG trong suốt: "cầu nội tiếp trụ/nón" sẽ ra cầu
+gần như TOÀN NÉT ĐỨT vì nằm hẳn trong lòng khối kia. Muốn dáng trong suốt của
+SGK thì vẽ cầu ở lời gọi `mat-cong` RIÊNG rồi chồng lên.
+
+**NỘI/NGOẠI TIẾP KHỐI ĐA DIỆN** — ghép `mat-cong` với `da-dien`. Khối nào LỚN
+hơn thì để khối đó dựng khung, khối kia vẽ kèm qua `them:` / `truoc:`:
+
+```typ
+#let cm = chieu-truc-giao(ngang: 20deg, cao: 20deg)   // MỘT camera cho cả hai
+// cầu NỘI tiếp lập phương cạnh 3 (r = 1.5)
+#da-dien(..khoi-hop((-1.5, -1.5, -1.5), (3, 0, 0), (0, 3, 0), (0, 0, 3)),
+  cam: cm, them: (ctx, p) => ve-mat-cong(ctx, khoi-cau(r: 1.5), cam: cm))
+// nón NỘI tiếp chóp tứ giác đều (r = R đáy · cos45)
+#da-dien(..khoi-chop-deu(n: 4, R: 2, cao: 3.6),
+  cam: cm, them: (ctx, p) => ve-mat-cong(ctx, mat-non(r: 1.414, cao: 3.6), cam: cm))
+// trụ NGOẠI tiếp lăng trụ lục giác đều (r = R lăng trụ)
+#mat-cong(mat-tru(r: 1.8, cao: 3.4), cam: cm,
+  truoc: (ctx, p) => ve-da-dien(ctx, ..khoi-lang-tru-deu(n: 6, R: 1.8, cao: 3.4), cam: cm))
+```
+
+⚠️ BẮT BUỘC truyền CÙNG `cam:` cho cả hai — mặc định của chúng KHÁC nhau
+(`da-dien` → `chieu-xien()`, `mat-cong` → `chieu-truc-giao(...)`), quên là hai
+hình lệch hẳn nhau mà KHÔNG báo lỗi. Lối này KHÔNG có che khuất chéo: mỗi khối
+chỉ tự lo nét khuất của chính nó (đúng lối SGK cho bài nội/ngoại tiếp).
+
+**CẦN CHE KHUẤT CHÉO THẬT → `khoi-da-dien`** (một lời gọi, cùng engine bắn
+tia). Dùng khi khối đa diện và mặt cong ĐÂM XUYÊN nhau:
+
+```typ
+// cầu đâm xuyên lập phương: cạnh hộp sau cầu ĐỨT, biên cầu trong lòng hộp ĐỨT
+#mat-cong(
+  khoi-da-dien(..khoi-hop((-1.5, -1.5, -1.5), (3, 0, 0), (0, 3, 0), (0, 0, 3))),
+  khoi-cau(r: 1.9, xich-dao: false, mau: red),
+)
+#mat-cong(                                       // nón cắm vào hộp chữ nhật
+  khoi-da-dien(..khoi-hop-chu-nhat(dai: 4, rong: 2.6, cao: 3)),
+  mat-non(tam: (2, 1.3, 1.2), r: 1.1, cao: 3.4, mau: red),
+)
+```
+
+`khoi-da-dien(dinh:, mat:, ten:, hien-dinh:, bk:, cach:, huong:, mau:, to:)` —
+nhận thẳng khối dựng sẵn của da-dien qua `..`. Khối đa diện ĐỨNG RIÊNG thì hai
+đường đi cho kết quả GIỐNG NHAU, nên bài chỉ có đa diện cứ dùng `da-dien` như
+cũ. Khác biệt duy nhất: `to:` ở đây tô BÓNG KHỐI một màu, không tô từng mặt.
 
 **TRỤC KHỐI ĐẶT NGHIÊNG ĐƯỢC** — `nghieng` là góc giữa trục và Oz, `huong` là
 hướng ngả. Mặt đáy luôn vuông góc với trục nên trục nghiêng thì đáy và đường
@@ -961,9 +1048,10 @@ như lối vẽ trục quen thuộc — hai điều đó loại trừ nhau về 
 
 Nếu vẫn dùng `oxyz` thì `k`/`goc` của `oxyz` PHẢI trùng `chieu-oxyz(k:, goc:)`.
 
-GIỚI HẠN: chỉ nón/trụ TRỤC ĐỨNG; ranh giới liền/đứt quét mẫu nên sai số cỡ một
-mắt lưới của đường vẽ (`n:` tăng thì mịn hơn). Phép thử che khuất là GIẢI TÍCH
-nên không bỏ sót nét khuất.
+GIỚI HẠN: mới có nón · trụ · cầu (chưa có mặt xuyến, paraboloid…); ranh giới
+liền/đứt rơi đúng một mắt lưới của đường vẽ (`n:` tăng thì mịn hơn). Phép thử
+che khuất là GIẢI TÍCH nên không bỏ sót nét khuất. Đường BIÊN cố ý không để
+chính khối của nó che, kẻo nét biên chập chờn.
 
 ### 5e. Khối đa diện tổng quát, mặt phẳng Oxyz, thiết diện (da-dien.typ)
 
@@ -975,6 +1063,26 @@ nên không bỏ sót nét khuất.
 #da-dien(..khoi-hop-chu-nhat(dai: 4, rong: 2.6, cao: 3))
 #da-dien(..khoi-lap-phuong(a: 3))  #da-dien(..khoi-tu-dien-deu(a: 3))
 #da-dien(..khoi-bat-dien-deu(a: 3))
+// TỨ DIỆN ĐỀU (0.3.5): khoi-tu-dien-deu(a:, pha: 270deg, ten:)
+//   pha = góc quay ĐÁY. Mặc định 270°: A trái · C phải · B trước · D đỉnh,
+//   cạnh khuất AC. Dáng cũ (trước 0.3.5): pha: 210deg (hoặc pha: auto).
+//   ⚠️ ĐỪNG dùng chieu-xien khi k·cos(goc) ≈ 1/√3 ≈ 0.577 (vd goc: 15deg,
+//   k: 0.6) — hai đỉnh đáy chồng nhau, một mặt co thành nét, đường vẽ thêm
+//   trong đáy đọc không ra. Nên dùng:
+#da-dien(..khoi-tu-dien-deu(a: 3.4),
+  cam: chieu-truc-giao(ngang: 25deg, cao: 25deg))
+// Tứ diện đều lối SGK: trung tuyến đáy AM + đường cao DO xuống trọng tâm
+#{
+  let td = khoi-tu-dien-deu(a: 3.4)
+  let (A, B, C, D) = td.dinh
+  let M = trung-diem-3d(B, C)
+  let O = tam-3d((A, B, C))
+  da-dien(..td, w: 5.4cm, to: teal.lighten(88%),
+    cam: chieu-truc-giao(ngang: 25deg, cao: 25deg),
+    diem: ((M, $M$), (O, $O$)),
+    duong: ((A, M), (D, M), (D, O, (vuong: A))),
+  )
+}
 #da-dien(..khoi-hop((0,0,0), (3,0,0), (0.6,2.2,0), (0.9,0.4,2.8)))  // hộp lệch
 #da-dien(..khoi-chop(day, S))            // day = mảng điểm 3D bất kì
 #da-dien(..khoi-lang-tru(day, v))        // đáy tịnh tiến theo vectơ v
@@ -1109,6 +1217,7 @@ XÁC dạng căn thức); `hien-so` chỉ cho số nguyên/phân số; số vô 
   `dap-an` đúng kiểu TN = `"B"`, ĐS = `(true, false, ...)`, TLN = content.)
 - [ ] Mỗi `loi-giai:` được tách 2–4 dòng bằng `\`, dòng cuối là kết luận?
 - [ ] Lời giải dài (>5–6 dòng, hoặc >3 dòng khi đề có hình/bảng) đã chèn `#sang-man \` tại điểm ngắt hợp lý, trên DÒNG RIÊNG, và dòng chữ ngay trước nó có `\` ở cuối?
+- [ ] Câu có `fig-giai:` và nhiều màn: KHÔNG chèn lại hình bằng tay vào nội dung màn `#sang-man` (từ 19/08/2026 hình tự lặp ở mọi màn — chèn tay là thành HAI hình)?
 - [ ] `#vd`/`#hd`/`#lt`/`#vdtt` có `tieu-de:` ngắn gọn; `#tn`/`#ds`/`#tln`/`#tl` **KHÔNG** có `tieu-de:` (để tiện trộn đề)?
 - [ ] Hoạt động SGK (HĐ1, HĐ2...) dùng `#hd`, luyện tập củng cố dùng `#lt`, bài "Vận dụng" thực tế dùng `#vdtt` (không dùng nhầm `#tl`)? Hoạt động một-lần KHÔNG số của SGK dùng đúng nhãn: `#kham-pha` (Khám phá), `#trai-nghiem` (Trải nghiệm), `#thao-luan` (Thảo luận)?
 - [ ] Toán học đặt trong `$...$`, văn bản tiếng Việt có dấu đầy đủ?
@@ -1118,6 +1227,8 @@ XÁC dạng căn thức); `hien-so` chỉ cho số nguyên/phân số; số vô 
 - [ ] Mỗi `#slide[...]` có dùng `#lo(n)` / `#chi(n)` / `#an(n)` / `#hien-khoang(tu, den)` đã khai báo `so-buoc: N` với `N >=` chỉ số bước lớn nhất chưa?
 - [ ] Bài Oxyz có TÍNH toán (toạ độ vectơ, khoảng cách, trọng/trực tâm, phương trình mặt phẳng/đường thẳng/mặt cầu) đã gọi hàm của `oxyz-toan.typ` (`mat-phang-qua-3-diem`, `pt-mat-phang`, `hien-do-dai`…) thay vì tự tính rồi gõ số?
 - [ ] Vẽ miền nghiệm BPT dùng `#mien-nghiem` + `bpt(...)`, diện tích hình phẳng dùng `#dien-tich-2-ham`, sơ đồ cây dùng `#so-do-cay` + `nut(...)`, toạ độ Oxyz có đơn vị dùng `#oxyz` (KHÔNG tự vẽ tay bằng nguyên thuỷ khi đã có hàm dựng sẵn)?
+- [ ] Hình có NHIỀU khối lồng/cắt nhau đã dùng `#mat-cong` (`mat-non` / `mat-tru` / `khoi-cau` / `khoi-da-dien`) để nét khuất TỰ cắt, thay vì `hinh-non`/`hinh-tru`/`hinh-cau` cũ (mỗi hàm chỉ vẽ được MỘT khối đứng riêng)? Mặt cầu là **`khoi-cau`**, KHÔNG phải `mat-cau` (tên đó thuộc `oxyz-toan.typ`).
+- [ ] Bài NỘI/NGOẠI TIẾP vẽ chung `da-dien` với `mat-cong` đã truyền CÙNG một `cam:` cho cả hai lời gọi? (mặc định của chúng khác nhau — quên là hai hình lệch mà KHÔNG báo lỗi). Hai khối ĐÂM XUYÊN nhau thì dùng `khoi-da-dien` trong `#mat-cong` để có che khuất chéo.
 - [ ] **Quét CeTZ lần cuối**: toàn bộ mã KHÔNG còn `cetz`, `canvas(`, `circle(`, `line(`, `content(`, `rect(`, `arc(` — gặp ở đâu, viết lại bằng hàm thư viện theo bảng phản xạ ở mục 1 (`duong-tron`/`doan`/`nhan`/`cung`...)?
 
 Lưu ý (07/2026): `bbt-bac-ba`, `bbt-trung-phuong`, `bbt-huu-ti` và `khao-sat-ve-do-thi-ham-*` TỰ hiển thị hoành độ VÀ giá trị cực trị dạng căn thức chính xác (vd `(−2 + 38√19)/27`) — KHÔNG tự tính hay tự gõ giá trị cực trị khi dùng form hệ số. Cần lấy riêng: `cuc-tri-bac-ba(a, b, c, d)` / `cuc-tri-huu-ti(a, b, c, d, e)` trả `(x1:, y1:, x2:, y2:)`; in một căn thức tuỳ ý: `so-can-thuc(P, K, n, Q)` = `(P + K√n)/Q` đã rút gọn.
