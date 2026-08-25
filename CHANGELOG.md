@@ -6,7 +6,67 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
 > `@local/baigiang:0.2.0` trong các file bài giảng đã có; số hiệu dưới đây là
 > số phát hành trên Typst Universe (`@preview/conic-toan`).
 
-## 0.3.5 — chưa phát hành
+## 0.3.6 — chưa phát hành
+
+### Thêm
+
+- **`#hinh` TỰ DÒ CỬA SỔ — không phải khai `xmin`/`xmax`/`ymin`/`ymax` nữa.**
+  Bốn tham số này nay mặc định `auto`; bỏ trống cạnh nào thì gói dựng thử hình
+  trong một hộp dò không chiếm chỗ, bắt mọi lệnh `place` mà các hàm vẽ phát ra
+  bằng show-rule rồi đo phạm vi THẬT trên trang. Vì đo ở tầng `place` nên tính
+  được cả những thứ hộp bao thuần hình học không thấy: **bề rộng CHỮ** của
+  nhãn, đầu mũi tên, bán kính chấm điểm, đường tròn ngoại tiếp chìa ra ngoài
+  đa giác. Cạnh nào đã khai thì giữ nguyên như khai.
+  ⚠️ **Nét vẽ phủ KÍN khung thì vẫn nên khai cửa sổ** (`truc`, `luoi`,
+  `he-truc`, `gach-vung`): phạm vi của chúng chính là cái đang cần tìm nên
+  phép dò suy biến — gói tự nhận ra và lùi về cửa sổ mặc định `-5..5 / -4..4`
+  như cũ, hình không vỡ nhưng phạm vi trục là tuỳ ý.
+  ⚠️ Hình khai đủ bốn cạnh đi ĐÚNG đường cũ, không tốn thêm gì. Hình để tự dò
+  tốn thêm vài lượt dựng, file nào có RẤT nhiều hình tự dò sẽ biên dịch chậm
+  hơn — khai cửa sổ là lấy lại tốc độ cũ.
+- **`#hdkp` — dạng câu hỏi KHÁM PHÁ dẫn nhập vào bài mới.** Khác các dạng còn
+  lại, nó không buộc có lời giải; khai `loi-giai:` thì khối ghi **"Gợi ý"**
+  chứ không phải "Hướng dẫn giải". Thẻ **không đánh số**, đổi chữ bằng `nhan:`
+  (vd `nhan: [HĐ1]`, `nhan: [Mở đầu]`), đổi chữ khối gợi ý bằng `nhan-giai:`.
+  Bản trình chiếu cho mỗi câu một slide riêng như `#hd`. Kèm bản nội dòng
+  `cau-hdkp` để dựng slide tay.
+  ⚠️ Trùng chữ "Khám phá" với `kham-pha` là có chủ ý — phân biệt bằng màu
+  (hồng sen `#c2185b` ↔ xanh lục `#16a085`) và bằng chữ trên khối lời giải.
+- **`#phuong-phap` — khung nêu PHƯƠNG PHÁP giải một dạng toán**, cùng họ với
+  `#dinh-nghia`/`#dinh-ly`/`#tinh-chat`/`#cong-thuc`, gọi theo đúng lối
+  `#phuong-phap(ten: [Tìm số hạng tổng quát])[ … ]`. Nhãn "PHƯƠNG PHÁP", màu
+  cam đất `#d35400`. **Đánh số bằng bộ đếm RIÊNG** nên số chạy độc lập với Ví
+  dụ / Luyện tập / Hoạt động; `so: false` bỏ số (và không làm bộ đếm nhảy),
+  `#dat-lai-cau-pp()` đặt lại số. `#dat-lai-cau-tat-ca()` nay gồm **6 nhóm**.
+
+### Sửa
+
+- **`chia-2-cot` cân cột SAI khi in A4 NẰM NGANG** (`#set page(flipped:
+  true)`) — giữa đề bị bỏ trống một mảng, có khi đẩy câu cuối sang hẳn một
+  trang riêng. Nguyên nhân: `flipped` **KHÔNG đổi hai trường `page.width` /
+  `page.height`** — Typst chỉ hoán đổi chúng lúc dựng trang — nên đọc
+  `page.height` trong `context` vẫn ra chiều cao khổ DỌC. Với A4 ngang, thư
+  viện tưởng cột cao 259mm thay vì 172mm, đặt mốc "trang cuối" sớm hơn thực tế
+  cả một trang rồi chèn `#colbreak()` vào GIỮA tài liệu, cắt ngang cột đang
+  rót dở. Nay chiều cao cột lấy từ kích thước vùng do chính `layout` báo (luôn
+  đúng tờ giấy thật), và chỗ trống còn lại của trang tính từ cùng con số đó.
+- **`ke-het-trang` dính đúng bệnh trên ở ba chỗ** — khổ ngang kẻ thừa rất
+  nhiều dòng, tràn sang trang sau.
+- **Hàm vẽ gọi không kèm `ctx` nay chạy được cả trong `measure`.** Ctx ngầm
+  trước đây đi bằng `state`, mà `state` thì vô hiệu với nội dung dựng trong
+  `measure`; nay truyền bằng marker do show-rule mở. Nhờ vậy hết cảnh **hình
+  biến mất ở các màn "(tiếp)"** của lời giải dài.
+
+### Lưu ý khi nâng cấp
+
+- Tài liệu khổ DỌC **không đổi một pt nào**: `flipped` không bật thì mã mới
+  quy về đúng các con số cũ. Tài liệu khổ NGANG dùng `chia-2-cot` sẽ dàn lại
+  trang — đó chính là chỗ được sửa.
+- Hình trước đây không khai cạnh nào thì ăn cửa sổ cố định `-5..5 / -4..4`
+  (nét vẽ bé tí giữa khung trống); nay nó ôm sát nội dung. Muốn giữ y như cũ
+  thì khai `xmin`/`xmax`/`ymin`/`ymax` như trước.
+
+## 0.3.5 — 20/08/2026
 
 ### Thêm
 

@@ -7,7 +7,8 @@
 //   6. thiet-dien — cắt khối lồi bởi mặt phẳng (liền/đứt theo mặt chứa cạnh)
 //   7. tứ diện đều: pha mới 270°, dáng chuẩn (trung tuyến + đường cao),
 //      ca camera HỎNG k·cos(goc) ≈ 1/√3, hồi quy pha: auto = 210°
-#import "../baigiang.typ": *
+// #import "../baigiang.typ": *
+#import "@preview/conic-toan:0.3.5": *
 
 #set page(margin: 1.3cm)
 #set text(font: "New Computer Modern", size: 11pt)

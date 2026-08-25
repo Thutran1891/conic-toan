@@ -12,20 +12,39 @@
 // (xem _voi-ctx ngay dưới hinh). Đẩy vào khi vào khung, lấy ra khi rời khung.
 #let _ctx-ht = state("bg-ctx-ht", ())
 
-/// Khung vẽ: đặt cửa sổ toạ độ toán (xmin..xmax, ymin..ymax) rồi vẽ bên trong.
-/// Mọi lệnh vẽ đặt trong thân hàm này là tự có `ctx`, không phải gõ.
-/// -> content
-#let hinh(
-  w: 8cm,
-  h: auto,
-  xmin: -5, xmax: 5,
-  ymin: -4, ymax: 4,
-  co-chu: 10pt,
-  khung: false,   // vẽ viền khung (để căn chỉnh khi soạn)
-  cat: false,     // cắt phần tràn ra ngoài khung
-  ve,
-) = {
-  let hh = if h == auto { w * (ymax - ymin) / (xmax - xmin) } else { h }
+// ---------- CTX NGẦM: gọi hàm vẽ KHÔNG CẦN gõ ctx ----------
+// Bọc hàm vẽ f(ctx, ...) thành hàm gọi được không cần ctx. Đối số đầu là ctx
+// thì gọi thẳng (lối cũ); không thì phát một MARKER, để `_mo-ctx` (show-rule
+// do chính khung hình cài) thay bằng lệnh vẽ thật với ctx của khung đó.
+//
+// ⚠⚠ TRUYỀN BẰNG MARKER + SHOW-RULE, KHÔNG DÙNG STATE NỮA (24/08/2026).
+// Bản cũ đọc ngăn xếp `_ctx-ht` trong một `context`. Kênh state ấy hỏng ở hai
+// chỗ: (a) trong `measure` thì `state.update` vô hiệu nên hàm vẽ không thấy
+// ctx (mục (D) — trước đây panic, sau đó bỏ qua không vẽ); (b) hình đặt sâu
+// trong câu hỏi có lời giải DÀI (nhánh chữ ôm hình của `voi-hinh`) thì chuỗi
+// context lồng nhau không hội tụ kịp: hộp ra đúng cửa sổ mới mà nét vẽ bên
+// trong lại đọc được ctx CŨ, hoặc thấy ngăn xếp rỗng nên không vẽ gì.
+// Marker thì được giải ngay lúc áp show-rule, không phụ thuộc vị trí trong
+// tài liệu ⇒ chạy đúng cả trong `measure`, lồng bao nhiêu lớp cũng được.
+#let _ve-nhan = <bg-ve-ctx>
+#let _voi-ctx(f) = (..a) => {
+  let p = a.pos()
+  if p.len() > 0 and type(p.at(0)) == dictionary and "sx" in p.at(0) {
+    f(..a)
+  } else {
+    [#metadata((f: f, a: a))#_ve-nhan]
+  }
+}
+// Mở marker thành lệnh vẽ thật. Hàm vẽ gọi NGOÀI mọi khung hình thì marker
+// không ai bắt ⇒ là metadata vô hình, không vẽ gì và không phá bố cục.
+// ⚠ Phải đặt TRƯỚC `_hinh-lam` — Typst bắt tên lúc ĐỊNH NGHĨA closure.
+#let _mo-ctx(ctx, than) = {
+  show <bg-ve-ctx>: it => (it.value.f)(ctx, ..it.value.a)
+  than
+}
+
+// Dựng khung THẬT khi đã biết đủ cửa sổ (đường đi CŨ, không đổi một pt nào).
+#let _hinh-lam(w, hh, xmin, xmax, ymin, ymax, co-chu, khung, cat, ve) = {
   let ctx = (
     w: w, h: hh,
     xmin: xmin, xmax: xmax, ymin: ymin, ymax: ymax,
@@ -39,41 +58,190 @@
     {
       set text(size: co-chu)
       _ctx-ht.update(s => s + (ctx,))
-      ve(ctx)
+      _mo-ctx(ctx, ve(ctx))
       _ctx-ht.update(s => s.slice(0, -1))
     },
   )
 }
 
-// Bọc hàm vẽ f(ctx, ...) thành hàm gọi được KHÔNG CẦN ctx: nếu đối số đầu là
-// ctx thì gọi thẳng (lối cũ), không thì tự lấy ctx của khung hình đang vẽ.
-// Dùng ở baigiang.typ để bọc đồng loạt các hàm vẽ (xem cuối file đó).
-//
-// ⚠ NGĂN XẾP RỖNG — KHÔNG ĐƯỢC panic (xem CLAUDE.md, mục "CTX NGẦM TRONG
-// MEASURE"). Nội dung nằm trong `measure(...)` KHÔNG được dựng vào tài liệu nên
-// mọi `state.update` bên trong nó vô hiệu: `_ctx-ht.get()` trả về giá trị CUỐI
-// tài liệu = () ⇒ trước đây panic, làm beamer chết ở phép đo tự ngắt màn
-// (_cat-man-vua) và ở `cot: auto` của cau-mc. Nay:
-//   · trong measure ⇒ BỎ QUA, không vẽ gì. Phép đo KHÔNG đổi vì #hinh là `box`
-//     có width/height CỐ ĐỊNH, nét vẽ bên trong đều `place` (không chiếm chỗ);
-//     bản in thật thì ngăn xếp đầy đủ nên vẫn vẽ đúng như cũ.
-//   · thật sự quên #hinh(...) ⇒ ghi DẤU ĐỎ (dùng `place` nên không phá bố cục)
-//     thay cho panic — đủ để thấy mà không giết cả lần biên dịch.
-#let _voi-ctx(f) = (..a) => {
-  let p = a.pos()
-  if p.len() > 0 and type(p.at(0)) == dictionary and "sx" in p.at(0) {
-    f(..a)
+// ---------- TỰ DÒ CỬA SỔ TOẠ ĐỘ (xmin/xmax/ymin/ymax = auto) ----------
+// KHÔNG phải khai giới hạn khung nữa: "vẽ tới đâu hiện tới đó" như TikZ.
+// Cách làm: dựng THỬ hình bên trong một `measure`, dùng show-rule bắt MỌI
+// lệnh `place` mà các hàm vẽ phát ra rồi thay bằng một block có bề rộng đúng
+// bằng đại lượng cần lấy max — bề rộng của cả cụm chính là cực trị cần tìm.
+// Nhờ bắt ở tầng `place` nên đo được cả BỀ RỘNG CHỮ của nhãn, đầu mũi tên,
+// chấm điểm, đường tròn ngoại tiếp chìa ra ngoài đa giác… rồi mới dựng hình
+// thật vừa khít.
+// ⚠ Show-rule chỉ đặt TRONG phép đo nên hình khai cửa sổ tường minh KHÔNG hề
+// đi qua cơ chế này (không tốn gì thêm).
+// ⚠⚠ TUYỆT ĐỐI KHÔNG QUAY LẠI LỐI DÙNG `state` để gom số đo (đã vấp, cô phát
+// hiện): nội dung dựng trong `measure` không vào tài liệu nên state vô hiệu,
+// và chuỗi context lồng nhau không hội tụ kịp khi hình nằm sâu trong câu hỏi
+// — hộp ra đúng cửa sổ mới mà nét vẽ bên trong lại theo cửa sổ dự phòng.
+// Đo bằng chính `measure` thì không có state nào cả, chạy đúng ở mọi chỗ.
+
+#let _kv-pt(v) = {
+  if type(v) == length { v.pt() }
+  else if type(v) == relative { v.length.pt() }
+  else { 0.0 }
+}
+// Hộp bao (x1, y1, x2, y2) tính bằng pt của MỘT lệnh place, gốc = góc khung.
+// ⚠ `doan`/`doan-pt` phát `place(line(start:, end:))` KHÔNG có dx/dy (toạ độ
+// nằm trong chính đối tượng line) — đo bằng `measure` sẽ ra hộp tính từ GÓC
+// KHUNG nên phình rất to. Vì vậy line/polygon phải đọc THẲNG toạ độ đỉnh.
+#let _kv-hop(it) = {
+  let dx = _kv-pt(it.dx)
+  let dy = _kv-pt(it.dy)
+  let b = it.body
+  let f = b.func()
+  let ds = if f == line {
+    (b.at("start", default: (0pt, 0pt)), b.at("end", default: (0pt, 0pt)))
+  } else if f == polygon {
+    b.at("vertices", default: ((0pt, 0pt),))
+  } else { none }
+  if ds != none {
+    let xs = ds.map(q => _kv-pt(q.at(0)))
+    let ys = ds.map(q => _kv-pt(q.at(1)))
+    (dx + calc.min(..xs), dy + calc.min(..ys), dx + calc.max(..xs), dy + calc.max(..ys))
   } else {
-    context {
-      let ds = _ctx-ht.get()
-      if ds.len() > 0 {
-        f(ds.last(), ..a)
-      } else {
-        place(text(fill: red, size: 7pt)[⚠ lệnh vẽ đặt NGOÀI khung hình])
-      }
-    }
+    let m = measure(b)
+    (dx, dy, dx + m.width.pt(), dy + m.height.pt())
   }
 }
+// Dịch chuyển để mọi bề rộng đều DƯƠNG (block không nhận bề rộng âm). Cũng là
+// mức chặn để nội dung lạc (chữ rơi ngoài mọi `place`) không bao giờ thắng max.
+#let _kv-bu = 4000.0
+// MỘT phép đo: thay mỗi `place` bằng một BLOCK có bề rộng = đại lượng cần lấy
+// max (cộng `_kv-bu`). Các block xếp CHỒNG nhau nên bề rộng của cả cụm chính
+// là MAX cần tìm. Dùng `measure` nên KHÔNG đụng tới state ⇒ chạy đúng cả khi
+// hình nằm trong `measure` của lib (tự ngắt màn beamer, `cot: auto`).
+#let _kv-max(ve, co-chu, c, chon) = {
+  let ghi = it => context {
+    let hp = _kv-hop(it)
+    block(width: (chon(hp) + _kv-bu) * 1pt, height: 0pt, above: 0pt, below: 0pt)
+  }
+  let d = measure({
+    set text(size: co-chu)
+    show place: ghi
+    _mo-ctx(c, ve(c))
+  })
+  d.width.pt() - _kv-bu
+}
+// Khung dò ở tỉ lệ s (pt cho MỘT đơn vị toán). Cửa sổ phải NHẤT QUÁN với s
+// (xmax = w/s) vì có hàm vẽ đọc ctx.xmin/xmax.
+#let _kv-ctx(w, s) = {
+  let r = w / s
+  (w: w, h: w, xmin: 0, xmax: r, ymin: -r, ymax: 0, sx: s, sy: s)
+}
+// Bề rộng hình (toạ độ toán) ở tỉ lệ s — 2 phép đo.
+#let _kv-rong(ve, w, co-chu, s) = {
+  let c = _kv-ctx(w, s)
+  let k = s.pt()
+  let x2 = _kv-max(ve, co-chu, c, t => t.at(2))
+  if x2 < -_kv-bu / 2 { return none }        // không vẽ gì cả
+  let x1 = _kv-max(ve, co-chu, c, t => -t.at(0))
+  (x1: -x1 / k, x2: x2 / k)
+}
+// Các cực trị ở tỉ lệ s — CHỈ đo những cạnh còn `auto` (tối đa 4 phép đo).
+#let _kv-do(ve, w, co-chu, s, cua) = {
+  let c = _kv-ctx(w, s)
+  let k = s.pt()
+  let can(t) = cua.at(t) == auto
+  let x2 = if can("xmax") { _kv-max(ve, co-chu, c, t => t.at(2)) } else { 0.0 }
+  let x1 = if can("xmin") { _kv-max(ve, co-chu, c, t => -t.at(0)) } else { 0.0 }
+  let y2 = if can("ymin") { _kv-max(ve, co-chu, c, t => t.at(3)) } else { 0.0 }
+  let y1 = if can("ymax") { _kv-max(ve, co-chu, c, t => -t.at(1)) } else { 0.0 }
+  // hình rỗng: cạnh nào CÓ đo cũng trả về đúng -_kv-bu (không block nào sinh ra)
+  for (v, d) in (x2, x1, y2, y1).zip((can("xmax"), can("xmin"), can("ymin"), can("ymax"))) {
+    if d and v < -_kv-bu / 2 { return none }
+  }
+  (x1: -x1 / k, x2: x2 / k, y1: -y2 / k, y2: y1 / k)
+}
+// Chốt cửa sổ. Bề rộng chữ / đầu mũi tên đo bằng pt nên KHÔNG co giãn theo
+// hình: dò ở tỉ lệ nào thì nhãn "to" theo tỉ lệ đó. Vì thế: dò THÔ ở HAI cửa
+// sổ rất khác nhau để tách `bề rộng(s) = G + C/s` (G = phần toạ độ toán, C =
+// phần pt), giải ra tỉ lệ cuối, rồi ĐO LẠI đủ bốn cạnh ngay tại tỉ lệ đó.
+// Tổng 8 phép đo (2 + 2 + 4) — chỉ còn 4 nếu đã khai sẵn xmin và xmax, và 0
+// nếu khai đủ bốn cạnh (khi đó `hinh` không gọi tới đây).
+// ⚠ ĐÃ THỬ VÀ BỎ: dùng chính mô hình A + B/s để TÍNH LUÔN cửa sổ (không đo
+// lại). Cực trị là MAX của nhiều đường thẳng theo 1/s, vật giữ kỉ lục đổi
+// giữa hai tỉ lệ nên đường thẳng khớp qua hai điểm SAI: bề rộng chỉ lệch 0.5%
+// nhưng chiều cao HỤT 5.5% (0.84 thay vì 1.18) ⇒ CẮT MẤT nhãn phía trên. Nay
+// mô hình chỉ dùng để CHỌN TỈ LỆ, còn cửa sổ thì lấy từ phép đo cuối ⇒ luôn
+// chứa trọn nét vẽ dù mô hình có lệch.
+#let _kv-chot(ve, w, co-chu, h, le, cua) = {
+  // Khai sẵn cả xmin lẫn xmax ⇒ BIẾT LUÔN tỉ lệ cuối, bỏ hẳn phần dò thô.
+  let s = if cua.xmin != auto and cua.xmax != auto {
+    w / calc.max(cua.xmax - cua.xmin, 0.000001)
+  } else {
+    let ea = _kv-rong(ve, w, co-chu, w / 10)     // cửa sổ rộng 10 đơn vị
+    if ea == none { return none }
+    let eb = _kv-rong(ve, w, co-chu, w / 40)     // cửa sổ rộng 40 đơn vị
+    if eb == none { return none }
+    let ua = 10 / w.pt()
+    let ub = 40 / w.pt()
+    let C = ((eb.x2 - eb.x1) - (ea.x2 - ea.x1)) / (ub - ua)
+    let G = (ea.x2 - ea.x1) - C * ua
+    // ⚠ NÉT VẼ PHỦ KÍN KHUNG (truc/luoi/he-truc/gach-vung): phạm vi của chúng
+    // LÀ chính cửa sổ nên C ≈ w và G ≈ 0 — phương trình vô nghiệm dương, dò
+    // tỉ lệ nào cũng tự thoả. Trả `none` để dùng cửa sổ MẶC ĐỊNH (-5..5/-4..4)
+    // cho dễ đoán; loại hình này vốn phải khai cửa sổ. Dấu hiệu nhận ra rất
+    // rõ: nới cửa sổ dò từ 10 lên 40 thì bề rộng đo được cũng nhảy 10 → 40.
+    // ⚠ ĐỪNG thay bằng phép thử "nét vẽ chiếm > 90% cửa sổ dò" — hình ĐÃ khít
+    // thì bao giờ cũng chiếm ~94% (chỉ chừa lề), sẽ bắt nhầm sạch (đã vấp).
+    if G <= 0 or C * (1 + 2 * le) >= 0.9 * w.pt() { return none }
+    w / (G / (1 - C * (1 + 2 * le) / w.pt()) * (1 + 2 * le))
+  }
+  // Vòng CUỐI: đo NGAY TẠI tỉ lệ sắp dùng (cạnh nào cô khai rồi thì bỏ qua).
+  let e = _kv-do(ve, w, co-chu, s, cua)
+  if e == none { return none }
+  let d = calc.max(e.x2 - e.x1, e.y2 - e.y1, 0.000001) * le
+  let kq = (
+    xmin: if cua.xmin == auto { e.x1 - d } else { cua.xmin },
+    xmax: if cua.xmax == auto { e.x2 + d } else { cua.xmax },
+    ymin: if cua.ymin == auto { e.y1 - d } else { cua.ymin },
+    ymax: if cua.ymax == auto { e.y2 + d } else { cua.ymax },
+  )
+  if kq.xmax - kq.xmin < 0.000001 or kq.ymax - kq.ymin < 0.000001 { return none }
+  kq
+}
+
+/// Khung vẽ: đặt cửa sổ toạ độ toán rồi vẽ bên trong. Mọi lệnh vẽ đặt trong
+/// thân hàm này là tự có `ctx`, không phải gõ.
+/// BỎ TRỐNG xmin/xmax/ymin/ymax (hoặc để `auto`) thì gói TỰ ĐO phạm vi hình —
+/// kể cả bề rộng chữ của nhãn — rồi chọn cửa sổ vừa khít. Khai cạnh nào thì
+/// cạnh đó giữ nguyên theo ý người soạn.
+/// -> content
+#let hinh(
+  w: 8cm,
+  h: auto,
+  xmin: auto, xmax: auto,
+  ymin: auto, ymax: auto,
+  co-chu: 10pt,
+  khung: false,   // vẽ viền khung (để căn chỉnh khi soạn)
+  cat: false,     // cắt phần tràn ra ngoài khung
+  le: 0.03,       // lề chừa quanh hình khi TỰ DÒ (tỉ lệ cạnh lớn của hình)
+  ve,
+) = {
+  // Khai đủ 4 cạnh -> đi thẳng đường CŨ, không dò, không tốn gì.
+  if xmin != auto and xmax != auto and ymin != auto and ymax != auto {
+    let hh = if h == auto { w * (ymax - ymin) / (xmax - xmin) } else { h }
+    return _hinh-lam(w, hh, xmin, xmax, ymin, ymax, co-chu, khung, cat, ve)
+  }
+  let cua = (xmin: xmin, xmax: xmax, ymin: ymin, ymax: ymax)
+  context {
+    let c = _kv-chot(ve, w, co-chu, h, le, cua)
+    // Dò không ra gì (hình rỗng) thì dùng cửa sổ mặc định cũ.
+    let c = if c == none {
+      (xmin: -5, xmax: 5, ymin: -4, ymax: 4) + cua.pairs().filter(q => q.at(1) != auto).to-dict()
+    } else { c }
+    let hh = if h == auto { w * (c.ymax - c.ymin) / (c.xmax - c.xmin) } else { h }
+    _hinh-lam(w, hh, c.xmin, c.xmax, c.ymin, c.ymax, co-chu, khung, cat, ve)
+  }
+}
+
+// (`_voi-ctx` nay nằm ngay TRƯỚC `_hinh-lam` — truyền ctx bằng marker +
+//  show-rule, xem ghi chú ở đó. Chỗ này trước kia là bản đọc state `_ctx-ht`.)
 
 // ---------- Đổi toạ độ ----------
 // Toạ độ toán (x, y) -> toạ độ trang (length, length), gốc trên-trái.

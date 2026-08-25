@@ -202,7 +202,8 @@
 #let _bd-lt = (goc: state("bg-goc-lt", 0), cnt: counter("bg-cnt-lt"))
 #let _bd-hd = (goc: state("bg-goc-hd", 0), cnt: counter("bg-cnt-hd"))
 #let _bd-vdtt = (goc: state("bg-goc-vdtt", 0), cnt: counter("bg-cnt-vdtt"))
-#let _bd-tat-ca = (_bd-cau, _bd-vd, _bd-lt, _bd-hd, _bd-vdtt)
+#let _bd-pp = (goc: state("bg-goc-pp", 0), cnt: counter("bg-cnt-pp"))
+#let _bd-tat-ca = (_bd-cau, _bd-vd, _bd-lt, _bd-hd, _bd-vdtt, _bd-pp)
 
 // Tăng bộ đếm và hiển thị số hiện tại.
 #let _so-moi(bd) = {
@@ -760,6 +761,7 @@
         _bd-lt.goc.update(v => v + so.at(2))
         _bd-hd.goc.update(v => v + so.at(3))
         _bd-vdtt.goc.update(v => v + so.at(4))
+        _bd-pp.goc.update(v => v + so.at(5))
       }
     }
   }
@@ -880,6 +882,20 @@
     if ten != none { [ — #ten] }
   },
   rgb("#b9770e"), body,
+)
+
+// Khung PHƯƠNG PHÁP giải một dạng toán — cùng họ #dinh-nghia/#dinh-ly, có
+// bộ đếm RIÊNG (_bd-pp) nên số chạy độc lập với Ví dụ/Luyện tập.
+//   #phuong-phap(ten: [Tìm số hạng tổng quát])[ ... ]  -> PHƯƠNG PHÁP 1 — …
+//   #phuong-phap(so: false)[ ... ]                     -> PHƯƠNG PHÁP (không số)
+// Đặt lại số: #dat-lai-cau-pp()  (hoặc #dat-lai-cau-tat-ca()).
+#let phuong-phap(body, ten: none, so: true) = _khung(
+  {
+    [PHƯƠNG PHÁP]
+    if so { [ ]; _so-moi(_bd-pp) }
+    if ten != none { [ — #ten] }
+  },
+  rgb("#d35400"), body,
 )
 
 // Lời giải: khung trắng viền trái.

@@ -18,7 +18,7 @@
 //    tên cũ mc/tf/sa và dòng tao-cau-hoi cũ vẫn dùng được)
 // =====================================================================
 #import "slide.typ": slide, muc, bai-giang, lo, vi-du, loi-giai, _ho-so, _la-sach, _buoc-ht, gian-dong, _gd, _dat-gian, _he-so-gian, _gian-ht, _bd-cau, cao-that, _cao-that, _chong-net, voi-cao-that, _vung-than
-#import "cau-hoi.typ": cau-mc, cau-tf, cau-sa, cau-tl, cau-hd, cau-lt, cau-vdtt, cau-kham-pha, cau-trai-nghiem, cau-thao-luan, bat-dap-an, tat-dap-an, voi-hinh, True, Dung, _la-y
+#import "cau-hoi.typ": cau-mc, cau-tf, cau-sa, cau-tl, cau-hd, cau-lt, cau-vdtt, cau-kham-pha, cau-trai-nghiem, cau-thao-luan, cau-hdkp, bat-dap-an, tat-dap-an, voi-hinh, True, Dung, _la-y
 
 // Gộp tham số kiểu mới / kiểu cũ: ưu tiên giá trị kiểu mới nếu được đặt.
 #let _uu-tien(moi, cu) = if moi != none { moi } else { cu }
@@ -925,10 +925,15 @@
 })
 
 // Bộ dựng chung cho 4 dạng "kiểu tự luận" (TL/HĐ/LT/VDTT).
+// ng: chữ trên đầu khối lời giải ở bản BEAMER (auto = "Hướng dẫn giải"; dạng
+// #hdkp truyền "Gợi ý"). Bản A4 thì chính `ham-cau` lo (xem `cau-hdkp`).
 #let _dang-tl(ham-cau, cau, loi-giai, diem, cho-trong, hinh, tieu-de,
   h-pos: "right", h-width: auto,
-  hg: none, hg-pos: "right", hg-width: auto, hg-moi-man: auto, gd: auto) = context {
+  hg: none, hg-pos: "right", hg-width: auto, hg-moi-man: auto, gd: auto,
+  ng: auto) = context {
   let hg-t = _hg-tiep(hg, hg-moi-man)
+  let ng-dau = if ng == auto { [Hướng dẫn giải. ] } else { [#ng. ] }
+  let ng-tiep = if ng == auto { [Hướng dẫn giải (tiếp). ] } else { [#ng (tiếp). ] }
   if _la-sach(_ho-so.get()) {
     _voi-gian(gd, ham-cau(cau,
       loi-giai: if _la-mang-hinh(hg) {
@@ -942,12 +947,12 @@
     let dung(dg, co-de) = if co-de {
       _voi-gian(gd, [
         #ham-cau(cau, diem: diem, hinh: hinh, fig-pos: h-pos, fig-width: h-width)
-        #_giai-kem-hinh(giai-buoc(dg, gian-dong: gd, do: true), _hg-1(hg, 0), hg-pos, hg-width, do: true)
+        #_giai-kem-hinh(giai-buoc(dg, nhan: ng-dau, gian-dong: gd, do: true), _hg-1(hg, 0), hg-pos, hg-width, do: true)
       ])
     } else {
       // Đo KÈM hình (xem chú thích ở #vd).
       _voi-gian(gd, _giai-kem-hinh(
-        giai-buoc(dg, tu: 1, nhan: [Hướng dẫn giải (tiếp). ], gian-dong: gd, do: true),
+        giai-buoc(dg, tu: 1, nhan: ng-tiep, gian-dong: gd, do: true),
         _hg-1(hg-t, 1), hg-pos, hg-width, do: true))
     }
     let (man, cs) = _cat-man-vua(tach-man(loi-giai), dung)
@@ -957,10 +962,10 @@
       else if man.len() > 1 { 1 } else { 2 })[
       #_voi-gian(gd, [
         #ham-cau(cau, diem: diem, hinh: hinh, fig-pos: h-pos, fig-width: h-width)
-        #_giai-kem-hinh(giai-buoc(man.at(0), gian-dong: gd), _hg-1(hg, 0), hg-pos, hg-width)
+        #_giai-kem-hinh(giai-buoc(man.at(0), nhan: ng-dau, gian-dong: gd), _hg-1(hg, 0), hg-pos, hg-width)
       ])
     ]
-    _man-tiep(man, tieu-de, gd: gd, cs: cs,
+    _man-tiep(man, tieu-de, nhan: ng-tiep, nhan-dau: ng-dau, gd: gd, cs: cs,
       hg: hg-t, hg-pos: hg-pos, hg-width: hg-width)
   }
 }
@@ -974,6 +979,10 @@
 #let kham-pha(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, fig-giai-moi-man: auto, gian-dong: auto, tieu-de: [Khám phá]) = _dang-tl(cau-kham-pha, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, hg-moi-man: fig-giai-moi-man, gd: gian-dong)
 #let trai-nghiem(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, fig-giai-moi-man: auto, gian-dong: auto, tieu-de: [Trải nghiệm]) = _dang-tl(cau-trai-nghiem, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, hg-moi-man: fig-giai-moi-man, gd: gian-dong)
 #let thao-luan(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, fig-giai-moi-man: auto, gian-dong: auto, tieu-de: [Thảo luận]) = _dang-tl(cau-thao-luan, cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, hg-moi-man: fig-giai-moi-man, gd: gian-dong)
+// HĐKP: câu hỏi DẪN NHẬP vào bài mới — gợi mở, KHÔNG buộc có lời giải; khai
+// `loi-giai:` thì khối ghi "Gợi ý" (đổi bằng `nhan-giai:`). Nhãn thẻ mặc định
+// "Khám phá", đổi bằng `nhan:` (vd `nhan: [HĐ1]`, `nhan: [Mở đầu]`).
+#let hdkp(cau, loi-giai: none, loigiai: none, diem: none, cho-trong: 0pt, nhan: auto, nhan-giai: [Gợi ý], hinh: none, fig: none, fig-pos: "right", fig-width: auto, fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto, fig-giai-moi-man: auto, gian-dong: auto, tieu-de: [Khám phá]) = _dang-tl(cau-hdkp.with(nhan: nhan, nhan-giai: nhan-giai), cau, _uu-tien(loigiai, loi-giai), diem, cho-trong, _uu-tien(fig, hinh), tieu-de, h-pos: fig-pos, h-width: fig-width, hg: _uu-tien(fig-giai, hinh-giai), hg-pos: fig-giai-pos, hg-width: fig-giai-width, hg-moi-man: fig-giai-moi-man, gd: gian-dong, ng: nhan-giai)
 
 #let phan(ten, ngan: none) = context {
   if _la-sach(_ho-so.get()) {
@@ -1043,15 +1052,26 @@
   if nd != none and hv.at("cau", default: false) { _hv-xao-than(nd, hv.mam) } else { nd }
 }
 
-// ---------- Chỗ trống còn lại của trang & chiều cao trọn một cột ----------
-// Trả về (chỗ còn lại của TRANG HIỆN TẠI, chiều cao MỘT CỘT đầy trang).
-// Phải gọi trong `context` (dùng here().position()).
-#let _cao-vung() = {
-  let ch = page.height
-  if type(ch) != length { return (none, none) }
+// ---------- Khổ giấy THẬT (đã tính `flipped`) ----------
+// ⚠️⚠️ BẪY LỚN, ĐỪNG QUÊN: `#set page(flipped: true)` (in A4 NẰM NGANG) KHÔNG
+// đổi hai trường `page.width` / `page.height` — Typst chỉ HOÁN ĐỔI chúng lúc
+// dựng trang. Đọc `page.height` trong `context` vẫn ra 297mm trong khi tờ giấy
+// thật chỉ cao 210mm. Cứ tin thẳng `page.height` là mọi phép tính chỗ trống sai
+// lệch tới 50% ⇒ `_can-cot` tưởng cả bài lọt trong một trang, chèn #colbreak()
+// vào GIỮA tài liệu và để lại một mảng trắng (đúng bệnh cô báo 22/08/2026).
+// Trả về (bề ngang, chiều cao) THẬT của tờ giấy.
+#let _kho-trang() = {
+  let w = page.width
+  let h = page.height
+  if page.flipped == true { (h, w) } else { (w, h) }
+}
+
+// ---------- Lề TRÊN / DƯỚI của trang, quy về `length` ----------
+// ⚠️ `page.margin` trả về lề đã CHUẨN HOÁ thành `relative` (vd `0% + 45.35pt`)
+// chứ KHÔNG phải `length` như lúc khai — cứ đòi đúng `length` là hỏng hết.
+// `ch` = chiều cao THẬT của tờ giấy (để quy đổi phần tỉ lệ). Trả (lt, ld).
+#let _le-doc(ch) = {
   let m = page.margin
-  // ⚠️ `page.margin` trả về lề đã CHUẨN HOÁ thành `relative` (vd `0% + 45.35pt`)
-  // chứ KHÔNG phải `length` như lúc khai — cứ đòi đúng `length` là hỏng hết.
   let _dai(v) = {
     if type(v) == length { v }
     else if type(v) == relative { ch * v.ratio + v.length }
@@ -1062,12 +1082,26 @@
     if type(m) == dictionary { _dai(m.at(khoa, default: m.at("y", default: mac-dinh)))
     } else if m == auto { 2.5cm } else { _dai(m) }
   }
-  let lt = _le("top", 1.6cm)
-  let ld = _le("bottom", 2.2cm)
-  if lt == none or ld == none { return (none, none) }
+  (_le("top", 1.6cm), _le("bottom", 2.2cm))
+}
+
+// ---------- Chỗ trống còn lại của trang & chiều cao trọn một cột ----------
+// Trả về dict (dau:, cot:, lt:, y:)
+//   dau : chỗ còn lại của TRANG HIỆN TẠI
+//   cot : chiều cao MỘT CỘT đầy trang (= chiều cao vùng chữ)
+//   lt  : lề trên (none nếu không đọc được) — để nơi gọi tự tính lại `dau`
+//         theo chiều cao vùng chữ mà `layout` báo (con số ĐÁNG TIN NHẤT)
+//   y   : vị trí hiện tại trên trang
+// Phải gọi trong `context` (dùng here().position()).
+#let _cao-vung() = {
+  let (_, ch) = _kho-trang()
+  if type(ch) != length { return (dau: none, cot: none, lt: none, y: none) }
+  let (lt, ld) = _le-doc(ch)
+  if lt == none or ld == none { return (dau: none, cot: none, lt: none, y: none) }
   let cot = ch - lt - ld
-  if cot <= 0pt { return (none, none) }
-  (calc.max(0pt, ch - here().position().y - ld), cot)
+  if cot <= 0pt { return (dau: none, cot: none, lt: lt, y: none) }
+  let y = here().position().y
+  (dau: calc.max(0pt, ch - y - ld), cot: cot, lt: lt, y: y)
 }
 
 // Thân gõ bằng `#for` / `#include` thường gói TẤT CẢ câu hỏi vào MỘT phần tử
@@ -1208,11 +1242,22 @@
     let (nd0, sau) = _tach-thoi-cot(body)
     if nd0 != none {
       let nd = _cot-than(nd0)
-      let (cao-dau, cao-cot) = _cao-vung()
+      let vung = _cao-vung()
       layout(kich => {
         let wcol = (kich.width - khoang * (so - 1)) / so
-        let hc = if cao-cot == none { kich.height } else { cao-cot }
-        let than = if can { _can-cot(nd, so, wcol, cao-dau, hc) } else { nd }
+        // `kich.height` = chiều cao vùng chữ do CHÍNH Typst báo lúc dựng trang
+        // ⇒ luôn đúng khổ giấy thật (kể cả trang xoay ngang, lề khai kiểu lạ).
+        // Ưu tiên con số này; `_cao-vung()` chỉ còn để lấy lề trên và vị trí.
+        let hc = if type(kich.height) == length and kich.height > 0pt {
+          kich.height
+        } else { vung.cot }        // none ⇒ _can-cot tự trả nguyên thân
+        // Chỗ trống còn lại của trang hiện tại = mép dưới vùng chữ − vị trí
+        // hiện tại. Tính lại theo `hc` cho khớp với chiều cao cột ở trên; hai
+        // con số phải cùng một khổ giấy, kẻo lệch trang.
+        let hd = if type(hc) == length and vung.lt != none and vung.y != none {
+          calc.max(0pt, vung.lt + hc - vung.y)
+        } else { vung.dau }
+        let than = if can { _can-cot(nd, so, wcol, hd, hc) } else { nd }
         columns(so, gutter: khoang, than)
       })
     }
@@ -1317,15 +1362,14 @@
   le-duoi: auto,
   them-trang: 0,     // kẻ thêm bao nhiêu TRANG ĐẦY nữa sau trang hiện tại
 ) = context {
-  if not _la-sach(_ho-so.get()) { } else if type(page.height) != length { } else {
+  // ⚠️ Lấy chiều cao qua `_kho-trang()` chứ ĐỪNG đọc thẳng `page.height`:
+  // trang xoay ngang (`#set page(flipped: true)`) vẫn báo chiều cao khổ DỌC.
+  let (_, cao-giay) = _kho-trang()
+  if not _la-sach(_ho-so.get()) { } else if type(cao-giay) != length { } else {
     // ----- lấy lề trên / lề dưới từ thiết lập trang -----
-    let m = page.margin
-    let _le(khoa, mac-dinh) = {
-      if type(m) == dictionary { m.at(khoa, default: m.at("y", default: mac-dinh))
-      } else if m == auto { 2.5cm } else { m }
-    }
-    let lt = if le-tren != auto { le-tren } else { _le("top", 1.6cm) }
-    let ld = if le-duoi != auto { le-duoi } else { _le("bottom", 2.2cm) }
+    let (lt0, ld0) = _le-doc(cao-giay)
+    let lt = if le-tren != auto { le-tren } else if lt0 != none { lt0 } else { 1.6cm }
+    let ld = if le-duoi != auto { le-duoi } else if ld0 != none { ld0 } else { 2.2cm }
 
     // MỘT dòng kẻ = MỘT khối cao ĐÚNG `cao-dong`, nét vẽ sát đáy khối.
     // ⚠️ ĐỪNG viết `v(cao-dong); line(...)`: `line` tự tạo một ĐOẠN VĂN nên
@@ -1340,12 +1384,12 @@
     // ----- phần còn lại của TRANG HIỆN TẠI -----
     // trừ thêm 1mm chống tràn (khoảng cách đoạn của khối đứng ngay trên lệnh
     // có thể đẩy vị trí xuống một chút so với phép đo)
-    let con = page.height - here().position().y - ld - chua - 1mm
+    let con = cao-giay - here().position().y - ld - chua - 1mm
     for _ in range(calc.max(0, int(calc.floor(con / cao-dong)))) { mot-dong }
 
     // ----- các trang ĐẦY tiếp theo (nếu có) -----
     if them-trang > 0 {
-      let cao-trang = page.height - lt - ld - chua
+      let cao-trang = cao-giay - lt - ld - chua
       let n-day = calc.max(0, int(calc.floor(cao-trang / cao-dong)))
       for _ in range(them-trang) {
         pagebreak()

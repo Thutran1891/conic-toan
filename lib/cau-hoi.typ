@@ -20,7 +20,7 @@
 //   -> đổi MỘT LẦN, đồng bộ toàn bài.
 // CHỪA CHỖ TL (bản in): #trong-tl(cao: 5cm) / #khong-trong-tl()
 // =====================================================================
-#import "slide.typ": _buoc-ht, _bd-cau, _bd-vd, _bd-hd, _bd-lt, _bd-vdtt, _bd-tat-ca, _so-moi, _ho-so, _he-so-gian, _cao-that
+#import "slide.typ": _buoc-ht, _bd-cau, _bd-vd, _bd-hd, _bd-lt, _bd-vdtt, _bd-pp, _bd-tat-ca, _so-moi, _ho-so, _he-so-gian, _cao-that
 
 #let _hien-da = state("ch-hien-da", false)
 
@@ -33,7 +33,8 @@
 //   #dat-lai-cau()       -> chỉ nhóm "Câu" (tn/ds/tln/tl); KHÔNG đụng vd/hd/lt/vdtt
 //   #dat-lai-cau-vd()    -> Ví dụ            #dat-lai-cau-hd()   -> Hoạt động
 //   #dat-lai-cau-lt()    -> Luyện tập        #dat-lai-cau-vdtt() -> Vận dụng thực tế
-//   #dat-lai-cau-tat-ca()-> đặt lại CẢ 5 nhóm cùng lúc (hành vi cũ của dat-lai-cau)
+//   #dat-lai-cau-pp()    -> Phương pháp (khung #phuong-phap)
+//   #dat-lai-cau-tat-ca()-> đặt lại CẢ 6 nhóm cùng lúc (hành vi cũ của dat-lai-cau)
 // Không tham số hoặc `(0)` -> đánh lại từ 1; `(3)` -> đánh tiếp từ 4; ...
 #let _dat-lai-bd(bd, n) = {
   bd.goc.update(n)
@@ -44,6 +45,7 @@
 #let dat-lai-cau-hd(..so) = _dat-lai-bd(_bd-hd, so.pos().at(0, default: 0))
 #let dat-lai-cau-lt(..so) = _dat-lai-bd(_bd-lt, so.pos().at(0, default: 0))
 #let dat-lai-cau-vdtt(..so) = _dat-lai-bd(_bd-vdtt, so.pos().at(0, default: 0))
+#let dat-lai-cau-pp(..so) = _dat-lai-bd(_bd-pp, so.pos().at(0, default: 0))
 #let dat-lai-cau-tat-ca(..so) = {
   let n = so.pos().at(0, default: 0)
   for bd in _bd-tat-ca { _dat-lai-bd(bd, n) }
@@ -545,11 +547,14 @@
 // Khối "Hướng dẫn giải" dùng chung cho cả 4 dạng.
 // hinh: hình kèm LỜI GIẢI — bố cục 2 cột/hàng riêng như voi-hinh
 // (vi-tri: "right"|"left"|"center"|"top"|"bottom"; be-rong: auto hoặc chỉ định).
-#let _khoi-giai(lg, hinh: none, vi-tri: "right", be-rong: auto) = block(
+// nhan: chữ trên đầu khối (dạng #hdkp đổi thành "Gợi ý" cho đúng tinh thần
+// gợi mở — xem cau-hdkp).
+#let _khoi-giai(lg, hinh: none, vi-tri: "right", be-rong: auto,
+  nhan: [Hướng dẫn giải]) = block(
   width: 100%, inset: (left: 11pt, top: 4pt, bottom: 4pt),
   stroke: (left: 2.5pt + _luc), above: 8pt,
   voi-hinh({
-    align(center, text(fill: _luc, weight: "bold", size: 0.84em)[Hướng dẫn giải])
+    align(center, text(fill: _luc, weight: "bold", size: 0.84em, nhan))
     lg
   }, hinh, vi-tri: vi-tri, be-rong: be-rong),
 )
@@ -949,13 +954,15 @@
 // cho-trong: chừa chỗ trống khi in đề.
 #let _than-tl(dau, cau, loi-giai, cho-trong, lo-da, hinh: none,
   fig-pos: "right", fig-width: auto,
-  hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = context block(
+  hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
+  nhan-giai: [Hướng dẫn giải]) = context block(
   width: 100%, above: 10pt * _he-so-gian(), below: 10pt * _he-so-gian(),
   {
     voi-hinh({ dau; cau }, hinh, vi-tri: fig-pos, be-rong: fig-width)
     context {
       if _da-hien(lo-da) and loi-giai != none {
-        _khoi-giai(loi-giai, hinh: hinh-giai, vi-tri: fig-giai-pos, be-rong: fig-giai-width)
+        _khoi-giai(loi-giai, hinh: hinh-giai, vi-tri: fig-giai-pos,
+          be-rong: fig-giai-width, nhan: nhan-giai)
       } else {
         let t = _trong-tl.get()
         if t.bat {
@@ -1073,4 +1080,26 @@
   fig-pos: fig-pos, fig-width: fig-width,
   hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
   fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
+)
+
+// ---------- HĐKP: hoạt động khám phá DẪN NHẬP vào bài mới -------------------
+// Câu hỏi mở đầu, chỉ gợi mở để dẫn vào kiến thức mới — KHÔNG buộc có lời
+// giải. Khai `loi-giai:` thì khối gợi ý ghi **"Gợi ý"** chứ không phải
+// "Hướng dẫn giải" (đây là điểm khác duy nhất so với các dạng còn lại).
+// KHÔNG đánh số (hoạt động một-lần), nhãn mặc định "Khám phá" — đổi được
+// bằng `nhan:` (vd `nhan: [HĐ1]`, `nhan: [Mở đầu]`).
+// ⚠ KHÁC `cau-kham-pha`: dạng kia là hoạt động khám phá TRONG bài (màu xanh
+// lục, lời giải ghi "Hướng dẫn giải"); dạng này màu hồng sen, dùng để MỞ BÀI.
+#let _hong-hdkp = rgb("#c2185b")        // hồng sen (khám phá dẫn nhập)
+#let cau-hdkp(cau, loi-giai: none, diem: none, cho-trong: 0pt, hinh: none, lo-da: none,
+  nhan: auto, nhan-giai: [Gợi ý],
+  fig: none, fig-pos: "right", fig-width: auto,
+  fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto) = _than-tl(
+  _dau-nhan(if nhan == auto { [Khám phá] } else { nhan }, _hong-hdkp, diem),
+  cau, loi-giai, cho-trong, lo-da,
+  hinh: if hinh != none { hinh } else { fig },
+  fig-pos: fig-pos, fig-width: fig-width,
+  hinh-giai: if hinh-giai != none { hinh-giai } else { fig-giai },
+  fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width,
+  nhan-giai: nhan-giai,
 )

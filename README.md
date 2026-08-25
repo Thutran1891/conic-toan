@@ -188,9 +188,27 @@ Tạo bài giảng mới: copy `main.typ` thành `bai-1.typ` rồi sửa nội d
 #trang-cam-on()
 ```
 
-Khung nội dung (tự đánh số ví dụ/luyện tập):
+Khung nội dung (tự đánh số ví dụ/luyện tập/phương pháp):
 `#dinh-nghia[...]`, `#dinh-ly[...]`, `#tinh-chat[...]`, `#vi-du[...]`,
-`#loi-giai[...]`, `#chu-y[...]`, `#ghi-nho[...]`, `#nhan-xet[...]`, `#luyen-tap[...]`.
+`#loi-giai[...]`, `#chu-y[...]`, `#ghi-nho[...]`, `#nhan-xet[...]`, `#luyen-tap[...]`,
+`#phuong-phap[...]`.
+
+`#phuong-phap` nêu **phương pháp giải một dạng toán** — cùng họ `#dinh-nghia`
+nhưng nhãn cam đất và **có bộ đếm riêng**, không dính số của Ví dụ / Luyện tập:
+
+```typst
+#phuong-phap(ten: [Tìm số hạng tổng quát])[
+  - *Bước 1:* Xác định $u_1$ và công sai $d$.
+  - *Bước 2:* Áp dụng $u_n = u_1 + (n - 1) d$.
+  - *Bước 3:* Rút gọn theo $n$.
+]
+```
+
+Ra `PHƯƠNG PHÁP 1 — Tìm số hạng tổng quát`. Bỏ `ten:` thì chỉ còn nhãn và số;
+`#phuong-phap(so: false)[...]` bỏ hẳn số (và KHÔNG làm bộ đếm nhảy);
+`#dat-lai-cau-pp()` đánh lại từ 1, `#dat-lai-cau-pp(10)` đánh tiếp từ 11.
+Khung dài tự ngắt sang trang/màn kế tiếp, và đặt được ngay trong `#slide` thủ
+công (nó chỉ là nội dung, không tự tạo slide như `#hd`/`#lt`).
 
 Bố cục: `#chia-cot(trai, phai)` hoặc `#chia-cot(a, b, c, ti-le: (2fr, 1fr, 1fr))`.
 Các bước giải: `#buoc([Bước 1...], [Bước 2...])`.
@@ -199,6 +217,33 @@ Các bước giải: `#buoc([Bước 1...], [Bước 2...])`.
 
 Mọi hình vẽ nằm trong `#hinh(...)` với hệ toạ độ toán học (y hướng lên).
 Để `h: auto` thì hai trục cùng tỉ lệ (nên giữ khi vẽ hình hình học).
+
+**KHÔNG phải khai giới hạn khung.** Bỏ trống `xmin/xmax/ymin/ymax` thì gói tự
+đo phạm vi hình rồi chọn cửa sổ vừa khít — vẽ tới đâu hiện tới đó, kể cả điểm
+phụ (giao hai đường, hình chiếu…) và **bề rộng chữ của nhãn**:
+
+```typst
+#hinh(w: 5cm, ctx => {           // không khai xmin/xmax/ymin/ymax
+  let A = (0, 0); let B = (4, 0); let C = (1.2, 3)
+  tam-giac(ctx, A, B, C)
+  duong-tron-ngoai-tiep(ctx, A, B, C)   // chìa ra ngoài tam giác vẫn lọt khung
+  nhan(ctx, C, [đỉnh trên cùng], huong: "above")
+})
+```
+
+Khai cạnh nào thì cạnh đó giữ nguyên theo ý người soạn, các cạnh còn lại tự dò
+(`#hinh(w: 5cm, ymin: -1, ymax: 4, ctx => { … })`). `le:` chừa lề quanh hình
+theo tỉ lệ cạnh lớn (mặc định `0.03`).
+
+Hai lưu ý:
+
+- Hình có `truc`, `luoi`, `he-truc`, `gach-vung`… phủ KÍN cửa sổ thì phạm vi
+  của nét vẽ chính là cái đang cần tìm; gói tự nhận ra và dùng cửa sổ mặc định
+  `-5..5 / -4..4` như trước. Loại này nên khai cửa sổ (hoặc dùng thẳng
+  `do-thi-*`, các hàm đó tự dựng khung riêng).
+- Tự dò tốn thêm thời gian biên dịch (mỗi hình dựng thử 8 lần để đo). Hình
+  khai đủ cửa sổ thì KHÔNG tốn gì thêm — file nào nhiều hình mà thấy chậm thì
+  khai cửa sổ như cũ.
 
 ```typst
 #hinh(w: 7cm, xmin: -1, xmax: 6, ymin: -1, ymax: 5, ctx => {
@@ -512,8 +557,9 @@ lên cạnh — vd tam giác vuông có tâm ở giữa cạnh huyền thì bán
 góc vuông chứ không trùng cạnh huyền.
 
 **Khung vừa khít hình (`khung-vua`)** — đường tròn ngoại tiếp thường chìa ra
-ngoài đa giác nên rất dễ tràn khỏi `#hinh`. `khung-vua` trả về cửa sổ toạ độ
-vừa khít, rải thẳng vào `#hinh`:
+ngoài đa giác nên rất dễ tràn khỏi `#hinh`. Cách gọn nhất nay là BỎ TRỐNG cửa
+sổ để gói tự dò (xem mục 2). `khung-vua` vẫn dùng được khi muốn tự tay quyết
+định phạm vi: nó trả về cửa sổ toạ độ vừa khít, rải thẳng vào `#hinh`:
 
 ```typst
 #let (O, R) = tron-qua-diem((A, B, C))
@@ -964,7 +1010,24 @@ với khung `#luyen-tap`) và **Vận dụng** đánh "Vận dụng 1, 2..." —
 bộ đếm riêng. Ngoài ra có 3 hình thức hoạt động SGK **KHÔNG đánh số**:
 `#kham-pha` (Khám phá, xanh lục), `#trai-nghiem` (Trải nghiệm, xanh lá),
 `#thao-luan` (Thảo luận, xanh dương) — thân giống `#hd` (dùng được `loi-giai:`,
-`hinh:`, `lo-da:`, `cot-item`…). **Một công tắc** đổi giữa bản giáo viên
+`hinh:`, `lo-da:`, `cot-item`…).
+
+**`#hdkp` — câu hỏi khám phá DẪN NHẬP vào bài mới** (thẻ hồng sen, không số):
+dạng gợi mở đầu bài, **không buộc có lời giải**. Nếu khai `loi-giai:` thì khối
+ghi **"Gợi ý"** chứ không phải "Hướng dẫn giải" — đó là điểm khác duy nhất so
+với các dạng còn lại. Nhãn thẻ đổi bằng `nhan:`, chữ khối gợi ý đổi bằng
+`nhan-giai:`:
+
+```typst
+#hdkp([Hoàn thành bảng giá trị lượng giác sau: ...])          // chỉ gợi mở
+#hdkp([Với mỗi số thực $x$, có bao nhiêu điểm $M$ ... ?],
+  loi-giai: [Đúng một điểm.])                                 // khối "Gợi ý"
+#hdkp([Dáng SGK], nhan: [HĐ1], nhan-giai: [Nhận xét], loi-giai: [...])
+```
+
+Phân biệt với `#kham-pha`: dạng kia là hoạt động khám phá TRONG bài (xanh lục,
+khối "Hướng dẫn giải"); `#hdkp` dùng để MỞ BÀI. Bản nội dòng (nhét vào `#slide`
+tự soạn) là `cau-hdkp`. **Một công tắc** đổi giữa bản giáo viên
 (hiện đáp án, tô xanh) và bản chiếu cho học sinh: `#bat-dap-an()` / `#tat-dap-an()`.
 Ở chế độ **beamer**, công tắc tự BẬT sẵn (kể cả khi dùng `bai-giang` trực tiếp,
 không qua `de-toan`) — đáp án được đánh dấu ở bước `lo-da` (bước cuối) của mỗi câu;
@@ -972,8 +1035,9 @@ muốn ẩn thì gọi `#tat-dap-an()`.
 Đánh số lại — MỖI thể loại có bộ đếm & hàm đặt lại RIÊNG (không còn đặt lại
 tất cả cùng lúc): `#dat-lai-cau()` chỉ nhóm **Câu** (tn/ds/tln/tl);
 `#dat-lai-cau-vd()` Ví dụ, `#dat-lai-cau-hd()` Hoạt động, `#dat-lai-cau-lt()`
-Luyện tập, `#dat-lai-cau-vdtt()` Vận dụng thực tế; `#dat-lai-cau-tat-ca()` đặt
-lại cả 5 nhóm cùng lúc (hành vi cũ). Không tham số hoặc `(0)` → về 1;
+Luyện tập, `#dat-lai-cau-vdtt()` Vận dụng thực tế, `#dat-lai-cau-pp()` Phương
+pháp (khung `#phuong-phap`); `#dat-lai-cau-tat-ca()` đặt
+lại cả 6 nhóm cùng lúc (hành vi cũ). Không tham số hoặc `(0)` → về 1;
 `(3)` → đánh tiếp từ 4 (tổng quát `n` → từ n + 1).
 
 ```typst
@@ -1010,6 +1074,7 @@ cùng bước với đáp án). Số thứ tự câu/ví dụ/luyện tập **kh
 qua các bước hoạt hình.
 
 Khung công thức: `#cong-thuc[$S = pi r^2$]` (cùng họ với `#dinh-nghia`, `#dinh-ly`).
+Khung phương pháp giải: `#phuong-phap(ten: [...])[...]` — xem mục 1.
 
 ## 8. Hoạt hình xuất hiện từng bước
 
@@ -1211,6 +1276,9 @@ Soạn đề MỘT LẦN trong file kiểu `de-mau.typ`, xuất được 3 bản
 #kham-pha([Từ định lí côsin, hãy viết công thức tính $cos A$...])   // thẻ "Khám phá" (không số)
 #trai-nghiem([Vẽ một tam giác $A B C$, đo các cạnh và góc $A$...])  // thẻ "Trải nghiệm"
 #thao-luan([Liệu $sin A$ và diện tích $S$ có tính được theo các cạnh?])  // thẻ "Thảo luận"
+#hdkp([Hoàn thành bảng sau: ...])                    // dẫn nhập, không lời giải
+#hdkp([Có bao nhiêu điểm $M$ như thế?],
+  loi-giai: [Đúng một điểm.])                        // khối ghi "Gợi ý"
 ```
 
 Xuất cả 3 bản không cần sửa file:
@@ -1396,6 +1464,12 @@ Ghi chú: hai lệnh chỉ tác dụng ở bản in A4 (`dethi`/`loigiai`); bả
 chiếu `beamer` tự bỏ qua (mỗi câu vốn đã là một slide riêng). Khi bật hoán vị
 (trộn đề), các câu nằm trong cột **vẫn được trộn** bình thường và bản `dethi`
 với bản `loigiai` vẫn trộn giống hệt nhau. File thử: `thu-chia-cot.typ`.
+
+**In A4 NẰM NGANG** (`#set page(flipped: true)` đặt trước `#show: de-toan…`):
+từ 0.3.6 việc cân cột chạy đúng cả ở khổ ngang. Trước đó phép đo lấy nhầm
+chiều cao khổ dọc (Typst không đổi `page.height` khi `flipped`) nên có trang
+bị chèn ngắt cột sai chỗ, để lại một cột trắng giữa đề. File thử:
+`LuuTam/thu-chia-cot-in-kho-ngang.typ`. `#ke-het-trang` cũng đã sửa theo.
 
 ### Kẻ dòng lấp đầy trang — `#ke-het-trang` (08/2026)
 
