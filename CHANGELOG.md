@@ -6,7 +6,7 @@ Dự án dùng [SemVer](https://semver.org/lang/vi/).
 > `@local/baigiang:0.2.0` trong các file bài giảng đã có; số hiệu dưới đây là
 > số phát hành trên Typst Universe (`@preview/conic-toan`).
 
-## 0.3.6 — chưa phát hành
+## 0.3.6 — 26/08/2026
 
 ### Thêm
 
