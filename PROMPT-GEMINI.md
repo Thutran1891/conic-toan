@@ -540,6 +540,8 @@ Vài tiện ích ÍT DÙNG nhưng có sẵn (đừng tự viết lại):
   hình cho vừa chiều cao hình, phần còn lại tràn NGUYÊN BỀ RỘNG xuống dưới hình
   (hết cảnh cột hình trống nửa trang). Chỗ cắt luôn ở ranh giới đoạn văn/công
   thức tách dòng/bảng nên không cắt ngang công thức. Tắt: `#kieu-cau-hoi(om-hinh: false)` toàn bài, hoặc `voi-hinh(..., om: false)` cho một chỗ.
+  Từ 0.3.7, đề bài chỉ có một đoạn văn dài cũng được cắt ở ranh giới từ cuối
+  cùng vừa chiều cao hình; phần dư tự trở về toàn bề rộng dưới hình.
 - **CÔNG THỨC TRONG PHƯƠNG ÁN LUÔN TRONG DÒNG (mặc định BẬT, 08/2026)**: viết
   `$ cases(...) $` (có khoảng trắng sát hai dấu `$`) là công thức TRÌNH BÀY GIỮA
   DÒNG, bị tách xuống dòng riêng và canh giữa — hệ 3 bpt khi đó trông khác hẳn hệ
@@ -648,6 +650,9 @@ Ra `PHƯƠNG PHÁP 1 — Tìm số hạng tổng quát`. Bỏ `ten:` thì chỉ 
 // Form cũ (named) vẫn chạy: bbt-bac-hai(a: 1, xd:, yd:) | bbt-bac-ba(a: 1, x1:, y1:, x2:, y2:)
 // | bbt-bac-ba-don-dieu(a: 1) | bbt-trung-phuong(a: 1, x0:, yc:, y0:)
 // | bbt-phan-thuc(x0:, y0:, dong-bien: true) | xet-dau-tam-thuc(a: 1, x1:, x2:)
+
+// Từ 0.3.7: mọi BBT tự co đồng đều theo bề rộng vùng chứa. Có thể đặt thẳng
+// trong #chia-2-cot mà không cần tự scale/resize; ngoài cột vẫn giữ cỡ cũ.
 
 // KHẢO SÁT & VẼ ĐỒ THỊ TỰ ĐỘNG (khao-sat.typ) — chỉ nhập hệ số là xổ ra TRỌN
 // lời giải (TXĐ, đạo hàm, giới hạn, chiều biến thiên, cực trị/tiệm cận, BBT)

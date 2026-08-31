@@ -13,7 +13,7 @@
 //      trang)" ở đầu đề kẹt số cũ ⇒ biên dịch file này KHÔNG được có cảnh báo
 //      "document did not converge".
 //
-// Biên dịch: typst compile thu-chia-cot-dai.typ
+// Biên dịch: typst compile thu-chia-cot-dai.typ 
 // Mốc: 6 trang, 0 lỗi, 0 cảnh báo.
 // =====================================================================
 #import "../baigiang.typ": *

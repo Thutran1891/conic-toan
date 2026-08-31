@@ -434,6 +434,49 @@
   k
 }
 
+// Cắt MỘT đoạn văn dài theo ranh giới từ. Nhánh này dùng khi khối văn bản kế
+// tiếp không vừa phần chiều cao hình còn lại; trước đây cả đoạn bị giữ trong
+// cột hẹp. Các phần tử không phải chữ (công thức, nhấn mạnh, liên kết…) được
+// xem như một nguyên tử, vì vậy không bao giờ bị cắt ở bên trong.
+#let _tach-tu-om(nd) = {
+  let ra = ()
+  for x in _phang-seq(nd) {
+    if type(x) == content and x.func() == text {
+      let s = x.at("text")
+      let tu = s.split(regex("\\s+"))
+      for (i, t) in tu.enumerate() {
+        if t != "" { ra.push(text(t)) }
+        if i + 1 < tu.len() { ra.push([ ]) }
+      }
+    } else {
+      ra.push(x)
+    }
+  }
+  ra
+}
+
+// Tìm prefix dài nhất của một đoạn văn vừa chiều cao hình. Dùng tìm kiếm
+// nhị phân để số lần `measure` tăng theo logarit, kể cả đề bài rất dài.
+#let _cat-doan-om(nd, hep, cao, truoc: none) = {
+  let tu = _tach-tu-om(nd)
+  if tu.len() < 2 { return none }
+  let lo = 1
+  let hi = tu.len() - 1
+  let tot = 0
+  while lo <= hi {
+    let giua = calc.floor((lo + hi) / 2)
+    let thu = if truoc == none { tu.slice(0, giua).join() } else { truoc + tu.slice(0, giua).join() }
+    if measure(block(width: hep, thu)).height <= cao {
+      tot = giua
+      lo = giua + 1
+    } else {
+      hi = giua - 1
+    }
+  }
+  if tot == 0 or tot == tu.len() { return none }
+  (tren: tu.slice(0, tot).join(), duoi: tu.slice(tot).join())
+}
+
 // Chế độ ôm có bật không: om = auto → theo kieu-cau-hoi(om-hinh:).
 #let _om-bat(om) = if om == auto { _kieu.get().at("om-hinh", default: true) } else { om }
 
@@ -502,10 +545,23 @@
       let hep = kich.width - w-hinh - khoang
       if hep < 3cm { return none }
       let khoi = _tach-doan(than)
-      if khoi.len() < 2 { return none }
-      let k = _dem-khoi-om(khoi, hep, measure(hinh).height)
-      if k == 0 or k == khoi.len() { return none }
-      let tren = _noi-khoi(khoi.slice(0, k))
+      if khoi.len() < 1 { return none }
+      let cao-hinh = measure(hinh).height
+      let k = _dem-khoi-om(khoi, hep, cao-hinh)
+      if k == khoi.len() { return none }
+      // Đề bài thường là MỘT đoạn văn dài. Nếu nguyên đoạn không vừa cạnh
+      // hình, cắt theo từ để phần vừa chiều cao hình nằm trong cột hẹp và
+      // phần còn lại trở về nguyên bề rộng bên dưới.
+      let truoc = if k == 0 { none } else {
+        let t = _noi-khoi(khoi.slice(0, k))
+        let sep = khoi.at(k - 1).sep
+        if sep == none { t } else { t + sep }
+      }
+      let cat = _cat-doan-om(khoi.at(k).nd, hep, cao-hinh, truoc: truoc)
+      if k == 0 and cat == none { return none }
+      let tren = if cat != none {
+        if truoc == none { cat.tren } else { truoc + cat.tren }
+      } else { _noi-khoi(khoi.slice(0, k)) }
       block(above: 0pt, below: 0pt, if vi-tri == "left" {
         grid(
           columns: (w-hinh, 1fr), column-gutter: khoang,
@@ -520,7 +576,15 @@
         )
       })
       parbreak()
-      _noi-khoi(khoi.slice(k))
+      if cat != none {
+        cat.duoi
+        if k + 1 < khoi.len() {
+          if khoi.at(k).sep != none { khoi.at(k).sep }
+          _noi-khoi(khoi.slice(k + 1))
+        }
+      } else {
+        _noi-khoi(khoi.slice(k))
+      }
     }
     if be-rong != auto {
       context layout(kich => {

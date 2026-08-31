@@ -912,6 +912,10 @@ Form cũ (named) vẫn chạy: `bbt-bac-hai(a: 1, xd:, yd:)`, `bbt-bac-ba(a: -1,
 `bbt-bac-ba-don-dieu(a: 1)`, `bbt-trung-phuong(a: 1, x0:, yc:, y0:)`,
 `bbt-phan-thuc(x0: $1$, y0: $2$, dong-bien: false)`, `xet-dau-tam-thuc(a: 1, x1: $1$, x2: $2$)`.
 
+Các BBT tự đọc bề rộng vùng chứa. Khi đặt trong `#chia-2-cot`, grid hẹp hoặc
+khung hình, bảng lớn hơn cột sẽ tự co đồng đều để vừa bề ngang; đặt ngoài trang
+đủ rộng thì giữ nguyên kích thước cũ. Không cần khai thêm tham số.
+
 **Khảo sát & vẽ đồ thị tự động** (07/2026, `khao-sat.typ`) — chỉ nhập hệ số là
 xổ ra TRỌN lời giải (tập xác định, đạo hàm, giới hạn, chiều biến thiên, cực trị
 / tiệm cận, bảng biến thiên) **kèm đồ thị**, phủ mọi trường hợp của mỗi hàm:
@@ -1712,6 +1716,9 @@ xuống dưới hình — không phải khai báo gì thêm.
 - Nội dung vốn đã thấp hơn hình ⇒ giữ nguyên lối 2 cột canh giữa như cũ.
 - Tắt: `#kieu-cau-hoi(om-hinh: false)` (toàn bài hoặc một đoạn), hoặc
   `voi-hinh(..., om: false)` khi gọi trực tiếp.
+- Đề bài chỉ có **một đoạn văn dài** cũng được ôm hình: thư viện tự tìm ranh
+  giới từ cuối cùng còn vừa chiều cao hình, rồi trả phần còn lại về toàn bề
+  rộng phía dưới. Công thức và các phần tử không phải chữ luôn được giữ nguyên.
 
 File thử: `thu-om-hinh.typ`.
 

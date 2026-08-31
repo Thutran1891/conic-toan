@@ -8,7 +8,7 @@
 //   typst compile thu-chia-cot.typ
 //   typst compile thu-chia-cot.typ --input ho-so=loigiai thu-chia-cot-lg.pdf
 //
-// CẦN KIỂM (đối chiếu bản PDF):
+// CẦN KIỂM (đối chiếu bản PDF): 
 //   1. Mục 1 — bốn câu trắc nghiệm xếp thành HAI CỘT ĐỀU nhau, chữ chảy
 //      từ cột trái sang cột phải.
 //   2. Mục 2 — câu hỏi nằm gọn trong cột trái rộng 70%; cột phải TRỐNG,
@@ -46,7 +46,81 @@
 // =====================================================================
 #phan[MỤC 1a. #chia-2-cot — hai cột đều nhau (dạng khối)]
 
+#tn([Cho hàm số $y = f(x)$ liên tục trên $RR$ và có bảng biến thiên như sau:
+#bbt-bac-ba(1, 0, -3, 1)
+Hàm số đã cho đồng biến trên khoảng nào dưới đây?], (
+  $(0; 2)$,
+  $(-1; 1)$,
+  True($(1; +oo)$),
+  $(-oo; 1)$,
+), loigiai: [
+  Dựa vào bảng biến thiên, ta thấy $f'(x) > 0$ trên các khoảng $(-oo; -1)$ và $(1; +oo)$. \
+  Vậy hàm số đồng biến trên các khoảng $(-oo; -1)$ và $(1; +oo)$.
+])
+
+
 #chia-2-cot[
+
+  #tn([Cho hàm số  có bảng biến thiên sau:
+
+#align(center)[
+  #bbt(x: ($-oo$, $-1$, $0$, $1$, $+oo$), 
+  dau: ("", "+", "0", "-", "||", "-", "0", "+", ""), 
+  gia-tri: ($-oo$, $-2$, ($+oo$, $-oo$), $2$, $+oo$),
+   huong: ("len", "xuong", "xuong", "len"), 
+   ten-fp: $f'(x)$, ten-f: $f(x)$, 
+   kep: (2,)
+   )
+]
+
+Điểm cực đại của hàm số là], (
+  [$x = 1$],
+  True([$x = -1$]),
+  [$x = -2$],
+  [$x = 2$],
+),
+loigiai: [
+  Xét dấu đạo hàm trên từng khoảng xác định, hàm số đạt cực đại tại $x=-1$ và giá trị cực đại bằng $-2$.
+])
+
+#tn([Cho hàm số $y = f(x)$ liên tục trên $RR$ và có bảng biến thiên như sau:
+#bbt-bac-ba(1, 0, -3, 1)
+Hàm số đã cho đồng biến trên khoảng nào dưới đây?], (
+  $(0; 2)$,
+  $(-1; 1)$,
+  True($(1; +oo)$),
+  $(-oo; 1)$,
+), loigiai: [
+  Dựa vào bảng biến thiên, ta thấy $f'(x) > 0$ trên các khoảng $(-oo; -1)$ và $(1; +oo)$. \
+  Vậy hàm số đồng biến trên các khoảng $(-oo; -1)$ và $(1; +oo)$.
+])
+
+#tn([Cho hàm số $y = f(x)$ có bảng biến thiên như sau:
+#bbt-huu-ti(1, -1, 1, 1, -1)
+Hàm số đã cho đồng biến trên khoảng nào dưới đây?], (
+  $(0; 2)$,
+  $(-1; 1)$,
+  True($(2; +oo)$),
+  $(0; +oo)$,
+), loigiai: [
+  Dựa vào bảng biến thiên, ta thấy $f'(x) > 0$ trên các khoảng $(-oo; 0)$ và $(2; +oo)$. \
+  Vậy hàm số đồng biến trên các khoảng $(-oo; 0)$ và $(2; +oo)$.
+])
+
+#tn([Cho hàm số $y = f(x)$ có đồ thị như hình vẽ dưới đây:
+#align(center)[
+  #figure(do-thi-phan-thuc(2, -1, 1, -1, ten: none, giao-ox: auto, giao-oy: auto))
+]
+Mệnh đề nào sau đây đúng?], (
+  [Hàm số đồng biến trên các khoảng $(-oo; 1)$ và $(1; +oo)$],
+  True([Hàm số nghịch biến trên các khoảng $(-oo; 1)$ và $(1; +oo)$]),
+  [Hàm số nghịch biến trên $RR backslash {1}$],
+  [Hàm số đồng biến trên $RR backslash {1}$],
+), loigiai: [
+  Quan sát đồ thị, trên các khoảng $(-oo; 1)$ và $(1; +oo)$, các nhánh đồ thị luôn đi xuống từ trái sang phải. \
+  Do đó hàm số nghịch biến trên từng khoảng $(-oo; 1)$ và $(1; +oo)$.
+])
+
   #tn(
     [Đạo hàm của hàm số $y = x^3$ là],
     ([$y' = x^2$], True([$y' = 3x^2$]), [$y' = 3x$], [$y' = x^3 / 3$]),
@@ -169,6 +243,19 @@
     [Đồ thị hàm số không cắt trục hoành],
   ),
 )
+
+#tn([Cho hàm số $y = f(x)$ có bảng biến thiên như sau:
+#bbt-huu-ti(1, -1, 1, 1, -1)
+Hàm số đã cho đồng biến trên khoảng nào dưới đây?], (
+  $(0; 2)$,
+  $(-1; 1)$,
+  True($(2; +oo)$),
+  $(0; +oo)$,
+), loigiai: [
+  Dựa vào bảng biến thiên, ta thấy $f'(x) > 0$ trên các khoảng $(-oo; 0)$ và $(2; +oo)$. \
+  Vậy hàm số đồng biến trên các khoảng $(-oo; 0)$ và $(2; +oo)$.
+])
+
 
 // ----- NGỪNG chia cột: phần dưới trở lại nguyên khổ giấy -----
 #thoi-cot()

@@ -424,7 +424,7 @@
 
   let so-hang = if co-dau { 3 } else { 2 }
   set text(size: co-chu)
-  table(
+  let bang = table(
     columns: cols,
     rows: if co-dau { (auto, cao-hang-dau, cao-bt) } else { (auto, cao-bt) },
     inset: (x: inset-x, y: inset),
@@ -439,6 +439,18 @@
     ..hang-dau,
     ..hang-f,
   )
+  // BBT dựng sẵn thường có các cột khoảng rộng cố định (`rong-cot`). Khi đặt
+  // trong `chia-2-cot`, bề rộng vùng hiện tại chỉ còn khoảng nửa trang nên
+  // bảng tự nhiên có thể tràn sang cột kế. Đo ngay trong `layout` hiện tại và
+  // chỉ co khi thật sự thiếu chỗ; ngoài cột (đủ rộng) trả nguyên `bang`, nên
+  // bố cục cũ không đổi một điểm ảnh.
+  layout(kich => {
+    let w = measure(bang).width
+    if w > kich.width and w > 0pt {
+      let s = (kich.width / w) * 100%
+      scale(x: s, y: s, reflow: true, bang)
+    } else { bang }
+  })
 }
 
 // ---------- BẢNG XÉT DẤU ----------

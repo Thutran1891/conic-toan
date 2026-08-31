@@ -7,7 +7,7 @@
 #show: de-toan.with(ho-so: "loigiai", truong: [THPT Thử], mon: [Toán 9])
 
 // Hình nhỏ kiểu bài hình học phẳng (nửa đường tròn đường kính AD).
-#let hinh-nua-tron = hinh(w: 4.4cm, xmin: -1.25, xmax: 1.25, ymin: -0.25, ymax: 1.2, ctx => {
+#let hinh-nua-tron = hinh(w: 4.4cm,  ctx => {
   cung((0, 0), 1, tu: 0deg, den: 180deg)
   let A = (-1, 0)
   let D = (1, 0)
@@ -109,6 +109,30 @@ $angle B A D = 65degree$ và $angle C A D = 35degree$. Khẳng định nào sau 
 
 #tl([Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.],
   fig-giai: hinh-nua-tron, fig-giai-pos: "left", fig-giai-width: 35%,
+  loigiai: [
+    Đoạn thứ nhất nằm cạnh hình, ôm sát chiều cao hình.
+
+    Đoạn thứ hai vẫn còn chỗ nên tiếp tục nằm cạnh hình.
+
+    $ E (-(m n - 1)/(m n + 1); (2n)/(m n + 1)) $
+
+    Khi đã vượt quá chiều cao hình, phần còn lại của lời giải phải tràn ra
+    NGUYÊN BỀ RỘNG trang, không còn bị bó trong cột hẹp nữa. Đây là dòng dài để
+    thấy rõ chữ đã chiếm hết bề rộng, không chừa cột trống bên cạnh hình như
+    trước. Nếu dòng này vẫn nằm trong cột hẹp thì chế độ ôm chưa hoạt động.
+
+    Dòng cuối cùng để chắc chắn phần dưới đủ dài.
+  ],
+)
+
+#tl([Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.
+Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.
+Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.
+Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.Kiểm tra bố cục ôm khi hình nằm bên trái và cột hình rộng $35%$.
+],
+  fig: hinh-nua-tron, 
+  fig-pos: "right", 
+  fig-width: 35%,
   loigiai: [
     Đoạn thứ nhất nằm cạnh hình, ôm sát chiều cao hình.
 
