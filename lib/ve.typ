@@ -292,12 +292,65 @@
   let cu = ctx.at("bien-doi", default: none)
   ctx + (bien-doi: if cu == none { f } else { P => f((cu)(P)) })
 }
+/// Biến hình affine tổng quát quanh `tam`, với ma trận `((a,c),(b,d))` và
+/// vectơ `dich`. Phép biến hình đã có trong ctx chạy trước, affine mới chạy sau.
+#let ctx-affine(
+  ctx,
+  a: 1, b: 0, c: 0, d: 1,
+  dich: (0, 0), tam: (0, 0),
+) = _ghep-bien-doi(ctx, P => {
+  let x = P.at(0) - tam.at(0)
+  let y = P.at(1) - tam.at(1)
+  (
+    tam.at(0) + a * x + c * y + dich.at(0),
+    tam.at(1) + b * x + d * y + dich.at(1),
+  )
+})
+
+/// Co giãn quanh `tam`; `ky: auto` dùng cùng hệ số với `kx`. Hệ số âm tạo đối xứng.
+#let ctx-ti-le(ctx, kx, ky: auto, tam: (0, 0)) = ctx-affine(
+  ctx, a: kx, d: if ky == auto { kx } else { ky }, tam: tam,
+)
+
+/// Làm nghiêng: `x' = x + theo-x*y`; `y' = theo-y*x + y`.
+#let ctx-nghieng(ctx, theo-x: 0, theo-y: 0, tam: (0, 0)) = ctx-affine(
+  ctx, a: 1, b: theo-y, c: theo-x, d: 1, tam: tam,
+)
+
+/// Đối xứng qua `Ox`/`Oy`/tâm `O` (có thể dời bằng `tam`) hoặc qua đường
+/// thẳng AB khi truyền `truc: (A, B)`.
+#let ctx-doi-xung(ctx, truc: "Ox", tam: (0, 0)) = {
+  if type(truc) == array {
+    assert(truc.len() == 2, message: "ctx-doi-xung: đường đối xứng cần hai điểm (A, B)")
+    let A = truc.at(0)
+    let B = truc.at(1)
+    let vx = B.at(0) - A.at(0)
+    let vy = B.at(1) - A.at(1)
+    let q = vx * vx + vy * vy
+    assert(q > 0.0000001, message: "ctx-doi-xung: A và B phải phân biệt")
+    return _ghep-bien-doi(ctx, P => {
+      let t = ((P.at(0) - A.at(0)) * vx + (P.at(1) - A.at(1)) * vy) / q
+      let H = (A.at(0) + t * vx, A.at(1) + t * vy)
+      (2 * H.at(0) - P.at(0), 2 * H.at(1) - P.at(1))
+    })
+  }
+  if truc == "Ox" or truc == "ox" {
+    ctx-ti-le(ctx, 1, ky: -1, tam: tam)
+  } else if truc == "Oy" or truc == "oy" {
+    ctx-ti-le(ctx, -1, ky: 1, tam: tam)
+  } else if truc == "O" or truc == "o" or truc == "tam" {
+    ctx-ti-le(ctx, -1, ky: -1, tam: tam)
+  } else {
+    panic("ctx-doi-xung: truc cần là \"Ox\", \"Oy\", \"O\" hoặc (A, B)")
+  }
+}
+
 // Bản sao ctx bị QUAY: mọi hàm vẽ dùng ctx này đều quay quanh `tam` góc `goc`.
 //   let cq = ctx-quay(ctx, 30deg, tam: (1, 1)); tam-giac(cq, A, B, C)
 // Bản sao ctx bị TỊNH TIẾN theo vectơ v; ghép nối tiếp được nhiều phép:
 //   ctx-tinh-tien(ctx-quay(ctx, 30deg, tam: G), (2, 0))  — quay trước, tịnh tiến sau
-// Lưu ý: duong-tron/elip vẫn đúng dưới 2 phép này (tâm tự biến đổi); riêng
-// gach-vung mô tả miền theo toạ độ GỐC của khung (không qua bien-doi).
+// Đường tròn/elip được lấy mẫu khi ctx có biến hình nên chịu đúng cả affine;
+// riêng gach-vung mô tả miền theo toạ độ GỐC của khung (không qua bien-doi).
 #let ctx-quay(ctx, goc, tam: (0, 0)) = _ghep-bien-doi(ctx, P => quay-diem(P, tam, goc))
 #let ctx-tinh-tien(ctx, v) = _ghep-bien-doi(ctx, P => tinh-tien-diem(P, v))
 
@@ -447,6 +500,112 @@
       nd2,
     )
   }
+}
+
+// ---------- NODE + ANCHOR + CONNECTOR ----------
+/// Tạo mô tả node tại P; `ve-nut` mới thực sự vẽ. Tên `nut-hinh` tránh đụng
+/// `nut` của sơ đồ cây. Kiểu: `bo-tron`, `chu-nhat`, `tron`, `elip`.
+#let nut-hinh(
+  P, noi-dung,
+  kieu: "bo-tron", rong: auto, cao: auto,
+  dem-x: 8pt, dem-y: 5pt, bk: 5pt,
+  to: white, vien: black, day: 0.8pt, mau-chu: black,
+) = (
+  bg-nut-hinh: true, P: P, noi-dung: noi-dung, kieu: kieu,
+  rong: rong, cao: cao, dem-x: dem-x, dem-y: dem-y, bk: bk,
+  to: to, vien: vien, day: day, mau-chu: mau-chu,
+)
+
+#let _kich-nut(n) = {
+  let nd = text(fill: n.mau-chu, n.noi-dung)
+  let s = measure(nd)
+  let b = co-net(nd)
+  let w = if n.rong == auto { calc.max(s.width, b.width) + 2 * n.dem-x } else { n.rong }
+  let h = if n.cao == auto { calc.max(s.height, b.height) + 2 * n.dem-y } else { n.cao }
+  if n.kieu == "tron" {
+    let d = calc.max(w, h)
+    (w: d, h: d, nd: nd, sw: s.width, sh: s.height)
+  } else { (w: w, h: h, nd: nd, sw: s.width, sh: s.height) }
+}
+
+/// Vẽ một mô tả node do `nut-hinh` tạo.
+#let ve-nut(ctx, n) = context {
+  assert(type(n) == dictionary and n.at("bg-nut-hinh", default: false), message: "ve-nut: cần nut-hinh(...)")
+  let s = _kich-nut(n)
+  let p = toa(ctx, n.P)
+  let vien = if n.vien == none { none } else { n.day + n.vien }
+  let than = if n.kieu == "tron" or n.kieu == "elip" {
+    ellipse(width: s.w, height: s.h, fill: n.to, stroke: vien)
+  } else {
+    rect(width: s.w, height: s.h, radius: if n.kieu == "chu-nhat" { 0pt } else { n.bk }, fill: n.to, stroke: vien)
+  }
+  place(dx: p.at(0) - s.w / 2, dy: p.at(1) - s.h / 2, than)
+  place(dx: p.at(0) - s.sw / 2, dy: p.at(1) - s.sh / 2, s.nd)
+}
+
+// Neo compass của node, tính trên trang để kích thước chữ theo pt vẫn chính xác.
+#let _neo-nut-pt(p, s, neo) = {
+  let v = (
+    center: (0, 0), north: (0, -1), south: (0, 1), east: (1, 0), west: (-1, 0),
+    north-east: (1, -1), north-west: (-1, -1),
+    south-east: (1, 1), south-west: (-1, 1),
+    tren: (0, -1), duoi: (0, 1), phai: (1, 0), trai: (-1, 0),
+  ).at(neo, default: (0, 0))
+  (p.at(0) + v.at(0) * s.w.pt() / 2, p.at(1) + v.at(1) * s.h.pt() / 2)
+}
+
+// Giao tia từ tâm node theo vectơ v với biên node.
+#let _bien-nut-pt(n, s, p, v) = {
+  let dx = v.at(0)
+  let dy = v.at(1)
+  if calc.abs(dx) + calc.abs(dy) < 0.000001 { return p }
+  let rx = s.w.pt() / 2
+  let ry = s.h.pt() / 2
+  let t = if n.kieu == "tron" or n.kieu == "elip" {
+    1 / calc.sqrt(calc.pow(dx / rx, 2) + calc.pow(dy / ry, 2))
+  } else {
+    let t0 = calc.min(
+      if calc.abs(dx) < 0.000001 { 1000000.0 } else { rx / calc.abs(dx) },
+      if calc.abs(dy) < 0.000001 { 1000000.0 } else { ry / calc.abs(dy) },
+    )
+    // Chữ nhật bo tròn: nếu tia đi vào góc đã cắt, lấy giao với cung tròn góc.
+    if n.kieu != "chu-nhat" and n.bk > 0pt {
+      let r = calc.min(n.bk.pt(), rx, ry)
+      let x0 = t0 * dx
+      let y0 = t0 * dy
+      if calc.abs(x0) > rx - r and calc.abs(y0) > ry - r {
+        let cx = if dx < 0 { -(rx - r) } else { rx - r }
+        let cy = if dy < 0 { -(ry - r) } else { ry - r }
+        let a = dx * dx + dy * dy
+        let b = dx * cx + dy * cy
+        let c = cx * cx + cy * cy - r * r
+        let delta = calc.max(0, b * b - a * c)
+        (b + calc.sqrt(delta)) / a
+      } else { t0 }
+    } else { t0 }
+  }
+  (p.at(0) + t * dx, p.at(1) + t * dy)
+}
+
+/// Nối hai node; `auto` làm đoạn tự chạm đúng biên theo đường nối hai tâm.
+/// Có thể ép neo bằng `north`/`south`/`east`/`west` và các neo góc.
+#let noi-nut(
+  ctx, A, B,
+  neo-dau: auto, neo-cuoi: auto,
+  mau: black, day: 1pt, dut: false,
+  mui-ten-dau: none, mui-ten-cuoi: none,
+) = context {
+  assert(A.at("bg-nut-hinh", default: false) and B.at("bg-nut-hinh", default: false), message: "noi-nut: cần hai nut-hinh(...)")
+  let sa = _kich-nut(A)
+  let sb = _kich-nut(B)
+  let pa0 = toa-pt(ctx, A.P)
+  let pb0 = toa-pt(ctx, B.P)
+  let v = (pb0.at(0) - pa0.at(0), pb0.at(1) - pa0.at(1))
+  let pa = if neo-dau == auto { _bien-nut-pt(A, sa, pa0, v) } else { _neo-nut-pt(pa0, sa, neo-dau) }
+  let pb = if neo-cuoi == auto { _bien-nut-pt(B, sb, pb0, (-v.at(0), -v.at(1))) } else { _neo-nut-pt(pb0, sb, neo-cuoi) }
+  doan-pt(pa, pb, mau: mau, day: day, dut: dut)
+  if mui-ten-dau != none { _dau-pt(pb, pa, mau: mau, kich: mui-ten-dau) }
+  if mui-ten-cuoi != none { _dau-pt(pa, pb, mau: mau, kich: mui-ten-cuoi) }
 }
 
 // Đoạn thẳng AB, kèm NHÃN CHÚ THÍCH đặt trên đoạn (tuỳ chọn):
@@ -827,16 +986,285 @@
   (O.at(0) + a * calc.cos(t), O.at(1) + b * calc.sin(t))
 })
 
+// Điểm và vectơ tiếp tuyến GIẢI TÍCH của elip tại tham số t, sau khi quay.
+// Dùng cho đầu tên của cung để hướng không phụ thuộc mật độ lấy mẫu `n`.
+#let _cung-diem-tiep(O, a, b, t, quay) = {
+  let p = (O.at(0) + a * calc.cos(t), O.at(1) + b * calc.sin(t))
+  let v = (-a * calc.sin(t), b * calc.cos(t))
+  let cq = calc.cos(quay)
+  let sq = calc.sin(quay)
+  (
+    p: quay-diem(p, O, quay),
+    v: (v.at(0) * cq - v.at(1) * sq, v.at(0) * sq + v.at(1) * cq),
+  )
+}
+
+// ---------- PATH PHỐI HỢP (kiểu path của TikZ) ----------
+// `duong-path` ghép đoạn thẳng + cung tròn/elip + Bézier + đồ thị thường/
+// tham số thành ĐÚNG MỘT curve có fill/stroke. `duong-kin` là lối gọi tắt
+// tương thích cũ, luôn khép kín.
+//
+// Điểm truyền trực tiếp sau điểm đầu được hiểu là đoạn thẳng. Các hàm `noi-*`
+// dưới đây chỉ TẠO MÔ TẢ mảnh đường, không tự vẽ và không cần ctx.
+/// Mảnh đoạn thẳng đi từ điểm hiện tại tới P, dùng bên trong `duong-kin`.
+#let noi-thang(P) = (bg-noi-kin: true, kieu: "thang", den: P)
+
+/// Bắt đầu một đường con mới tại P bên trong `duong-path` (tương đương
+/// move-to của TikZ). Khi `dong: true`, đường con trước đó được khép trước.
+#let bat-dau(P) = (bg-noi-kin: true, kieu: "move", den: P)
+
+/// Mảnh cung tròn tâm O, bán kính r, quét từ `tu` tới `den`.
+/// `chia: auto` chia cung thành các Bézier không quá 90°; đặt số nguyên dương
+/// để ép số mảnh. Cung ngược chiều chỉ cần `den < tu`.
+#let noi-cung(O, r, tu: 0deg, den: 90deg, quay: 0deg, chia: auto) = (
+  bg-noi-kin: true, kieu: "cung", O: O, a: r, b: r,
+  tu: tu, den: den, quay: quay, chia: chia,
+)
+
+/// Mảnh cung elip tâm O, bán trục a/b, có thể xoay cả elip bằng `quay:`.
+#let noi-cung-elip(O, a, b, tu: 0deg, den: 90deg, quay: 0deg, chia: auto) = (
+  bg-noi-kin: true, kieu: "cung", O: O, a: a, b: b,
+  tu: tu, den: den, quay: quay, chia: chia,
+)
+
+/// Mảnh Bézier bậc ba từ điểm hiện tại tới P, với hai điểm điều khiển C1/C2.
+#let noi-bezier(C1, C2, P) = (
+  bg-noi-kin: true, kieu: "bezier", c1: C1, c2: C2, den: P,
+)
+
+/// Mảnh đồ thị y=f(x) từ x=a tới x=b. Cho phép a>b để đi ngược chiều.
+/// Đồ thị dùng làm biên miền phải liên tục và hữu hạn trên đoạn này.
+#let noi-do-thi(f, a, b, n: 80) = (
+  bg-noi-kin: true, kieu: "do-thi", f: f, a: a, b: b, n: n,
+)
+
+/// Mảnh đường tham số P(t) = (x(t), y(t)) từ `tu` tới `den`.
+#let noi-tham-so(P, tu, den, n: 100) = (
+  bg-noi-kin: true, kieu: "tham-so", P: P, tu: tu, den: den, n: n,
+)
+
+/// Mảnh đường cực r(theta), tâm mặc định O. `tu`/`den` nên dùng kiểu angle.
+#let noi-cuc(r, tu, den, tam: (0, 0), n: 120) = noi-tham-so(
+  t => toa-cuc(tam, if type(r) == function { r(t) } else { r }, t),
+  tu, den, n: n,
+)
+
+#let _la-noi-kin(x) = (
+  type(x) == dictionary and x.at("bg-noi-kin", default: false)
+)
+#let _gan-diem(P, Q) = (
+  calc.abs(P.at(0) - Q.at(0)) < 0.0000001
+    and calc.abs(P.at(1) - Q.at(1)) < 0.0000001
+)
+
+// Trả về trạng thái mới thay vì sửa biến của hàm bao — Typst không cho closure
+// ghi vào biến bên ngoài nó.
+#let _kin-vao(lenh, hien, P) = {
+  let kq = lenh
+  if hien == none {
+    kq.push((kieu: "move", den: P))
+  } else if not _gan-diem(hien, P) {
+    kq.push((kieu: "line", den: P))
+  }
+  (lenh: kq, hien: P)
+}
+
+// Đổi một cung elip thành các Bézier bậc ba. Mỗi mảnh <= 90° nên sai số hình
+// học rất nhỏ; quan trọng hơn, toàn bộ biên vẫn nằm trong MỘT curve khép kín.
+#let _cung-bezier(O, a, b, tu, den, quay, chia) = {
+  let d = den - tu
+  let so = if chia == auto {
+    calc.max(1, int(calc.ceil(calc.abs(d / 90deg))))
+  } else {
+    calc.max(1, int(chia))
+  }
+  let cq = calc.cos(quay)
+  let sq = calc.sin(quay)
+  let diem-tai = t => quay-diem(
+    (O.at(0) + a * calc.cos(t), O.at(1) + b * calc.sin(t)), O, quay,
+  )
+  let dao-tai = t => {
+    let dx = -a * calc.sin(t)
+    let dy = b * calc.cos(t)
+    (dx * cq - dy * sq, dx * sq + dy * cq)
+  }
+  let ds = ()
+  for i in range(so) {
+    let t0 = tu + d * i / so
+    let t1 = tu + d * (i + 1) / so
+    let dt = t1 - t0
+    let k = 4 / 3 * calc.tan(dt / 4)
+    let p0 = diem-tai(t0)
+    let p1 = diem-tai(t1)
+    let v0 = dao-tai(t0)
+    let v1 = dao-tai(t1)
+    ds.push((
+      c1: (p0.at(0) + k * v0.at(0), p0.at(1) + k * v0.at(1)),
+      c2: (p1.at(0) - k * v1.at(0), p1.at(1) - k * v1.at(1)),
+      den: p1,
+    ))
+  }
+  (dau: diem-tai(tu), doan: ds)
+}
+
+// Lõi chung cho duong-path/duong-kin.
+#let _duong-path(
+  ctx, ..noi-dung,
+  mau: black, day: 1pt, dut: false, to: none,
+  dong: false, mui-ten-dau: none, mui-ten-cuoi: none,
+) = {
+  let ds = noi-dung.pos()
+  assert(ds.len() > 0, message: "duong-path: cần ít nhất một điểm hoặc mảnh đường")
+  let lenh = ()
+  let hien = none
+  let co-doan = false
+
+  for x in ds {
+    if _la-diem(x) {
+      if hien == none {
+        lenh.push((kieu: "move", den: x))
+      } else {
+        lenh.push((kieu: "line", den: x))
+        co-doan = true
+      }
+      hien = x
+    } else {
+      assert(_la-noi-kin(x), message: "duong-path: mảnh đường không hợp lệ")
+      if x.kieu == "move" {
+        if dong and co-doan { lenh.push((kieu: "close",)) }
+        lenh.push((kieu: "move", den: x.den))
+        hien = x.den
+        co-doan = false
+      } else if x.kieu == "thang" {
+        if hien == none { lenh.push((kieu: "move", den: x.den)) }
+        else { lenh.push((kieu: "line", den: x.den)); co-doan = true }
+        hien = x.den
+      } else if x.kieu == "bezier" {
+        assert(hien != none, message: "duong-path: noi-bezier cần một điểm đứng trước")
+        lenh.push((kieu: "cubic", c1: x.c1, c2: x.c2, den: x.den))
+        hien = x.den
+        co-doan = true
+      } else if x.kieu == "cung" {
+        let cb = _cung-bezier(x.O, x.a, x.b, x.tu, x.den, x.quay, x.chia)
+        if hien == none { lenh.push((kieu: "move", den: cb.dau)) }
+        else if not _gan-diem(hien, cb.dau) { lenh.push((kieu: "line", den: cb.dau)); co-doan = true }
+        hien = cb.dau
+        for q in cb.doan {
+          lenh.push((kieu: "cubic", c1: q.c1, c2: q.c2, den: q.den))
+          hien = q.den
+          co-doan = true
+        }
+      } else if x.kieu == "do-thi" or x.kieu == "tham-so" {
+        let n = calc.max(1, int(x.n))
+        let pts = range(n + 1).map(i => {
+          if x.kieu == "do-thi" {
+            let xx = x.a + (x.b - x.a) * i / n
+            (xx, (x.f)(xx))
+          } else {
+            let t = x.tu + (x.den - x.tu) * i / n
+            (x.P)(t)
+          }
+        })
+        if hien == none { lenh.push((kieu: "move", den: pts.at(0))) }
+        else if not _gan-diem(hien, pts.at(0)) { lenh.push((kieu: "line", den: pts.at(0))); co-doan = true }
+        hien = pts.at(0)
+        for P in pts.slice(1) {
+          lenh.push((kieu: "line", den: P))
+          hien = P
+          co-doan = true
+        }
+      }
+    }
+  }
+  if dong and co-doan { lenh.push((kieu: "close",)) }
+  assert(lenh.any(l => l.kieu == "line" or l.kieu == "cubic"), message: "duong-path: cần ít nhất hai điểm phân biệt")
+
+  // Đổi toàn bộ điểm sang toạ độ trang, lấy hộp bao rồi chuẩn hoá về gốc của
+  // `place`. Nhờ vậy cơ chế tự dò cửa sổ của `hinh` đo đúng cả curve này.
+  let lenh-pt = lenh.map(l => if l.kieu == "close" { l } else {
+    let q = (kieu: l.kieu, den: toa-pt(ctx, l.den))
+    if l.kieu == "cubic" { q + (c1: toa-pt(ctx, l.c1), c2: toa-pt(ctx, l.c2)) } else { q }
+  })
+  let tat = ()
+  for l in lenh-pt {
+    if l.kieu != "close" {
+      tat.push(l.den)
+      if l.kieu == "cubic" { tat.push(l.c1); tat.push(l.c2) }
+    }
+  }
+  let x0 = calc.min(..tat.map(P => P.at(0)))
+  let y0 = calc.min(..tat.map(P => P.at(1)))
+  let rel = P => ((P.at(0) - x0) * 1pt, (P.at(1) - y0) * 1pt)
+  let manh = lenh-pt.map(l => {
+    if l.kieu == "move" { curve.move(rel(l.den)) }
+    else if l.kieu == "line" { curve.line(rel(l.den)) }
+    else if l.kieu == "cubic" { curve.cubic(rel(l.c1), rel(l.c2), rel(l.den)) }
+    else { curve.close(mode: "straight") }
+  })
+  place(
+    dx: x0 * 1pt, dy: y0 * 1pt,
+    curve(
+      ..manh,
+      fill: to,
+      // Nối tròn để góc gắt giữa hai loại mảnh không sinh mũi miter dài.
+      stroke: if mau == none { none } else {
+        net(mau, day, dut) + (join: "round", cap: "round")
+      },
+    ),
+  )
+
+  // Đầu tên theo tiếp tuyến thật của mảnh đầu/cuối; chỉ có ý nghĩa cho path mở.
+  if not dong and (mui-ten-dau != none or mui-ten-cuoi != none) {
+    let dau = none
+    let cuoi = none
+    let hien-pt = none
+    for l in lenh-pt {
+      if l.kieu == "move" { hien-pt = l.den }
+      else if l.kieu == "line" {
+        if dau == none { dau = (l.den, hien-pt) }
+        cuoi = (hien-pt, l.den)
+        hien-pt = l.den
+      } else if l.kieu == "cubic" {
+        if dau == none { dau = (l.c1, hien-pt) }
+        cuoi = (l.c2, l.den)
+        hien-pt = l.den
+      }
+    }
+    if mui-ten-dau != none and dau != none { _dau-pt(dau.at(0), dau.at(1), mau: mau, kich: mui-ten-dau) }
+    if mui-ten-cuoi != none and cuoi != none { _dau-pt(cuoi.at(0), cuoi.at(1), mau: mau, kich: mui-ten-cuoi) }
+  }
+}
+
+/// Path tổng quát, mở mặc định. Ghép điểm, `noi-thang`, `noi-cung`,
+/// `noi-cung-elip`, `noi-bezier`, `noi-do-thi`, `noi-tham-so`/`noi-cuc`.
+/// `bat-dau(P)` mở đường con mới; `dong: true` khép từng đường con.
+#let duong-path(ctx, ..noi-dung, mau: black, day: 1pt, dut: false, to: none,
+  dong: false, mui-ten-dau: none, mui-ten-cuoi: none) = _duong-path(
+  ctx, ..noi-dung, mau: mau, day: day, dut: dut, to: to, dong: dong,
+  mui-ten-dau: mui-ten-dau, mui-ten-cuoi: mui-ten-cuoi,
+)
+
+/// Lối gọi tương thích: giống `duong-path(..., dong: true)`.
+#let duong-kin(ctx, ..noi-dung, mau: black, day: 1pt, dut: false, to: none) = _duong-path(
+  ctx, ..noi-dung, mau: mau, day: day, dut: dut, to: to, dong: true,
+)
+
 // Đường tròn tâm O bán kính r (theo đơn vị trục x; nếu 2 trục cùng tỉ lệ
 // thì là đường tròn thật, khác tỉ lệ sẽ thành elip tương ứng).
 #let duong-tron(ctx, O, r, mau: black, day: 1pt, dut: false, to: none) = {
-  let c = toa(ctx, O)
-  let rx = r * ctx.sx
-  let ry = r * ctx.sy
-  place(
-    dx: c.at(0) - rx, dy: c.at(1) - ry,
-    ellipse(width: 2 * rx, height: 2 * ry, stroke: net(mau, day, dut), fill: to),
-  )
+  if ctx.at("bien-doi", default: none) == none {
+    let c = toa(ctx, O)
+    let rx = r * ctx.sx
+    let ry = r * ctx.sy
+    place(
+      dx: c.at(0) - rx, dy: c.at(1) - ry,
+      ellipse(width: 2 * rx, height: 2 * ry, stroke: net(mau, day, dut), fill: to),
+    )
+  } else {
+    let pts = diem-cung(O, r, r, 0deg, 360deg, n: 72)
+    if to != none { da-giac-pt(pts.map(P => toa-pt(ctx, P)), to: to, vien: none) }
+    duong-cong(ctx, pts, mau: mau, day: day, dut: dut, dong: true)
+  }
 }
 
 // Elip tâm O, bán trục a (ngang), b (dọc); quay: góc xoay quanh tâm
@@ -859,15 +1287,49 @@
 }
 
 // Cung tròn tâm O bán kính r từ góc `tu` đến `den` (kiểu angle, vd 30deg).
-#let cung(ctx, O, r, tu: 0deg, den: 180deg, mau: black, day: 1pt, dut: false, n: 48, quay: 0deg) = {
-  duong-cong(ctx, diem-cung(O, r, r, tu + quay, den + quay, n: n), mau: mau, day: day, dut: dut)
+// `mui-ten-dau`/`mui-ten-cuoi` nhận kích thước đầu tên; `none` = không vẽ.
+#let cung(
+  ctx, O, r,
+  tu: 0deg, den: 180deg,
+  mau: black, day: 1pt, dut: false, n: 48, quay: 0deg,
+  mui-ten-dau: none, mui-ten-cuoi: none,
+) = {
+  let pts = diem-cung(O, r, r, tu + quay, den + quay, n: n)
+  duong-cong(ctx, pts, mau: mau, day: day, dut: dut)
+  let chieu = if den < tu { -1 } else { 1 }
+  if mui-ten-dau != none {
+    let t = _cung-diem-tiep(O, r, r, tu, quay)
+    let a = (t.p.at(0) + chieu * t.v.at(0), t.p.at(1) + chieu * t.v.at(1))
+    dau-mui-ten(ctx, a, t.p, mau: mau, kich: mui-ten-dau)
+  }
+  if mui-ten-cuoi != none {
+    let t = _cung-diem-tiep(O, r, r, den, quay)
+    let a = (t.p.at(0) - chieu * t.v.at(0), t.p.at(1) - chieu * t.v.at(1))
+    dau-mui-ten(ctx, a, t.p, mau: mau, kich: mui-ten-cuoi)
+  }
 }
 
 // Cung elip (dùng cho hình không gian: đáy nón, trụ...).
-#let cung-elip(ctx, O, a, b, tu: 0deg, den: 180deg, mau: black, day: 1pt, dut: false, n: 48, quay: 0deg) = {
+#let cung-elip(
+  ctx, O, a, b,
+  tu: 0deg, den: 180deg,
+  mau: black, day: 1pt, dut: false, n: 48, quay: 0deg,
+  mui-ten-dau: none, mui-ten-cuoi: none,
+) = {
   let pts = diem-cung(O, a, b, tu, den, n: n)
   if quay != 0deg { pts = pts.map(P => quay-diem(P, O, quay)) }
   duong-cong(ctx, pts, mau: mau, day: day, dut: dut)
+  let chieu = if den < tu { -1 } else { 1 }
+  if mui-ten-dau != none {
+    let t = _cung-diem-tiep(O, a, b, tu, quay)
+    let truoc = (t.p.at(0) + chieu * t.v.at(0), t.p.at(1) + chieu * t.v.at(1))
+    dau-mui-ten(ctx, truoc, t.p, mau: mau, kich: mui-ten-dau)
+  }
+  if mui-ten-cuoi != none {
+    let t = _cung-diem-tiep(O, a, b, den, quay)
+    let truoc = (t.p.at(0) - chieu * t.v.at(0), t.p.at(1) - chieu * t.v.at(1))
+    dau-mui-ten(ctx, truoc, t.p, mau: mau, kich: mui-ten-cuoi)
+  }
 }
 
 // ---------- Đường xoắn ốc ----------
@@ -1536,6 +1998,98 @@
   let x = a + (b - a) * (i / n)
   (x, f(x))
 })
+
+/// Lấy mẫu một đường tham số `P(t) = (x(t), y(t))`, trả mảng `n+1` điểm.
+#let lay-mau-tham-so(P, tu, den, n: 100) = range(n + 1).map(i => {
+  let t = tu + (den - tu) * (i / n)
+  P(t)
+})
+
+/// Vẽ đường tham số, tự tách phần nằm ngoài cửa sổ như `ve-ham`.
+#let ve-tham-so(
+  ctx, P, tu, den,
+  n: 160, mau: blue, day: 1.3pt, dut: false,
+  mui-ten-dau: none, mui-ten-cuoi: none,
+) = {
+  let le-x = (ctx.xmax - ctx.xmin) * 0.02
+  let le-y = (ctx.ymax - ctx.ymin) * 0.02
+  let nhanh = ()
+  let hien-tai = ()
+  for p in lay-mau-tham-so(P, tu, den, n: n) {
+    let hop = type(p) == array and p.len() == 2
+    if (hop
+      and p.at(0) >= ctx.xmin - le-x
+      and p.at(0) <= ctx.xmax + le-x
+      and p.at(1) >= ctx.ymin - le-y
+      and p.at(1) <= ctx.ymax + le-y
+    ) {
+      hien-tai.push(p)
+    } else {
+      if hien-tai.len() > 1 { nhanh.push(hien-tai) }
+      hien-tai = ()
+    }
+  }
+  if hien-tai.len() > 1 { nhanh.push(hien-tai) }
+  for (i, nh) in nhanh.enumerate() {
+    duong-path(
+      ctx, ..nh, mau: mau, day: day, dut: dut,
+      mui-ten-dau: if i == 0 { mui-ten-dau } else { none },
+      mui-ten-cuoi: if i == nhanh.len() - 1 { mui-ten-cuoi } else { none },
+    )
+  }
+}
+
+/// Vẽ đường cực `r(theta)`, tâm mặc định O. `r` là hàm của góc hoặc bán kính số.
+#let ve-cuc(
+  ctx, r, tu: 0deg, den: 360deg, tam: (0, 0),
+  n: 180, mau: blue, day: 1.3pt, dut: false,
+  mui-ten-dau: none, mui-ten-cuoi: none,
+) = ve-tham-so(
+  ctx,
+  t => toa-cuc(tam, if type(r) == function { r(t) } else { r }, t),
+  tu, den, n: n, mau: mau, day: day, dut: dut,
+  mui-ten-dau: mui-ten-dau, mui-ten-cuoi: mui-ten-cuoi,
+)
+
+/// Giao của hai đường tham số `P(t)`, `Q(u)`, xấp xỉ bằng giao các đoạn lấy
+/// mẫu. Phù hợp cho đường trơn; tăng `n` khi cong mạnh hoặc giao điểm quá gần.
+#let giao-duong-cong(P, tu-p, den-p, Q, tu-q, den-q, n: 180, eps: 0.0001) = {
+  let A = lay-mau-tham-so(P, tu-p, den-p, n: n)
+  let B = lay-mau-tham-so(Q, tu-q, den-q, n: n)
+  let kq = ()
+  for i in range(A.len() - 1) {
+    let p = A.at(i)
+    let p2 = A.at(i + 1)
+    let rx = p2.at(0) - p.at(0)
+    let ry = p2.at(1) - p.at(1)
+    for j in range(B.len() - 1) {
+      let q = B.at(j)
+      let q2 = B.at(j + 1)
+      // Bỏ nhanh hai hộp bao không giao nhau.
+      if (
+        calc.max(p.at(0), p2.at(0)) + eps < calc.min(q.at(0), q2.at(0))
+        or calc.max(q.at(0), q2.at(0)) + eps < calc.min(p.at(0), p2.at(0))
+        or calc.max(p.at(1), p2.at(1)) + eps < calc.min(q.at(1), q2.at(1))
+        or calc.max(q.at(1), q2.at(1)) + eps < calc.min(p.at(1), p2.at(1))
+      ) {
+        continue
+      }
+      let sx = q2.at(0) - q.at(0)
+      let sy = q2.at(1) - q.at(1)
+      let det = rx * sy - ry * sx
+      if calc.abs(det) <= 0.000000001 { continue }
+      let qpx = q.at(0) - p.at(0)
+      let qpy = q.at(1) - p.at(1)
+      let t = (qpx * sy - qpy * sx) / det
+      let u = (qpx * ry - qpy * rx) / det
+      if t >= -eps and t <= 1 + eps and u >= -eps and u <= 1 + eps {
+        let X = (p.at(0) + t * rx, p.at(1) + t * ry)
+        if not kq.any(Y => khoang-cach(X, Y) <= eps * 10) { kq.push(X) }
+      }
+    }
+  }
+  kq
+}
 
 // Vẽ đồ thị hàm f trên [tu, den]; tự tách nhánh khi ra ngoài cửa sổ y
 // (dùng được cho hàm có tiệm cận đứng như 1/x, tan x).

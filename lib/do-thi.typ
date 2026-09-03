@@ -10,6 +10,9 @@
 // THAM SỐ NHÃN CHUNG cho các đồ thị dựng sẵn:
 //   cuc-tri : auto  = gióng cực trị vào 2 trục + nhãn tự động
 //             none  = không gióng
+//             Mặc định thông minh theo dấu toạ độ: nhãn x nằm phía đối diện
+//             với dấu của y; nhãn y nằm phía đối diện với dấu của x. Riêng
+//             x = 0, nhãn y đặt chéo trái trên/dưới theo dấu của y.
 //             (x: "below", y: "left")  = đổi hướng nhãn (mọi điểm)
 //             ((x:.., y:..), (x:.., y:..), ...) = hướng riêng từng điểm
 //                                                 (thứ tự x tăng dần)
@@ -397,15 +400,37 @@
 // Gióng điểm cực trị thứ i theo tuỳ chọn cuc-tri (xem đầu file).
 // ten-x/ten-y: nhãn CHÍNH XÁC (căn thức/phân số) tính sẵn từ hệ số — dùng khi
 // người dùng không tự đặt tên; auto = lấy số từ toạ độ (so-toan).
-#let _giong-ct(ctx, P, tuy-chon, i, ten-x: auto, ten-y: auto) = {
+#let _huong-ct-x(P) = if P.at(1) > 0.0001 {
+  "below"
+} else if P.at(1) < -0.0001 {
+  "above"
+} else {
+  "below"
+}
+
+#let _huong-ct-y(P) = if P.at(0) > 0.0001 {
+  "left"
+} else if P.at(0) < -0.0001 {
+  "right"
+} else if P.at(1) > 0.0001 {
+  "above-left"
+} else if P.at(1) < -0.0001 {
+  "below-left"
+} else {
+  "left"
+}
+
+#let _giong-ct(ctx, P, tuy-chon, i, ten-x: auto, ten-y: auto, thong-minh: false) = {
   if tuy-chon == none or tuy-chon == false { return }
   let o = if type(tuy-chon) == array {
     if i < tuy-chon.len() { tuy-chon.at(i) } else { (:) }
   } else if type(tuy-chon) == dictionary { tuy-chon } else { (:) }
+  let hx = if thong-minh { _huong-ct-x(P) } else { "below" }
+  let hy = if thong-minh { _huong-ct-y(P) } else { "left" }
   giong(
     ctx, P,
-    huong-x: o.at("x", default: "below"),
-    huong-y: o.at("y", default: "left"),
+    huong-x: o.at("x", default: hx),
+    huong-y: o.at("y", default: hy),
     ten-x: o.at("ten-x", default: ten-x),
     ten-y: o.at("ten-y", default: ten-y),
   )
@@ -491,7 +516,7 @@
   let cs = _dan((xmin: xmin, xmax: xmax, ymin: ymin, ymax: ymax), dan-x, dan-y)
   hinh(w: w, h: hh, xmin: cs.xmin, xmax: cs.xmax, ymin: cs.ymin, ymax: cs.ymax, ctx => {
     if luoi-o { luoi(ctx) }
-    truc(ctx)    
+    truc(ctx)
     if vach { vach-chia(ctx) }
     ve-ham(ctx, f, tu: tu, den: den, n: n, mau: mau, day: day,)
     _nhan-ten(ctx, ten, goc-ten, mau)
@@ -634,8 +659,8 @@
       if x1 != none {
         // giá trị cực trị CHÍNH XÁC (phân số/căn thức) thay vì số thập phân
         let ct = cuc-tri-bac-ba(a, b, c, d)
-        _giong-ct(ctx, (x1, f(x1)), cuc-tri, 0, ten-x: ct.x1, ten-y: ct.y1)
-        _giong-ct(ctx, (x2, f(x2)), cuc-tri, 1, ten-x: ct.x2, ten-y: ct.y2)
+        _giong-ct(ctx, (x1, f(x1)), cuc-tri, 0, ten-x: ct.x1, ten-y: ct.y1, thong-minh: true)
+        _giong-ct(ctx, (x2, f(x2)), cuc-tri, 1, ten-x: ct.x2, ten-y: ct.y2, thong-minh: true)
       }
       _giong-ct(
         ctx, (tam, f(tam)), diem-uon, 0,
@@ -692,11 +717,18 @@
           let Xc = so-can-thuc(0, 1, -b / (2 * a), 1)
           let nXc = so-can-thuc(0, -1, -b / (2 * a), 1)
           let Yc = so-can-thuc(4 * a * c - b * b, 0, 0, 4 * a)
-          _giong-ct(ctx, (-xc, f(xc)), cuc-tri, 0, ten-x: nXc, ten-y: Yc)
-          _giong-ct(ctx, (0, c), cuc-tri, 1)
-          _giong-ct(ctx, (xc, f(xc)), cuc-tri, 2, ten-x: Xc, ten-y: Yc)
+          // Hai cực trị ngoài có cùng tung độ. Với chế độ tự động, chỉ ghi
+          // nhãn y ở điểm bên phải để tránh cùng một số xuất hiện hai phía Oy.
+          // Chế độ tuỳ chỉnh vẫn giữ đủ từng nhãn như trước.
+          _giong-ct(
+            ctx, (-xc, f(xc)), cuc-tri, 0,
+            ten-x: nXc, ten-y: if cuc-tri == auto { none } else { Yc },
+            thong-minh: true,
+          )
+          _giong-ct(ctx, (0, c), cuc-tri, 1, thong-minh: true)
+          _giong-ct(ctx, (xc, f(xc)), cuc-tri, 2, ten-x: Xc, ten-y: Yc, thong-minh: true)
         } else {
-          _giong-ct(ctx, (0, c), cuc-tri, 0)
+          _giong-ct(ctx, (0, c), cuc-tri, 0, thong-minh: true)
         }
       }
       _nhan-giao-ox(ctx, ng, giao-ox)
@@ -831,8 +863,8 @@
       // cực trị (nếu có)
       if xt1 != none {
         let ct = cuc-tri-huu-ti(a, b, c, d, e)
-        _giong-ct(ctx, (xt1, f(xt1)), cuc-tri, 0, ten-x: ct.x1, ten-y: ct.y1)
-        _giong-ct(ctx, (xt2, f(xt2)), cuc-tri, 1, ten-x: ct.x2, ten-y: ct.y2)
+        _giong-ct(ctx, (xt1, f(xt1)), cuc-tri, 0, ten-x: ct.x1, ten-y: ct.y1, thong-minh: true)
+        _giong-ct(ctx, (xt2, f(xt2)), cuc-tri, 1, ten-x: ct.x2, ten-y: ct.y2, thong-minh: true)
       }
       // tâm đối xứng I = giao 2 tiệm cận
       if hien-tam {
@@ -1422,16 +1454,16 @@
         )
       }
     }
-    // ---- trục (mũi tên 2 đầu) + nhãn x ----
+    // ---- trục (chỉ mũi tên đầu phải) + nhãn x ----
     doan(ctx, (xa, 0), (xb, 0), day: 1pt)
     dau-mui-ten(ctx, (xa, 0), (xb, 0))
-    dau-mui-ten(ctx, (xb, 0), (xa, 0))
     nhan(ctx, (xb, 0), ten, huong: "below", cach: 6pt)
     // ---- vạch + số tại đầu mút và mốc phụ ----
     let t = 3pt / ctx.sy
     let ghi-moc(x) = {
       doan(ctx, (x, -t), (x, t), day: 0.9pt)
-      if so { nhan(ctx, (x, 0), so-toan(x), huong: "below", cach: 6pt) }
+      // Lùi số xuống dưới dấu ngoặc để nét chữ không bị đầu mút che.
+      if so { nhan(ctx, (x, 0), so-toan(x), huong: "below", cach: 11pt) }
     }
     for k in ks {
       if not _vc(k.at(0)) { ghi-moc(k.at(0)) }

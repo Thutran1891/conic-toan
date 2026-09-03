@@ -373,17 +373,17 @@
       // nét liền: mặt trước, mặt phải, mặt trên
       duong-cong(ctx, (d.A1, d.B1, d.C1, d.D1), mau: mau, day: day, dong: true)
 
-      
+
       doan(ctx, d.B, d.C, mau: mau, day: day)
       doan(ctx, d.D, d.C, mau: mau, day: day)
-      doan(ctx, d.D, d.D1, mau: mau, day: day)      
+      doan(ctx, d.D, d.D1, mau: mau, day: day)
       doan(ctx, d.B, d.B1, mau: mau, day: day)
       doan(ctx, d.C, d.C1, mau: mau, day: day)
       // nét khuất: 3 cạnh tại đỉnh A
       doan(ctx, d.A, d.D, mau: mau, day: day, dut: true)
       doan(ctx, d.A, d.B, mau: mau, day: day, dut: true)
       doan(ctx, d.A, d.A1, mau: mau, day: day, dut: true)
-      
+
       if duong-cheo {
         doan(ctx, d.A, d.C1, mau: mau-phu, day: 1pt, dut: true)
       }

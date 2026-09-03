@@ -362,6 +362,67 @@ kín), `to` (tô màu — tự khép kín), `mui-ten` (đầu mũi tên ở đi�
 nhãn `ten`/`tai`/`huong`/`cach`/`ten-quay`/`mau-ten` (nhãn đặt tại tỉ lệ `tai`
 tính theo TỔNG chiều dài nét).
 
+### `duong-path` / `duong-kin` — path phối hợp kiểu TikZ (0.3.8)
+
+`duong-path` ghép đoạn, cung, Bézier, đồ thị thường/tham số thành **một**
+`curve`; mặc định là đường mở. `duong-kin` là lối gọi tương thích luôn khép kín.
+Vì toàn bộ miền được tô một lần nên màu trong suốt không bị đậm ở vùng giao và
+không có đường ráp giữa các loại mảnh.
+
+```typst
+// Bồn dạng hình trụ + hai chỏm: đúng MỘT miền tô
+duong-kin(
+  (0, 2), (5, 2),
+  noi-cung((5, 0), 2, tu: 90deg, den: -90deg),
+  (0, -2),
+  noi-cung((0, 0), 2, tu: -90deg, den: -270deg),
+  to: rgb(70, 130, 180, 100), mau: luma(35%), day: 1.2pt,
+)
+
+// Path mở, hai đường con và đầu tên theo tiếp tuyến đầu/cuối
+duong-path(
+  (0, 0), noi-bezier((1, 2), (2, 2), (3, 0)),
+  bat-dau((0, -1)), (2, -1),
+  mui-ten-dau: 6pt, mui-ten-cuoi: 6pt,
+)
+
+// Miền có biên trên là đồ thị, biên dưới là nửa đường tròn
+duong-kin(
+  (-2, 0),
+  noi-do-thi(x => 4 - x*x, -2, 2, n: 100),
+  noi-cung((0, 0), 2, tu: 0deg, den: -180deg),
+  to: orange.lighten(70%), mau: orange.darken(30%),
+)
+```
+
+Các mảnh dùng bên trong:
+
+- điểm `(x, y)` hoặc `noi-thang(P)` — nối thẳng từ điểm hiện tại;
+- `noi-cung(O, r, tu:, den:, quay: 0deg, chia: auto)` — cung tròn;
+- `noi-cung-elip(O, a, b, tu:, den:, quay: 0deg, chia: auto)` — cung elip,
+  kể cả elip xoay;
+- `noi-bezier(C1, C2, P)` — Bézier bậc ba từ điểm hiện tại tới `P`;
+- `noi-do-thi(f, a, b, n: 80)` — biên là đồ thị `y=f(x)`. Cho `a > b` để đi
+  ngược chiều; hàm phải liên tục và hữu hạn trên đoạn dùng làm biên.
+- `noi-tham-so(P, tu, den, n: 100)` và `noi-cuc(r, tu, den, tam:)` — mảnh
+  tham số hoặc cực;
+- `bat-dau(P)` — mở đường con mới; `dong: true` khép từng đường con.
+
+Nếu điểm đầu của một cung/đồ thị không trùng điểm hiện tại, path tự chèn một
+đoạn nối thẳng. Cung được đổi thành các
+Bézier tối đa 90° mỗi mảnh (`chia:` có thể ép số mảnh), còn đồ thị lấy `n+1`
+điểm theo đúng chiều hai cận. Hàm dùng được cả với cửa sổ tự dò của `hinh`.
+
+### Đồ thị tham số và đồ thị cực (0.3.8)
+
+```typst
+ve-tham-so(t => (2*calc.cos(t), calc.sin(t)), 0deg, 360deg, mau: teal)
+ve-cuc(t => 1 + .5*calc.cos(3*t), tu: 0deg, den: 360deg, mau: purple)
+```
+
+Hai hàm nhận `n:`, kiểu nét và đầu tên đầu/cuối; phần ra ngoài cửa sổ được tách
+nhánh như `ve-ham`. `lay-mau-tham-so` trả dãy điểm khi cần tính tiếp.
+
 ### `duong-luon` — đường cong uốn lượn (kiểu `.. controls ..` của TikZ) (07/2026)
 
 ```typst
@@ -468,9 +529,11 @@ tròn (O; r) → MẢNG điểm: rỗng nếu không cắt, 1 điểm nếu ti�
 cắt), `dung-diem(A, B, goc, r)` (dựng điểm M: tia AM là tia AB quay quanh A một
 góc lượng giác `goc` (độ, dương ngược kim đồng hồ) và AM = `r`).
 
-Giao với đường cong (07/2026): `giao-ham(f, g, tu, den)` trả về MẢNG giao điểm
+Giao với đường cong: `giao-ham(f, g, tu, den)` trả về MẢNG giao điểm
 của 2 đồ thị y = f(x), y = g(x) trên [tu, den]; đường thẳng qua 2 điểm đổi thành
 hàm bằng `ham-qua-2-diem(A, B)`; đường đứng x = k thì giao là `(k, f(k))`.
+Từ 0.3.8, `giao-duong-cong(P, tu-p, den-p, Q, tu-q, den-q, n:)` nhận hai đường
+tham số bất kỳ và trả mảng giao điểm xấp xỉ; tăng `n` cho đường cong mạnh.
 Ví dụ đầy đủ: `vi-du-ve-tu-do.typ`.
 
 ### KHÔNG cần gõ `ctx` nữa (07/2026)
@@ -489,7 +552,8 @@ them: ctx => {
 - Lối cũ `doan(ctx, M, N)` **vẫn chạy y nguyên** (đối số đầu là `ctx` thì gọi
   thẳng) — bài soạn cũ không phải sửa một chữ nào.
 - **Ngoại lệ vẫn phải truyền `ctx`**: các hàm TRẢ VỀ GIÁ TRỊ chứ không vẽ —
-  `toa`, `toa-pt`, `toa-nguoc`, `goc-truc`, `ctx-quay`, `ctx-tinh-tien`.
+  `toa`, `toa-pt`, `toa-nguoc`, `goc-truc`, `ctx-quay`, `ctx-tinh-tien`,
+  `ctx-affine`, `ctx-ti-le`, `ctx-doi-xung`, `ctx-nghieng`.
   Ví dụ nhãn nghiêng: `nhan(P, $d$, quay: goc-truc(ctx, A, B))`.
 - Gọi lệnh vẽ ở NGOÀI khung hình sẽ báo lỗi rõ ràng: *"Hàm vẽ cần khung
   hình: đặt lệnh trong thân #hinh(...) hoặc trong them: ctx => ..."*.
@@ -497,9 +561,11 @@ them: ctx => {
   `let (doan, diem) = ve-voi(ctx)`) cho ai muốn đặt tên riêng, hoặc khi vẽ
   trên khung đã quay: `ve-voi(ctx-quay(ctx, 30deg))`.
 
-Danh sách 49 lệnh được gọi ngầm: nguyên thuỷ của `ve.typ`
-(`doan`, `diem`, `nhan`, `mui-ten`, `vecto`, `duong-cong`, `duong-tron`,
-`elip`, `cung`, `goc`, `goc-vuong`, `ve-goc`, `ve-goc-vuong`, `danh-dau`, `ve-ham`, `to-vung`,
+Các lệnh được gọi ngầm gồm nguyên thuỷ của `ve.typ`
+(`doan`, `diem`, `nhan`, `mui-ten`, `vecto`, `duong-cong`, `duong-path`,
+`duong-kin`, `duong-tron`, `elip`, `cung`, `goc`, `goc-vuong`, `ve-goc`,
+`ve-goc-vuong`, `danh-dau`, `ve-ham`, `ve-tham-so`, `ve-cuc`, `ve-nut`,
+`noi-nut`, `to-vung`,
 `gach-mien`, `gach-vung`, `ve-mien`, `mui-ten`, `dau-mui-ten`…),
 hệ trục của `do-thi.typ` (`truc`, `luoi`, `vach-chia`, `he-truc`, `giong`,
 `nhan-pi`), toàn bộ `hinh-phang.typ` (`tam-giac`, `duong-cao`, `tu-giac`…)
@@ -805,11 +871,13 @@ Gạch chéo **miền bất kì** (biên cong, hợp/giao/hiệu tuỳ ý): khai
 Tuỳ chọn: `goc:` (hướng vạch, mặc định 45°), `buoc:` (khoảng cách vạch),
 `n:` (số mẫu mỗi vạch — biên càng mịn).
 
-### Phép quay & tịnh tiến (ve.typ)
+### Biến hình affine (ve.typ)
 
 Elip xoay: `elip(ctx, O, a, b, quay: 30deg)` (dương = ngược chiều kim đồng hồ,
 xoay quanh tâm O); kiểm tra điểm cùng góc: `trong-elip(P, O, a, b, quay: 30deg)`.
-`cung` và `cung-elip` cũng nhận `quay:` (xoay cung quanh tâm).
+`cung` và `cung-elip` cũng nhận `quay:` (xoay cung quanh tâm). Muốn gắn đầu
+mũi tên đúng tiếp tuyến, dùng `mui-ten-dau: 6pt` và/hoặc
+`mui-ten-cuoi: 6pt`; mặc định hai tuỳ chọn là `none`.
 
 Quay/tịnh tiến **cả cụm hình** — mọi hàm vẽ theo điểm (doan, da-giac, tam-giac,
 duong-tron, diem, nhan, vecto...) đều tự biến đổi khi vẽ bằng ctx đã bọc:
@@ -827,6 +895,22 @@ duong-tron, diem, nhan, vecto...) đều tự biến đổi khi vẽ bằng ctx 
 ```
 
 Biến đổi điểm lẻ: `quay-diem(P, tam, goc)`, `tinh-tien-diem(P, v)`.
+
+Ngoài `ctx-quay` và `ctx-tinh-tien`, bản 0.3.8 có:
+
+- `ctx-affine(ctx, a:, b:, c:, d:, dich:, tam:)` với ma trận
+  `((a, c), (b, d))`;
+- `ctx-ti-le(ctx, kx, ky: auto, tam:)`, `ctx-nghieng(ctx, theo-x:, theo-y:,
+  tam:)`;
+- `ctx-doi-xung(ctx, truc: "Ox"|"Oy"|"O"|(A, B), tam:)`.
+
+Các phép ghép theo thứ tự từ trong ra ngoài. Đường tròn/elip cũng được lấy mẫu
+khi cần nên chịu đúng cả co giãn không đều và phép nghiêng.
+
+Node dùng trong hình tự do: `nut-hinh(P, noi-dung, kieu: "bo-tron"|"chu-nhat"|
+"tron"|"elip", ...)` tạo mô tả; gọi `noi-nut(A, B, mui-ten-cuoi: 6pt)` để nối
+tự chạm biên, rồi `ve-nut(A)`/`ve-nut(B)`. Có thể ép `neo-dau:`/`neo-cuoi:` bằng
+`"north"`, `"south"`, `"east"`, `"west"` hoặc bốn neo góc.
 
 Toạ độ CỰC kiểu TikZ — `toa-cuc(tam, bk, goc)` trả về điểm cách `tam` một
 khoảng `bk`, quay góc `goc` (số trần = ĐỘ, nhận cả `30deg`; dương = ngược

@@ -38,7 +38,7 @@
 // Cách gọi cũ `doan(ctx, M, N)` vẫn dùng được bình thường (không đổi gì).
 // LƯU Ý: các hàm KHÔNG cần ctx (trung-diem, chia, hinh-chieu, giao-ham,
 // ham-qua-2-diem, so-toan, mien-tron, giao/hop/bu...) cứ gọi thẳng như cũ;
-// đổi khung nhìn (ctx-quay, ctx-tinh-tien) thì lấy bộ hàm mới:
+// đổi khung nhìn (ctx-quay/ctx-tinh-tien/ctx-affine/ctx-ti-le/...) thì lấy bộ hàm mới:
 //   let (doan, diem) = ve-voi(ctx-quay(ctx, 30deg))
 // =====================================================================
 #let ve-voi(ctx) = (
@@ -60,6 +60,8 @@
   duong-cong: (..a) => duong-cong(ctx, ..a),
   duong-gap-khuc: (..a) => duong-gap-khuc(ctx, ..a),
   da-giac: (..a) => da-giac(ctx, ..a),
+  duong-path: (..a) => duong-path(ctx, ..a),
+  duong-kin: (..a) => duong-kin(ctx, ..a),
   duong-tron: (..a) => duong-tron(ctx, ..a),
   elip: (..a) => elip(ctx, ..a),
   cung: (..a) => cung(ctx, ..a),
@@ -72,6 +74,8 @@
   ve-goc-vuong: (..a) => ve-goc-vuong(ctx, ..a), // lối TikZ: đỉnh ở GIỮA
   danh-dau: (..a) => danh-dau(ctx, ..a),
   ve-ham: (..a) => ve-ham(ctx, ..a),
+  ve-tham-so: (..a) => ve-tham-so(ctx, ..a),
+  ve-cuc: (..a) => ve-cuc(ctx, ..a),
   to-vung: (..a) => to-vung(ctx, ..a),
   to-vung-2-ham: (..a) => to-vung-2-ham(ctx, ..a),
   gach-mien: (..a) => gach-mien(ctx, ..a),
@@ -79,6 +83,8 @@
   ve-mien: (..a) => ve-mien(ctx, ..a),
   duong-luon: (..a) => duong-luon(ctx, ..a),
   nhan-cong: (..a) => nhan-cong(ctx, ..a),
+  ve-nut: (..a) => ve-nut(ctx, ..a),
+  noi-nut: (..a) => noi-nut(ctx, ..a),
   // do-thi.typ — hệ trục & gióng
   truc: (..a) => truc(ctx, ..a),
   luoi: (..a) => luoi(ctx, ..a),
@@ -143,7 +149,8 @@
 // Cách CŨ `doan(ctx, M, N)` vẫn chạy y nguyên (đối số đầu là ctx thì gọi
 // thẳng) — bài soạn cũ không phải sửa gì.
 // NGOẠI LỆ vẫn phải truyền ctx: các hàm TRẢ VỀ GIÁ TRỊ, không vẽ —
-// toa, toa-pt, toa-nguoc, goc-truc, ctx-quay, ctx-tinh-tien.
+// toa, toa-pt, toa-nguoc, goc-truc, ctx-quay, ctx-tinh-tien,
+// ctx-affine, ctx-ti-le, ctx-doi-xung, ctx-nghieng.
 // (Bên trong lib các hàm vẫn gọi nhau theo lối cũ nên không ảnh hưởng.)
 // =====================================================================
 // ve.typ — nguyên thuỷ vẽ
@@ -171,6 +178,15 @@
 /// quay: góc xoay chữ (vd 90deg, -45deg, hoặc goc-truc(...)). Mặc định 0deg.
 /// Đặt chữ/công thức tại điểm P. `huong` là phía đặt chữ so với P
 #let nhan = _voi-ctx(nhan)
+/// `ve-nut(n)`
+///
+/// Vẽ một mô tả node do `nut-hinh` tạo.
+#let ve-nut = _voi-ctx(ve-nut)
+/// `noi-nut(A, B, neo-dau: auto, neo-cuoi: auto, mau: black, day: 1pt, dut: false, mui-ten-dau: none, mui-ten-cuoi: none)`
+///
+/// Nối hai node; `auto` làm đoạn tự chạm đúng biên theo đường nối hai tâm.
+/// Có thể ép neo bằng `north`/`south`/`east`/`west` và các neo góc.
+#let noi-nut = _voi-ctx(noi-nut)
 /// `nhan-goc(..muc, mau: black, ban-kinh: 6pt)`
 ///
 /// Đặt nhãn cho nhiều điểm, VỊ TRÍ nhãn xác định bằng GÓC LƯỢNG GIÁC (thay cho
@@ -232,6 +248,16 @@
 /// Đa giác khép kín. Đỉnh truyền vào dưới dạng MỘT MẢNG:
 /// `da-giac((A, B, C))` — không phải `da-giac(A, B, C)`. `to:` để tô màu.
 #let da-giac = _voi-ctx(da-giac)
+/// `duong-kin(..noi-dung, mau: black, day: 1pt, dut: false, to: none)`
+///
+/// Lối gọi tương thích: giống `duong-path(..., dong: true)`.
+#let duong-kin = _voi-ctx(duong-kin)
+/// `duong-path(..noi-dung, mau: black, day: 1pt, dut: false, to: none, dong: false, mui-ten-dau: none, mui-ten-cuoi: none)`
+///
+/// Path tổng quát, mở mặc định. Ghép điểm, `noi-thang`, `noi-cung`,
+/// `noi-cung-elip`, `noi-bezier`, `noi-do-thi`, `noi-tham-so`/`noi-cuc`.
+/// `bat-dau(P)` mở đường con mới; `dong: true` khép từng đường con.
+#let duong-path = _voi-ctx(duong-path)
 /// `duong-tron(O, r, mau: black, day: 1pt, dut: false, to: none)`
 ///
 /// Đường tròn tâm O bán kính r (theo đơn vị trục x; nếu 2 trục cùng tỉ lệ
@@ -242,11 +268,12 @@
 /// Elip tâm O, bán trục a (ngang), b (dọc); quay: góc xoay quanh tâm
 /// (dương = ngược chiều kim đồng hồ), n: số mẫu khi vẽ elip xoay.
 #let elip = _voi-ctx(elip)
-/// `cung(O, r, tu: 0deg, den: 180deg, mau: black, day: 1pt, dut: false, n: 48, quay: 0deg)`
+/// `cung(O, r, tu: 0deg, den: 180deg, mau: black, day: 1pt, dut: false, n: 48, quay: 0deg, mui-ten-dau: none, mui-ten-cuoi: none)`
 ///
 /// Cung tròn tâm O bán kính r từ góc `tu` đến `den` (kiểu angle, vd 30deg).
+/// `mui-ten-dau`/`mui-ten-cuoi` nhận kích thước đầu tên; `none` = không vẽ.
 #let cung = _voi-ctx(cung)
-/// `cung-elip(O, a, b, tu: 0deg, den: 180deg, mau: black, day: 1pt, dut: false, n: 48, quay: 0deg)`
+/// `cung-elip(O, a, b, tu: 0deg, den: 180deg, mau: black, day: 1pt, dut: false, n: 48, quay: 0deg, mui-ten-dau: none, mui-ten-cuoi: none)`
 ///
 /// Cung elip (dùng cho hình không gian: đáy nón, trụ...).
 #let cung-elip = _voi-ctx(cung-elip)
@@ -309,6 +336,14 @@
 /// Vẽ đồ thị hàm f trên [tu, den]; tự tách nhánh khi ra ngoài cửa sổ y
 /// (dùng được cho hàm có tiệm cận đứng như 1/x, tan x).
 #let ve-ham = _voi-ctx(ve-ham)
+/// `ve-tham-so(P, tu, den, n: 160, mau: blue, day: 1.3pt, dut: false, mui-ten-dau: none, mui-ten-cuoi: none)`
+///
+/// Vẽ đường tham số, tự tách phần nằm ngoài cửa sổ như `ve-ham`.
+#let ve-tham-so = _voi-ctx(ve-tham-so)
+/// `ve-cuc(r, tu: 0deg, den: 360deg, tam: (0, 0), n: 180, mau: blue, day: 1.3pt, dut: false, mui-ten-dau: none, mui-ten-cuoi: none)`
+///
+/// Vẽ đường cực `r(theta)`, tâm mặc định O. `r` là hàm của góc hoặc bán kính số.
+#let ve-cuc = _voi-ctx(ve-cuc)
 /// `to-vung(f, a, b, mau: rgb(30, 100, 200, 60), n: 80)`
 ///
 /// Tô miền giữa đồ thị f và trục hoành trên [a, b] (mau nên có độ trong suốt).
