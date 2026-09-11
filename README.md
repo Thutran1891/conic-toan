@@ -113,6 +113,26 @@ typst compile examples/ve-tu-do.typ
 - Biên dịch: `typst compile main.typ` — Xem trực tiếp khi soạn: `typst watch main.typ`.
 - Khuyến nghị dùng VS Code + extension **Tinymist Typst** để xem trước tức thì.
 
+### Nhãn tiếng Anh (mới ở 0.3.9)
+
+Thêm đúng một công tắc vào `#bai-giang` hoặc `#de-toan`:
+
+```typst
+#let tieng-anh = true
+#show: de-toan.with(
+  ho-so: ho-so,
+  tieng-anh: tieng-anh,
+  tieu-de: [Extrema of a Function],
+)
+```
+
+Khi `tieng-anh: true`, mọi nhãn **mặc định do thư viện sinh** được chuyển sang
+English: `Definition`, `Theorem`, `Note`, `Remark`, `Example`, `Practice`,
+`Application`, `Question`, `Solution`, `Answer`, `True/False`, các tiêu đề dạng
+câu hỏi và bảng đáp án. Nội dung bài học và nhãn truyền tay qua `tieu-de:`,
+`prefix:`, `ten:`, `nhan:` vẫn giữ nguyên. Mặc định `false`, nên toàn bộ file cũ
+tiếp tục ra tiếng Việt và không phải sửa.
+
 ## Cấu trúc
 
 ```
@@ -181,6 +201,7 @@ Tạo bài giảng mới: copy `main.typ` thành `bai-1.typ` rồi sửa nội d
                                // auto (mặc định) = thừa kế màu chữ — thân đen,
                                // tiêu đề/bìa trắng. Đặt màu, vd rgb("#0f4c81"),
                                // để nhuộm TẤT CẢ công thức theo màu đó.
+  tieng-anh: false,            // true = đổi nhãn mặc định của lib sang English
 )
 
 #muc[1. Định nghĩa]                     // slide chuyển phần
@@ -765,6 +786,11 @@ Hàm bất kỳ + vẽ chồng qua `them`:
   })
 ```
 
+Từ 0.3.9, `giong` tự đặt nhãn theo góc phần tư: nếu hoành độ điểm dương thì
+nhãn tung độ nằm bên trái trục tung, nếu không thì nằm bên phải; nếu tung độ
+dương thì nhãn hoành độ nằm dưới trục hoành, nếu không thì nằm trên. Có thể
+ghi đè bằng `huong-x:` và `huong-y:` như trước.
+
 ### Nhiều đồ thị trên cùng một hệ trục
 
 Mỗi hàm gói bằng `ham(...)`; `giao-diem: auto` chấm đỏ giao điểm từng cặp:
@@ -996,9 +1022,10 @@ Form cũ (named) vẫn chạy: `bbt-bac-hai(a: 1, xd:, yd:)`, `bbt-bac-ba(a: -1,
 `bbt-bac-ba-don-dieu(a: 1)`, `bbt-trung-phuong(a: 1, x0:, yc:, y0:)`,
 `bbt-phan-thuc(x0: $1$, y0: $2$, dong-bien: false)`, `xet-dau-tam-thuc(a: 1, x1: $1$, x2: $2$)`.
 
-Các BBT tự đọc bề rộng vùng chứa. Khi đặt trong `#chia-2-cot`, grid hẹp hoặc
-khung hình, bảng lớn hơn cột sẽ tự co đồng đều để vừa bề ngang; đặt ngoài trang
-đủ rộng thì giữ nguyên kích thước cũ. Không cần khai thêm tham số.
+Các BBT và bảng xét dấu tự đọc bề rộng vùng chứa. Khi đặt trong `#chia-2-cot`,
+grid hẹp hoặc khung hình, bảng lớn hơn cột sẽ tự co đồng đều để vừa bề ngang;
+đặt ngoài trang đủ rộng thì giữ nguyên kích thước cũ. Không cần khai thêm tham
+số.
 
 **Khảo sát & vẽ đồ thị tự động** (07/2026, `khao-sat.typ`) — chỉ nhập hệ số là
 xổ ra TRỌN lời giải (tập xác định, đạo hàm, giới hạn, chiều biến thiên, cực trị

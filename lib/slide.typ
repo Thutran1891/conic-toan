@@ -28,6 +28,9 @@
 //   "sach-dethi"  : A4, ví dụ hiện lời giải, 4 loại câu ẩn đáp án.
 //   "sach-loigiai": A4, mọi thứ hiện lời giải + đánh dấu đáp án.
 #let _ho-so = state("bg-ho-so", "beamer")
+#let _tieng-anh = state("bg-tieng-anh", false)
+// Chọn nhãn do thư viện tự sinh. Nội dung người dùng truyền tay được giữ nguyên.
+#let _nhan(vi, en) = context { if _tieng-anh.get() { en } else { vi } }
 #let _chuan-hs(hs) = lower(hs).replace("-", "").replace("_", "")
 #let _la-sach(hs) = _chuan-hs(hs) != "beamer"   // khác beamer = bản in A4
 
@@ -258,10 +261,10 @@
 // Gom các trường phụ có giá trị thành mảng (nhan, gia-tri).
 #let _bia-truong(mon, lop, gv, ngay) = {
   let ds = ()
-  if mon != none { ds.push(("Môn", mon)) }
-  if lop != none { ds.push(("Lớp", lop)) }
-  if gv != none { ds.push(("Giáo viên", gv)) }
-  if ngay != none { ds.push(("Ngày", ngay)) }
+  if mon != none { ds.push((_nhan([Môn], [Subject]), mon)) }
+  if lop != none { ds.push((_nhan([Lớp], [Class]), lop)) }
+  if gv != none { ds.push((_nhan([Giáo viên], [Teacher]), gv)) }
+  if ngay != none { ds.push((_nhan([Ngày], [Date]), ngay)) }
   ds
 }
 
@@ -460,7 +463,7 @@
 // ---------- Thiết lập tổng ----------
 // (bai-giang: điểm vào chính của hệ thống trình chiếu)
 #let bai-giang(
-  tieu-de: [BÀI GIẢNG TOÁN],
+  tieu-de: auto,
   tieu-de-ngan: none,  // tên bài rút gọn hiện trên DẢI ĐẦU TRANG của mọi
                        // slide (beamer); none => dùng nguyên tieu-de
   phu-de: none,
@@ -501,10 +504,13 @@
                        // nằm trong tiêu đề/bìa (chữ trắng) vẫn TRẮNG. Đặt một
                        // màu cụ thể, vd rgb("#0f4c81"), để nhuộm TẤT CẢ công
                        // thức theo màu đó (kể cả trong thanh tiêu đề).
+  tieng-anh: false,     // true = đổi mọi nhãn MẶC ĐỊNH do lib sinh sang English
   ho-so: "beamer",     // "beamer" | "sach-dethi" | "sach-loigiai"
   body,
 ) = {
   _ho-so.update(_chuan-hs(ho-so))
+  _tieng-anh.update(tieng-anh)
+  let tieu-de = if tieu-de == auto { _nhan([BÀI GIẢNG TOÁN], [MATHEMATICS LESSON]) } else { tieu-de }
   // Giải màu theo kiểu bìa: auto -> tông mặc định của kieu-bia; nếu người
   // dùng truyền màu cụ thể thì GHI ĐÈ. mau-chinh/mau-nhan cũng là màu chủ đạo
   // của toàn slide (header/footer/khung) nên bìa và bài luôn đồng bộ.
@@ -552,9 +558,10 @@
       margin: (x: 2cm, top: 2cm, bottom: 2cm),
       fill: white,
       footer: context align(center, text(size: 9pt, fill: luma(40%),
-        [Trang #counter(page).display() / #counter(page).final().first()])),
+        [#_nhan([Trang], [Page]) #counter(page).display() / #counter(page).final().first()])),
     )
-    set text(font: phong, size: 11.5pt * ti-le-chu, lang: "vi", fill: rgb("#1c2833"))
+    set text(font: phong, size: 11.5pt * ti-le-chu,
+      lang: if tieng-anh { "en" } else { "vi" }, fill: rgb("#1c2833"))
     _dat-gian(0.6em, gian-dong)
     set par(justify: true, leading: 0.6em * gian-dong, spacing: _doan-nen * gian-dong)
     // Công thức trong dòng khai ĐÚNG chiều cao nét vẽ ⇒ dòng/ô tự nới đúng chỗ.
@@ -575,7 +582,7 @@
       if don-vi != none { text(size: 12pt, fill: luma(30%), don-vi); linebreak() }
       text(weight: "bold", size: 17pt, fill: mau-chinh, tieu-de)
       if phu-de != none { linebreak(); v(2pt); text(size: 12pt, fill: luma(25%), phu-de) }
-      if gv != none { linebreak(); v(3pt); text(size: 11pt, style: "italic", [Giáo viên: #gv]) }
+      if gv != none { linebreak(); v(3pt); text(size: 11pt, style: "italic", [#_nhan([Giáo viên], [Teacher]): #gv]) }
       if ngay != none { linebreak(); text(size: 10pt, fill: luma(40%), ngay) }
     })
     v(4pt)
@@ -588,7 +595,8 @@
     // ở bước lo-da (bước cuối) của mỗi câu. Muốn ẩn hẳn: #tat-dap-an().
     state("ch-hien-da", false).update(true)
     set page(paper: "presentation-16-9", margin: 0pt, fill: _giay)
-    set text(font: phong, size: co-chu * ti-le-chu, lang: "vi", fill: rgb("#1c2833"))
+    set text(font: phong, size: co-chu * ti-le-chu,
+      lang: if tieng-anh { "en" } else { "vi" }, fill: rgb("#1c2833"))
     _dat-gian(0.62em, gian-dong)
     set par(justify: false, leading: 0.62em * gian-dong, spacing: _doan-nen * gian-dong)
     show math.equation.where(block: false): _chong-net
@@ -847,28 +855,32 @@
 }
 
 #let dinh-nghia(body, ten: none) = _khung(
-  if ten == none { [ĐỊNH NGHĨA] } else { [ĐỊNH NGHĨA — #ten] },
+  if ten == none { _nhan([ĐỊNH NGHĨA], [DEFINITION]) }
+  else { [#_nhan([ĐỊNH NGHĨA], [DEFINITION]) — #ten] },
   rgb("#0f4c81"), body,
 )
 
 #let dinh-ly(body, ten: none) = _khung(
-  if ten == none { [ĐỊNH LÝ] } else { [ĐỊNH LÝ — #ten] },
+  if ten == none { _nhan([ĐỊNH LÝ], [THEOREM]) }
+  else { [#_nhan([ĐỊNH LÝ], [THEOREM]) — #ten] },
   rgb("#a93226"), body,
 )
 
 #let tinh-chat(body, ten: none) = _khung(
-  if ten == none { [TÍNH CHẤT] } else { [TÍNH CHẤT — #ten] },
+  if ten == none { _nhan([TÍNH CHẤT], [PROPERTY]) }
+  else { [#_nhan([TÍNH CHẤT], [PROPERTY]) — #ten] },
   rgb("#6c3483"), body,
 )
 
 #let cong-thuc(body, ten: none) = _khung(
-  if ten == none { [CÔNG THỨC] } else { [CÔNG THỨC — #ten] },
+  if ten == none { _nhan([CÔNG THỨC], [FORMULA]) }
+  else { [#_nhan([CÔNG THỨC], [FORMULA]) — #ten] },
   rgb("#148f77"), body,
 )
 
 #let vi-du(body, ten: none) = _khung(
   {
-    [VÍ DỤ ]
+    _nhan([VÍ DỤ ], [EXAMPLE ])
     _so-moi(_bd-vd)
     if ten != none { [ — #ten] }
   },
@@ -877,7 +889,7 @@
 
 #let luyen-tap(body, ten: none) = _khung(
   {
-    [LUYỆN TẬP ]
+    _nhan([LUYỆN TẬP ], [PRACTICE ])
     _so-moi(_bd-lt)
     if ten != none { [ — #ten] }
   },
@@ -891,7 +903,7 @@
 // Đặt lại số: #dat-lai-cau-pp()  (hoặc #dat-lai-cau-tat-ca()).
 #let phuong-phap(body, ten: none, so: true) = _khung(
   {
-    [PHƯƠNG PHÁP]
+    _nhan([PHƯƠNG PHÁP], [METHOD])
     if so { [ ]; _so-moi(_bd-pp) }
     if ten != none { [ — #ten] }
   },
@@ -904,7 +916,8 @@
   stroke: (left: 2.5pt + rgb("#1e8449")),
   above: 10pt, below: 10pt,
   {
-    align(center, text(fill: rgb("#1e8449"), weight: "bold", size: 0.82em, [Lời giải]))
+    align(center, text(fill: rgb("#1e8449"), weight: "bold", size: 0.82em,
+      _nhan([Lời giải], [Solution])))
     body
   },
 )
@@ -914,7 +927,8 @@
   stroke: 1pt + rgb("#f1c40f"), inset: (x: 12pt, y: 9pt),
   above: 11pt, below: 11pt,
   {
-    text(fill: rgb("#b7950b"), weight: "bold", size: 0.82em, [⚠ Chú ý. ])
+    text(fill: rgb("#b7950b"), weight: "bold", size: 0.82em,
+      _nhan([⚠ Chú ý. ], [⚠ Note. ]))
     body
   },
 )
@@ -924,7 +938,8 @@
   stroke: (left: 3pt + rgb("#0f4c81")), inset: (x: 12pt, y: 9pt),
   above: 11pt, below: 11pt,
   {
-    text(fill: rgb("#0f4c81"), weight: "bold", size: 0.82em, [★ Ghi nhớ. ])
+    text(fill: rgb("#0f4c81"), weight: "bold", size: 0.82em,
+      _nhan([★ Ghi nhớ. ], [★ Key Point. ]))
     body
   },
 )
@@ -935,7 +950,8 @@
   stroke: (left: 3pt + rgb("#148f77")), inset: (x: 12pt, y: 9pt),
   above: 11pt, below: 11pt,
   {
-    text(fill: rgb("#117a65"), weight: "bold", size: 0.82em, [✎ Nhận xét. ])
+    text(fill: rgb("#117a65"), weight: "bold", size: 0.82em,
+      _nhan([✎ Nhận xét. ], [✎ Remark. ]))
     body
   },
 )
@@ -969,7 +985,8 @@
 // ---------- Slide mục lục điều hướng ----------
 // Tự liệt kê mọi mục và tiêu đề slide; bấm vào là nhảy thẳng tới nơi.
 // Đặt ngay sau trang bìa: #muc-luc()
-#let muc-luc(tieu-de: [Nội dung bài học], cot-so: 2) = context {
+#let muc-luc(tieu-de: auto, cot-so: 2) = context {
+  let tieu-de = if tieu-de == auto { _nhan([Nội dung bài học], [Lesson Contents]) } else { tieu-de }
   if _la-sach(_ho-so.get()) {
     // Bản in: mục lục tự sinh từ các thanh tiêu đề (heading cấp 1 & 2).
     block(above: 8pt, below: 12pt, {
@@ -1002,7 +1019,10 @@
 }
 
 // Trang kết thúc.
-#let trang-cam-on(loi: [Cảm ơn các em đã tích cực hợp tác!]) = context {
+#let trang-cam-on(loi: auto) = context {
+  let loi = if loi == auto {
+    _nhan([Cảm ơn các em đã tích cực hợp tác!], [Thank you for your active participation!])
+  } else { loi }
   if _la-sach(_ho-so.get()) {
     // Bản in: kết thúc gọn, không tạo trang bìa cuối.
     v(8pt)

@@ -512,7 +512,7 @@
   }
 
   set text(size: co-chu)
-  table(
+  let bang = table(
     columns: cols,
     rows: cao-hang,
     inset: (x: 5pt, y: 7pt),
@@ -525,6 +525,17 @@
     ),
     ..cells,
   )
+  // Bảng xét dấu có các cột khoảng rộng cố định (`rong-cot`), giống BBT.
+  // Khi vùng chứa hẹp (đặc biệt trong `chia-2-cot`), đo bề rộng thật rồi co
+  // đồng đều cả hai chiều; `reflow: true` làm hộp sau co không lấn cột kế.
+  // Nếu vùng đủ rộng thì trả nguyên bảng để giữ nguyên bố cục cũ.
+  layout(kich => {
+    let w = measure(bang).width
+    if w > kich.width and w > 0pt {
+      let s = (kich.width / w) * 100%
+      scale(x: s, y: s, reflow: true, bang)
+    } else { bang }
+  })
 }
 
 // ---------- CÁC BẢNG DỰNG SẴN THƯỜNG GẶP ----------

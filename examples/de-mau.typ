@@ -8,7 +8,9 @@
 //   typst compile --input ho-so=beamer de-mau.typ trinh-chieu.pdf
 // =====================================================================
 // #import "../baigiang.typ": *
-#import "@local/conic-toan:0.2.0": * 
+// #import "@local/conic-toan:0.2.0": * 
+#import "@preview/conic-toan:0.3.7": *
+
 
 #import "image-12.typ": hinh-be-ca, hinh-cong, hinh-phong-thi, hinh-cau-thang
 
