@@ -831,6 +831,10 @@ Ra `PHƯƠNG PHÁP 1 — Tìm số hạng tổng quát`. Bỏ `ten:` thì chỉ 
 // | vecto | danh-dau(A, B, so: 1, nghieng: 0deg, cheo: false) — đánh dấu đoạn
 //   bằng nhau: so = số vạch (1/2/3); nghieng ~25deg -> vạch CHÉO "/" "//";
 //   cheo: true -> dấu ✕ (hai vạch chéo nhau)
+//   ƯU TIÊN gắn thẳng vào đoạn (0.4.2): doan(A, B, vach: 2) · vach: "//"
+//   (chéo) · vach: "x" (✕) · vach: (so: 3, nghieng: 20deg) — khỏi gọi danh-dau.
+//   cac-doan/duong cũng nhận vach: MỘT giá trị = mọi đoạn của nét; MẢNG =
+//   từng đoạn theo thứ tự, vd duong(A, B, C, dong: true, vach: (2, 0, 2)).
 // | trung-tuyen(P, A, B, ten-chan: $M$, so-vach: 1) — trung tuyến từ P tới AB,
 //   so-vach = số vạch đánh dấu hai nửa bằng nhau
 // | phan-giac(O, A, B, ten-chan: $D$, r-cung: 0.5) — phân giác trong góc O
