@@ -468,7 +468,7 @@
 // Bản TỰ TẠO KHUNG (không nhận ctx ⇒ KHÔNG kê vào ve-voi).
 #let da-dien(
   dinh: (), mat: (),
-  cam: auto, w: 7cm, le: 0.75, co-chu: 10pt,
+  cam: auto, w: 7cm, le: 0.75, co-chu: 10em / 11,
   diem: (), duong: (),
   ..dt,
 ) = {
@@ -855,7 +855,7 @@
 // Khối + thiết diện trong MỘT lệnh, tự tạo khung (không nhận ctx).
 #let da-dien-thiet-dien(
   dinh: (), mat: (), mp: none,
-  cam: auto, w: 7cm, le: 0.75, co-chu: 10pt,
+  cam: auto, w: 7cm, le: 0.75, co-chu: 10em / 11,
   ten: none, huong: auto,
   mau: black, day: 1.1pt, to: none, to-mat: none,
   hien-khuat: true, hien-dinh: true, mau-ten: black,

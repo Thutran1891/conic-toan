@@ -267,7 +267,7 @@
   the-tich: false,                // ghi công thức thể tích dưới hình
   nhan-giua: auto,                // nội dung giữa 2 hình
   ten-goc: $O$,                   // nhãn gốc toạ độ (none = bỏ)
-  co-chu: 10pt,
+  co-chu: 10em / 11,
   khung: false,
   them: none, them-mien: none,
 ) = {

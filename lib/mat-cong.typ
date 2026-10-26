@@ -710,7 +710,7 @@
 // MAT-CONG — TỰ tạo khung hình (KHÔNG kê vào ve-voi)
 // Mọi tuỳ chọn khác đều chảy thẳng xuống `ve-mat-cong` qua sink `..khoi`.
 // =====================================================================
-#let mat-cong(..khoi, cam: auto, w: 7cm, le: 0.75, co-chu: 10pt) = {
+#let mat-cong(..khoi, cam: auto, w: 7cm, le: 0.75, co-chu: 10em / 11) = {
   let cm = _cam-mc(cam)
   let tr = khoi.named().at("truc", default: none)
   let chot = _chot-tat-ca(khoi.pos(), cm.nhin) + (if tr == none { () } else { _chot-truc(tr) })

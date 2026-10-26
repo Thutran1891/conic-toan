@@ -25,13 +25,16 @@
 //      (đọc bảng đáp án cuối bản loigiai, đối chiếu từng câu với bản dethi).
 //   7. Câu 5 phần I đặt khoa-pa: true -> phương án LUÔN theo thứ tự soạn.
 // =====================================================================
-#import "../baigiang.typ": *
+// #import "../baigiang.typ": *
+#import "@preview/conic-toan:0.4.0": *
+
+
 
 #let ho-so = sys.inputs.at("ho-so", default: "dethi")
 #let hoan-vi = sys.inputs.at("tron", default: "0") == "1"   // <- CÔNG TẮC
-#let ma = sys.inputs.at("ma", default: "0101")
+#let ma = sys.inputs.at("ma", default: "0101")            // Sửa mã đề ơ đây
 
-#kieu-cau-hoi(mau: rgb("#0f4c81"), hinh: "bo-tron", hien-o: false)
+#kieu-cau-hoi(mau: rgb("#0f4c81"), hinh: "khong-to", hien-o: false, cho-trong: true)
 
 #show: de-toan.with(
   ho-so: ho-so,
@@ -92,6 +95,7 @@
     [Hàm số đồng biến trên $RR$],
     [Đồ thị hàm số không cắt trục hoành],
   ),
+  o-tick: true
 )
 
 #ds(
@@ -102,6 +106,7 @@
     True([$u_5 = 14$]),
     [Tổng $5$ số hạng đầu bằng $30$],
   ),
+  o-tick: true
 )
 
 #ds(
@@ -112,6 +117,7 @@
     [$a^b = 9$],
     [$b - a = 2$],
   ),
+  o-tick: true
 )
 
 // =====================================================================
@@ -132,11 +138,13 @@
 #tl(
   [TỰ LUẬN SỐ MỘT. Giải phương trình $x^2 - 5x + 6 = 0$.],
   loigiai: [$Delta = 1 > 0$ nên phương trình có hai nghiệm $x = 2$ và $x = 3$.],
+cho-trong: 3cm
 )
 
 #tl(
   [TỰ LUẬN SỐ HAI. Tính $integral_0^1 x^2 dif x$.],
   loigiai: [$integral_0^1 x^2 dif x = x^3 / 3 bar.v_0^1 = 1/3$.],
+  cho-trong: 3cm
 )
 
 #het()

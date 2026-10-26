@@ -14,7 +14,8 @@
 // Tham số chung:
 //   tieu-de: auto  -> dòng đậm "Khảo sát sự biến thiên và vẽ đồ thị của
 //                     hàm số y = ..."; none -> bỏ tiêu đề; hoặc nội dung tuỳ ý.
-//   w: bề rộng đồ thị (mặc định 7.6cm).  giua: true -> canh giữa BBT + đồ thị.
+//   w: bề rộng đồ thị (mặc định 7.6cm).  giua: true (mặc định)
+//      -> canh giữa BBT + đồ thị; false -> giữ lối canh trái cũ.
 // =====================================================================
 #import "do-thi.typ": so-toan, so-dep, so-can-thuc, cuc-tri-bac-ba, cuc-tri-huu-ti, do-thi-bac-hai, do-thi-bac-ba, do-thi-trung-phuong, do-thi-phan-thuc, do-thi-huu-ti
 #import "bang.typ": bbt-bac-hai, bbt-bac-ba, bbt-trung-phuong, bbt-phan-thuc, bbt-huu-ti
@@ -65,7 +66,7 @@
 // =====================================================================
 // 1) BẬC HAI: y = ax² + bx + c
 // =====================================================================
-#let khao-sat-ve-do-thi-ham-bac-hai(a, b, c, tieu-de: auto, w: 7.6cm, giua: false) = {
+#let khao-sat-ve-do-thi-ham-bac-hai(a, b, c, tieu-de: auto, w: 7.6cm, giua: true) = {
   assert(calc.abs(a) > _eps, message: "bac-hai: cần a ≠ 0")
   let bt = _da-thuc(((a, 2), (b, 1), (c, 0)))
   let xd = -b / (2 * a)          // hoành độ đỉnh
@@ -116,7 +117,7 @@
 // =====================================================================
 // 2) BẬC BA: y = ax³ + bx² + cx + d   (Δ' = b² − 3ac)
 // =====================================================================
-#let khao-sat-ve-do-thi-ham-bac-ba(a, b, c, d, tieu-de: auto, w: 7.6cm, giua: false) = {
+#let khao-sat-ve-do-thi-ham-bac-ba(a, b, c, d, tieu-de: auto, w: 7.6cm, giua: true) = {
   assert(calc.abs(a) > _eps, message: "bac-ba: cần a ≠ 0")
   let bt = _da-thuc(((a, 3), (b, 2), (c, 1), (d, 0)))
   let f = x => ((a * x + b) * x + c) * x + d
@@ -186,7 +187,7 @@
 // =====================================================================
 // 3) TRÙNG PHƯƠNG: y = ax⁴ + bx² + c   (a·b < 0 -> 3 cực trị)
 // =====================================================================
-#let khao-sat-ve-do-thi-ham-trung-phuong(a, b, c, tieu-de: auto, w: 7.6cm, giua: false) = {
+#let khao-sat-ve-do-thi-ham-trung-phuong(a, b, c, tieu-de: auto, w: 7.6cm, giua: true) = {
   assert(calc.abs(a) > _eps, message: "trung-phuong: cần a ≠ 0")
   let bt = _da-thuc(((a, 4), (b, 2), (c, 0)))
   let f = x => a * calc.pow(x, 4) + b * x * x + c
@@ -243,7 +244,7 @@
 // =====================================================================
 // 4) PHÂN THỨC BẬC NHẤT/BẬC NHẤT: y = (ax + b)/(cx + d)
 // =====================================================================
-#let khao-sat-ve-do-thi-ham-phan-thuc(a, b, c, d, tieu-de: auto, w: 7.6cm, giua: false) = {
+#let khao-sat-ve-do-thi-ham-phan-thuc(a, b, c, d, tieu-de: auto, w: 7.6cm, giua: true) = {
   assert(calc.abs(c) > _eps, message: "phan-thuc: cần c ≠ 0")
   let D = a * d - b * c
   assert(calc.abs(D) > _eps, message: "phan-thuc: ad − bc = 0 (hàm hằng)")
@@ -288,7 +289,7 @@
 // 5) HỮU TỈ BẬC HAI/BẬC NHẤT: y = (ax² + bx + c)/(dx + e)
 //    Viết y = px + q + r/(dx + e); p = a/d, q = (bd − ae)/d², r = c − qe.
 // =====================================================================
-#let khao-sat-ve-do-thi-ham-huu-ti(a, b, c, d, e, tieu-de: auto, w: 7.6cm, giua: false) = {
+#let khao-sat-ve-do-thi-ham-huu-ti(a, b, c, d, e, tieu-de: auto, w: 7.6cm, giua: true) = {
   assert(calc.abs(a) > _eps and calc.abs(d) > _eps, message: "huu-ti: cần a ≠ 0 và d ≠ 0")
   let tu = _da-thuc(((a, 2), (b, 1), (c, 0)))
   let mau = _da-thuc(((d, 1), (e, 0)))

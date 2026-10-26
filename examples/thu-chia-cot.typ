@@ -26,11 +26,13 @@
 //   7. Bản beamer (--input ho-so=beamer) BỎ QUA hai lệnh này — mỗi câu
 //      vẫn là một slide như cũ, không vỡ bố cục.
 // =====================================================================
-#import "../baigiang.typ": *
+// #import "../baigiang.typ": *
+#import "@preview/conic-toan:0.4.0": *
+#show math.equation.where(block: false): it => math.display(it)
 
 #let ho-so = sys.inputs.at("ho-so", default: "dethi")
 
-#kieu-cau-hoi(mau: rgb("#0f4c81"), hinh: "bo-tron", hien-o: false)
+#kieu-cau-hoi(mau: rgb("#0f4c81"), hinh: "bo-tron", hien-o: false, cho-trong: true)
 
 #show: de-toan.with(
   ho-so: ho-so,
@@ -254,11 +256,75 @@ Hàm số đã cho đồng biến trên khoảng nào dưới đây?], (
 ), loigiai: [
   Dựa vào bảng biến thiên, ta thấy $f'(x) > 0$ trên các khoảng $(-oo; 0)$ và $(2; +oo)$. \
   Vậy hàm số đồng biến trên các khoảng $(-oo; 0)$ và $(2; +oo)$.
+],cho-trong: 3cm)
+
+#tl([Lớp 10B có 45 học sinh. Kết quả khảo sát cho thấy 28 bạn thích học Toán, 20 bạn thích học Ngữ văn, 12 bạn thích học cả Toán và Ngữ văn. Hỏi:\
+  #cot-item(
+    [Có bao nhiêu bạn thích ít nhất một môn Toán hoặc Ngữ văn?],
+    [Có bao nhiêu bạn chỉ thích môn Toán mà không thích Ngữ văn?]
+  )
+  ],
+  loi-giai: [
+    Gọi $A, B$ lần lượt là tập hs thích Toán và Ngữ văn. \
+    a) Số hs thích ít nhất một trong hai môn là: $n(A union B) = 28 + 20 - 12 = 36$ (bạn). \
+    b) Số hs chỉ thích Toán mà không thích Ngữ văn chính là số phần tử của $A without B$. \
+    Công thức: $n(A without B) = n(A) - n(A inter B) = 28 - 12 = 16$ (bạn).
+  ],
+  cho-trong: 5cm
+  
+)
+
+
+#tln([Tính $limits(lim)_(x -> 2) (x^2 - 4) / (x - 2)$.], [4],
+  loigiai: [$(x^2 - 4) / (x - 2) = x + 2 arrow.r 4$ khi $x arrow.r 2$.])
+
+#tln([Cho $f(x) = 2x + 1$. Tính $f(3)$.], [7], loigiai: [$f(3) = 7$.])
+
+#ds(
+  [Cho hàm số $y = x^3 - 3x$.],
+  (
+    True([$y' = 3x^2 - 3$], giai: [Áp dụng $(x^n)' = n x^(n-1)$.]),
+    True([Hàm số có hai điểm cực trị], giai: [$y' = 0$ có hai nghiệm $x = plus.minus 1$.]),
+    [Hàm số đồng biến trên $RR$],
+    [Đồ thị hàm số không cắt trục hoành],
+  ),
+)
+#thoi-cot()
+
+#tn([Cho hàm số $y = f(x)$ có bảng biến thiên như sau:
+#bbt-huu-ti(1, -1, 1, 1, -1)
+Hàm số đã cho đồng biến trên khoảng nào dưới đây?], (
+  $(0; 2)$,
+  $(-1; 1)$,
+  True($(2; +oo)$),
+  $(0; +oo)$,
+), loigiai: [
+  Dựa vào bảng biến thiên, ta thấy $f'(x) > 0$ trên các khoảng $(-oo; 0)$ và $(2; +oo)$. \
+  Vậy hàm số đồng biến trên các khoảng $(-oo; 0)$ và $(2; +oo)$.
 ])
 
+#tl([Lớp 10B có 45 học sinh. Kết quả khảo sát cho thấy 28 bạn thích học Toán, 20 bạn thích học Ngữ văn, 12 bạn thích học cả Toán và Ngữ văn. Hỏi:\
+  #cot-item(
+    [Có bao nhiêu bạn thích ít nhất một môn Toán hoặc Ngữ văn?],
+    [Có bao nhiêu bạn chỉ thích môn Toán mà không thích Ngữ văn?]
+  )
+  ],
+  loi-giai: [
+    Gọi $A, B$ lần lượt là tập hs thích Toán và Ngữ văn. \
+    a) Số hs thích ít nhất một trong hai môn là: $n(A union B) = 28 + 20 - 12 = 36$ (bạn). \
+    b) Số hs chỉ thích Toán mà không thích Ngữ văn chính là số phần tử của $A without B$. \
+    Công thức: $n(A without B) = n(A) - n(A inter B) = 28 - 12 = 16$ (bạn).
+  ],
+  cho-trong: 5cm
+  
+)
 
-// ----- NGỪNG chia cột: phần dưới trở lại nguyên khổ giấy -----
-#thoi-cot()
+#tl([Khảo sát sự biến thiên và vẽ đồ thị của hàm số $y = (x + 3)/(x + 2)$.],
+  loi-giai: [
+    #khao-sat-ve-do-thi-ham-phan-thuc(1, 3, 1, 2)
+  ],cho-trong: 7cm
+)
+
 
 #het(ghi-chu: [Thí sinh không được sử dụng tài liệu.])
 

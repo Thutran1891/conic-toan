@@ -89,7 +89,7 @@
   mau-cap: (rgb("#cfe9f5"), rgb("#dcd7f5"), rgb("#d5eed5"), rgb("#fdeacd")),
   mau-kq: rgb("#fdecec"), vien-kq: rgb("#e08a8a"),
   mau-canh: black, day-canh: 0.9pt,
-  co-chu: 10pt,
+  co-chu: 10em / 11,
   dem-x: 8pt, dem-y: 5pt,  // đệm trong của ô
   them: none,              // ctx => vẽ thêm
 ) = {

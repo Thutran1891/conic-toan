@@ -18,6 +18,8 @@
 //   nhom : thay cho moc nếu muốn tự truyền sẵn nội dung từng khoảng.
 // =====================================================================
 
+#import "slide.typ": _phong-to
+
 // Nhãn ô góc: gắn thêm (đơn vị) nếu có.
 #let _nhan(ten, don-vi) = if don-vi == none { ten } else { [#ten] + [ (] + [#don-vi] + [)] }
 
@@ -41,12 +43,14 @@
   nhan-gia-tri,
   gia-tri,
   hang,
-  co-chu: 11pt,
+  // 1em = theo cỡ chữ nơi đặt bảng: vẫn 11pt trong đề A4, tự lên 19pt
+  // trong beamer mặc định. Truyền một length cụ thể để ghi đè như trước.
+  co-chu: 1em,
   mau-vien: black,
   day-vien: 0.7pt,
   mau-tieu-de: none,   // tô nền cột nhãn (none = không tô)
   rong-nhan: auto,     // bề rộng cột nhãn bên trái
-) = {
+) = _phong-to({
   let n = gia-tri.len()
   set text(size: co-chu)
   let o(x) = align(center + horizon, [#x])
@@ -75,7 +79,7 @@
     stroke: day-vien + mau-vien,
     ..cells,
   )
-}
+})
 
 // ===================== KHÔNG GHÉP NHÓM =====================
 

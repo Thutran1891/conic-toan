@@ -17,6 +17,7 @@
 //   ("khong-to" = không tô nền, chỉ viền + chữ màu — in không bị đen;
 //    riêng hồ sơ dethi: bỏ cả viền — "Câu 1." / "A." đậm cùng màu)
 //   hien-o: false = ẩn ô tick Đ/S (ds) + ô điền "Trả lời" (tln) toàn bài.
+//   cho-trong: false = bỏ toàn bộ khoảng làm bài `cho-trong:` trong đề.
 //   -> đổi MỘT LẦN, đồng bộ toàn bài.
 // CHỪA CHỖ TL (bản in): #trong-tl(cao: 5cm) / #khong-trong-tl()
 // =====================================================================
@@ -198,7 +199,11 @@
 //   ds  -> da = mảng bool 4 ý (true = Đ, false = S).
 //   tln -> da = đáp án (chuỗi/số/nội dung).
 // khoa: true -> câu này KHÔNG được hoán vị phương án/ý (công cụ trộn đọc cờ này).
-#let _ghi-da(loai, da, khoa: false) = [#metadata((loai: loai, da: da, khoa: khoa)) <bg-da>]
+#let _ghi-da(loai, da, khoa: false) = context {
+  // Ở beamer, thân một slide được dựng lại ở từng bước hoạt hình. Ghi kèm
+  // số bước để #bang-dap-an chỉ lấy bản bước 1, tránh lặp cùng một câu.
+  [#metadata((loai: loai, da: da, khoa: khoa, buoc: _buoc-ht.get())) <bg-da>]
+}
 
 // Chữ cái đáp án đúng của câu tn (ưu tiên True(...) trong danh sách; nếu không
 // có thì lấy dap-an dạng chữ "B" cũ).
@@ -213,17 +218,22 @@
 // om-hinh: chữ ÔM hình (phần dư tràn hết bề rộng dưới hình) — xem voi-hinh.
 // eq-dong: ép công thức KHỐI ($ ... $ có khoảng trắng) trong phương án #tn /
 //          ý #ds thành công thức TRONG DÒNG — xem `_ep-trong-dong`.
-#let _kieu = state("ch-kieu", (mau: rgb("#0f4c81"), hinh: "bo-tron", hien-o: true, cham: true, om-hinh: true, eq-dong: true))
+#let _kieu = state("ch-kieu", (
+  mau: rgb("#0f4c81"), hinh: "bo-tron", hien-o: true,
+  cham: true, om-hinh: true, eq-dong: true, cho-trong: true,
+))
 
 // Đổi kiểu ở bất kỳ đâu trong tài liệu:
 //   #kieu-cau-hoi(mau: rgb("#e67e22"), hinh: "luc-giac", hien-o: false)
 //   #kieu-cau-hoi(om-hinh: false)   // tắt chế độ chữ ôm hình từ đây trở đi
 //   #kieu-cau-hoi(eq-trong-dong: false)  // giữ nguyên $ ... $ khối như cũ
 //   #kieu-cau-hoi(cao-that: false)  // tắt cột chống chiều cao công thức
+//   #kieu-cau-hoi(cho-trong: false) // bỏ mọi chỗ trống có kẻ chấm
 // cao-that: công thức TRONG DÒNG có khai đúng chiều cao NÉT VẼ hay không
 //   (xem `_chong-net` của slide.typ). Mặc định BẬT — đây là thứ chống dính chữ
 //   ở phân số/căn thức mà `gian-dong` không với tới được.
-#let kieu-cau-hoi(mau: auto, hinh: auto, hien-o: auto, cham-cuoi: auto, om-hinh: auto, eq-trong-dong: auto, cao-that: auto) = {
+#let kieu-cau-hoi(mau: auto, hinh: auto, hien-o: auto, cham-cuoi: auto,
+  om-hinh: auto, eq-trong-dong: auto, cao-that: auto, cho-trong: auto) = {
   _kieu.update(k => (
     mau: if mau == auto { k.mau } else { mau },
     hinh: if hinh == auto { k.hinh } else { hinh },
@@ -231,6 +241,7 @@
     cham: if cham-cuoi == auto { k.at("cham", default: true) } else { cham-cuoi },
     om-hinh: if om-hinh == auto { k.at("om-hinh", default: true) } else { om-hinh },
     eq-dong: if eq-trong-dong == auto { k.at("eq-dong", default: true) } else { eq-trong-dong },
+    cho-trong: if cho-trong == auto { k.at("cho-trong", default: true) } else { cho-trong },
   ))
   // Cơ chế cao-that nằm ở state RIÊNG (slide.typ) vì bai-giang/de-toan phải
   // đọc được nó mà slide.typ thì không import được cau-hoi.typ.
@@ -247,6 +258,12 @@
 
 // Ô tick/ô điền có được hiện không (đọc trong context).
 #let _hien-o() = _kieu.get().at("hien-o", default: true)
+
+// Chỉ chừa chỗ làm bài ở hồ sơ đề thi. Công tắc trong
+// `kieu-cau-hoi` thắng mọi `cho-trong:` khai riêng khi đặt false.
+#let _cho-trong-bat() = (
+  _ho-so.get().ends-with("dethi") and _kieu.get().at("cho-trong", default: true)
+)
 
 // Tự thêm dấu chấm cuối phương án/ý hỏi không? (đọc trong context)
 // cham: auto = theo cài đặt toàn bài; true/false = ép riêng câu này.
@@ -682,11 +699,29 @@
 //      hoặc số cột cố định (1, 2, 4).
 // lo-da: bước lộ đáp án; loi-giai + lo-giai: lời giải và bước lộ lời giải.
 // Phương án đúng: bọc True(...) trong danh sách (ưu tiên) hoặc dap-an: "B" (cũ).
+#let _cho-trong-ke(cao) = {
+  let cao-dong = 0.75cm
+  let so-dong = calc.max(0, int(calc.floor(cao / cao-dong)))
+  // Đậm hơn hàng kẻ phụ trong `chia-2-cot-lech`: khi in laser hoặc
+  // xem PDF ở mức thu nhỏ, bản 0.35pt/luma(62%) gần như biến mất.
+  let net = (paint: luma(35%), thickness: 0.5pt, dash: "dotted")
+  for _ in range(so-dong) {
+    block(
+      width: 100%, height: cao-dong, above: 0pt, below: 0pt,
+      breakable: false,
+      place(bottom + left, line(length: 100%, stroke: net)),
+    )
+  }
+  let du = cao - so-dong * cao-dong
+  if du > 0pt { v(du) }
+}
+
 #let cau-mc(
   cau, phuong-an, dap-an: none, cot: auto, diem: none, hinh: none,
   lo-da: none, loi-giai: none, lo-giai: auto, cham: auto, khoa-pa: false,
   trong-dong: auto,
-  fig-pos: "right", fig-width: auto, lines: 0, num: auto, prefix: auto, boxed: false,
+  fig-pos: "right", fig-width: auto, lines: 0, cho-trong: 0pt,
+  num: auto, prefix: auto, boxed: false,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
 ) = {
   _ghi-da("tn", _chu-da-tn(phuong-an, dap-an), khoa: khoa-pa)
@@ -726,6 +761,9 @@
     }
     })
     _chua-dong(lines, lo-da)
+    context if _cho-trong-bat() and cho-trong > 0pt and not _da-hien(lo-da) {
+      _cho-trong-ke(cho-trong)
+    }
     _hien-giai(loi-giai, if lo-giai == auto { lo-da } else { lo-giai },
       hinh: hinh-giai, vi-tri: fig-giai-pos, be-rong: fig-giai-width)
   },
@@ -898,7 +936,8 @@
   cau, cac-y, dap-an: none, diem: none, hinh: none,
   lo-da: none, loi-giai: none, lo-giai: auto, o-tick: false, cham: auto,
   khoa-y: false, trong-dong: auto,
-  fig-pos: "right", fig-width: auto, lines: 0, num: auto, prefix: auto, boxed: false,
+  fig-pos: "right", fig-width: auto, lines: 0, cho-trong: 0pt,
+  num: auto, prefix: auto, boxed: false,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
 ) = {
   _ghi-da("ds", if _tach-true(cac-y).dung.any(d => d) { _tach-true(cac-y).dung } else { dap-an },
@@ -952,7 +991,7 @@
       } else {
         let gy = 6pt * _he-so-gian()   // gian-dong với tới khoảng cách giữa các ý
         for j in range(cac-y.len()) {
-          block(above: gy, below: gy, {
+          block(width: 100%, above: gy, below: gy, {
             _the(nhan-y.at(j), duoi: ")")
             [ ]
             cac-y.at(j)
@@ -970,6 +1009,9 @@
     }
     })
     _chua-dong(lines, lo-da)
+    context if _cho-trong-bat() and cho-trong > 0pt and not _da-hien(lo-da) {
+      _cho-trong-ke(cho-trong)
+    }
     _hien-giai(loi-giai, if lo-giai == auto { lo-da } else { lo-giai },
       hinh: hinh-giai, vi-tri: fig-giai-pos, be-rong: fig-giai-width)
   },
@@ -985,7 +1027,7 @@
   cau, ..tra-loi, dap-an: none, diem: none, o-dien: 4, hinh: none,
   lo-da: none, loi-giai: none, lo-giai: auto,
   fig-pos: "right", fig-width: auto, show-boxes: true, box-count: auto,
-  lines: 0, num: auto, prefix: auto, boxed: false,
+  lines: 0, cho-trong: 0pt, num: auto, prefix: auto, boxed: false,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
 ) = {
   _ghi-da("tln", if tra-loi.pos().len() > 0 { tra-loi.pos().first() } else { dap-an })
@@ -1010,6 +1052,9 @@
     }
     })
     _chua-dong(lines, lo-da)
+    context if _cho-trong-bat() and cho-trong > 0pt and not _da-hien(lo-da) {
+      _cho-trong-ke(cho-trong)
+    }
     _hien-giai(loi-giai, if lo-giai == auto { lo-da } else { lo-giai },
       hinh: hinh-giai, vi-tri: fig-giai-pos, be-rong: fig-giai-width)
   },
@@ -1018,7 +1063,7 @@
 
 // ---------- Thân chung cho các dạng "kiểu tự luận" (TL / HĐ / VDTT) ----------
 // dau: thẻ đầu câu; loi-giai: chỉ hiện khi bật đáp án;
-// cho-trong: chừa chỗ trống khi in đề.
+// cho-trong: chừa chỗ trống khi in đề, có hàng chấm cách 0.75cm.
 #let _than-tl(dau, cau, loi-giai, cho-trong, lo-da, hinh: none,
   fig-pos: "right", fig-width: auto,
   hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
@@ -1032,9 +1077,9 @@
           be-rong: fig-giai-width, nhan: nhan-giai)
       } else {
         let t = _trong-tl.get()
-        if t.bat {
+        if _cho-trong-bat() and t.bat {
           let cao = if cho-trong > 0pt { cho-trong } else { t.cao }
-          if cao > 0pt { v(cao) }
+          if cao > 0pt { _cho-trong-ke(cao) }
         }
       }
     }

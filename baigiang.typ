@@ -392,18 +392,19 @@
 #let dau-mui-ten = _voi-ctx(dau-mui-ten)
 
 // do-thi.typ — hệ trục, lưới, vạch chia, đường gióng
-/// `truc(ten-x: $x$, ten-y: $y$, ten-goc: $O$, mau: black, day: 0.9pt)`
+/// `truc(ten-x: $x$, ten-y: $y$, ten-goc: $O$, huong-goc: "below-left", mau: black, day: 0.9pt)`
 ///
 #let truc = _voi-ctx(truc)
-/// `luoi(buoc: 1, mau: luma(87%), day: 0.5pt)`
+/// `luoi(buoc: auto, buoc-x: auto, buoc-y: auto, mau: luma(87%), day: 0.5pt)`
 ///
-/// Lưới ô vuông mờ.
+/// Lưới mờ. `buoc:` là lối cũ (cùng bước trên hai trục); `auto` cho phép
+/// hai trục dùng hai bước đẹp khác nhau khi hệ toạ độ là hình chữ nhật.
 #let luoi = _voi-ctx(luoi)
-/// `vach-chia(buoc-x: 1, buoc-y: 1, so: true, mau: black)`
+/// `vach-chia(buoc-x: auto, buoc-y: auto, so: true, mau: black)`
 ///
 /// Vạch chia + số trên hai trục (bỏ qua 0).
 #let vach-chia = _voi-ctx(vach-chia)
-/// `he-truc(ten-x: $x$, ten-y: $y$, ten-goc: $O$, luoi-o: true, buoc-luoi: auto, vach: true, so: true, buoc-x: 1, buoc-y: 1, mau: black, day: 0.9pt, mau-luoi: luma(87%))`
+/// `he-truc(ten-x: $x$, ten-y: $y$, ten-goc: $O$, huong-goc: "below-left", luoi-o: true, buoc-luoi: auto, vach: true, so: true, buoc-x: auto, buoc-y: auto, mau: black, day: 0.9pt, mau-luoi: luma(87%))`
 ///
 /// Hệ trục TRỌN GÓI: lưới + trục + vạch chia + số — một lệnh thay ba.
 /// #hinh(xmin: -4, xmax: 4, ymin: -3, ymax: 3, ctx => { he-truc(ctx) ... })
@@ -413,7 +414,7 @@
 ///
 /// Đường gióng từ điểm P về 2 trục (nét đứt) + nhãn toạ độ trên trục.
 /// ten-x / ten-y: auto = tự ghi số; none = không ghi; hoặc nội dung tuỳ ý.
-/// huong-x / huong-y: auto = tự chọn phía theo dấu toạ độ; có thể truyền hướng cụ thể.
+/// Hướng nhãn mặc định tự né góc phần tư; vẫn có thể truyền hướng cụ thể.
 #let giong = _voi-ctx(giong)
 /// `tiep-tuyen(f, x0, mau: red, day: 1.2pt, dut: false, dai: auto, cham: true, mau-cham: auto, ten-diem: none, huong-diem: "above-left", ten: none, tai: 0.9, huong-ten: auto, cach: 6pt, ten-quay: false, giong: false, h: auto)`
 ///

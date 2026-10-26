@@ -49,3 +49,13 @@
   figure(hinh-chop-cut-tu-giac-deu(w: 5cm, truc: true), caption: [Tứ giác]),
   figure(hinh-chop-cut-luc-giac-deu(w: 5cm), caption: [Lục giác]),
 )
+
+#import "@preview/conic-toan:0.4.0": *
+
+#set page(width: auto, height: auto, margin: 14pt, fill: white)
+#set text(font: "Tinos", size: 11pt)
+
+#align(center)[
+#mien-nghiem(bpt(4, 1, 400, dau: "<=", ten: $2x + y = 400$), w: 8cm, h: auto, xmin: -40, xmax: 240, ymin: -80, ymax: 480, to-mien: rgb(70,110,220,45), giao-truc: auto, buoc-gach: 6.5pt, goc-gach: 45deg, luoi-o: false, vach: false)
+]
+

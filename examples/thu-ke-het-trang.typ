@@ -29,8 +29,27 @@
 
 #phan[MỤC 1. Mặc định — nét chấm, cách 9mm]
 
-#tl([Cho hàm số $y = x^3 - 3x^2 + 2$. Khảo sát sự biến thiên và vẽ đồ thị
-  của hàm số đã cho.])
+#tl([Một thư viện có 4 quyển sách Toán, 3 quyển sách Vật lý và 2 quyển sách Hóa học (các quyển sách đều khác nhau).\
+a) Một học sinh muốn mượn đúng 1 quyển sách để đọc. Có bao nhiêu cách chọn?\
+b) Một học sinh muốn mượn 1 quyển Toán, 1 quyển Vật lý và 1 quyển Hóa học. Có bao nhiêu cách chọn?\
+c) Một học sinh muốn mượn 2 quyển sách thuộc 2 môn khác nhau. Có bao nhiêu cách chọn?], 
+loi-giai: [
+  a) Mượn 1 quyển sách tức là chọn Toán (4 cách) HOẶC Lý (3 cách) HOẶC Hoá (2 cách). Theo quy tắc cộng: $4 + 3 + 2 = 9$ cách.\
+  
+  b) Mượn 3 quyển khác môn tức là phải thực hiện 3 công đoạn chọn. Theo quy tắc nhân: $4 times 3 times 2 = 24$ cách.\
+  
+  c) Phối hợp 2 quy tắc, ta chia 3 trường hợp:
+  - TH1: Toán và Lý. Có $4 times 3 = 12$ cách.
+  - TH2: Toán và Hóa. Có $4 times 2 = 8$ cách.
+  - TH3: Lý và Hóa. Có $3 times 2 = 6$ cách.
+  Tổng cộng có: $12 + 8 + 6 = 26$ cách.
+],
+cho-trong: 5cm
+)
+  
+
+
+#tl([Cho hàm số $y = x^3 - 3x^2 + 2$. Khảo sát sự biến thiên và vẽ đồ thị của hàm số đã cho.])
 
 #ke-het-trang(mau: black)
 

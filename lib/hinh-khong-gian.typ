@@ -689,7 +689,7 @@
   mau-luoi: luma(84%),
   k: 0.55, goc: 35deg,     // hệ số & góc chiếu của trục Ox
   mau: black, day: 0.9pt,
-  co-chu: 10pt,
+  co-chu: 10em / 11,
   them: none,              // (ctx, t3) => nội dung vẽ thêm
 ) = {
   let t3 = P => (

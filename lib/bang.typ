@@ -24,6 +24,7 @@
 // =====================================================================
 #import "ve.typ": doan-pt, da-giac-pt
 #import "do-thi.typ": so-toan, so-can-thuc, cuc-tri-bac-ba, cuc-tri-huu-ti
+#import "slide.typ": _phong-to
 
 // Cặp vạch đứng ‖ cao `cao`.
 #let kep-vach(cao, day: 0.7pt) = stack(
@@ -218,8 +219,12 @@
   rong-so-gach: 0.9cm, // bề rộng cột MỐC kề vùng gạch (nhỏ -> số sát mũi tên)
   cao-bt: 2.3cm,     // chiều cao dòng biến thiên
   mau-mui-ten: blue.darken(20%),
-  co-chu: 11pt,
-) = context {
+  co-chu: 1em,
+) = _phong-to(co: true, context {
+  // `co-chu` mặc định 1em: quy ra độ dài TUYỆT ĐỐI ngay đầu hàm — các ô gạch
+  // (`o-gach`) và đầu mút mũi tên (`_pt-so`) gọi `.pt()`, mà `.pt()` từ chối
+  // độ dài còn dính em (lỗi "10pt + 1.3em to pt", 0.4.2).
+  let co-chu = if type(co-chu) == length { co-chu.to-absolute() } else { co-chu }
   let n = x.len()
   let m = 2 * n - 1
   // "-oo"/số trần -> nội dung toán (xem _chuan-o)
@@ -439,19 +444,10 @@
     ..hang-dau,
     ..hang-f,
   )
-  // BBT dựng sẵn thường có các cột khoảng rộng cố định (`rong-cot`). Khi đặt
-  // trong `chia-2-cot`, bề rộng vùng hiện tại chỉ còn khoảng nửa trang nên
-  // bảng tự nhiên có thể tràn sang cột kế. Đo ngay trong `layout` hiện tại và
-  // chỉ co khi thật sự thiếu chỗ; ngoài cột (đủ rộng) trả nguyên `bang`, nên
-  // bố cục cũ không đổi một điểm ảnh.
-  layout(kich => {
-    let w = measure(bang).width
-    if w > kich.width and w > 0pt {
-      let s = (kich.width / w) * 100%
-      scale(x: s, y: s, reflow: true, bang)
-    } else { bang }
-  })
-}
+  // Co cho vừa vùng hẹp (vd `chia-2-cot`) do `_phong-to(co: true)` lo — đo
+  // MỘT lần chung với việc phóng ở beamer; đủ chỗ thì trả nguyên bảng.
+  bang
+})
 
 // ---------- BẢNG XÉT DẤU ----------
 // dong: mảng các cặp (ten, mang-dau) — mỗi mảng dấu dài 2n-1.
@@ -461,8 +457,12 @@
   gach: (),          // khoảng không xác định -> gạch chéo
   ten-x: $x$,
   rong-cot: 2.2cm,
-  co-chu: 11pt,
-) = {
+  co-chu: 1em,
+) = _phong-to(co: true, context {
+  // `co-chu` mặc định 1em: quy ra độ dài TUYỆT ĐỐI ngay đầu hàm — các ô gạch
+  // (`o-gach`) và đầu mút mũi tên (`_pt-so`) gọi `.pt()`, mà `.pt()` từ chối
+  // độ dài còn dính em (lỗi "10pt + 1.3em to pt", 0.4.2).
+  let co-chu = if type(co-chu) == length { co-chu.to-absolute() } else { co-chu }
   let n = x.len()
   let m = 2 * n - 1
   let x = x.map(_chuan-o)
@@ -525,18 +525,10 @@
     ),
     ..cells,
   )
-  // Bảng xét dấu có các cột khoảng rộng cố định (`rong-cot`), giống BBT.
-  // Khi vùng chứa hẹp (đặc biệt trong `chia-2-cot`), đo bề rộng thật rồi co
-  // đồng đều cả hai chiều; `reflow: true` làm hộp sau co không lấn cột kế.
-  // Nếu vùng đủ rộng thì trả nguyên bảng để giữ nguyên bố cục cũ.
-  layout(kich => {
-    let w = measure(bang).width
-    if w > kich.width and w > 0pt {
-      let s = (kich.width / w) * 100%
-      scale(x: s, y: s, reflow: true, bang)
-    } else { bang }
-  })
-}
+  // Co cho vừa vùng hẹp (vd `chia-2-cot`) do `_phong-to(co: true)` lo — đo
+  // MỘT lần chung với việc phóng ở beamer; đủ chỗ thì trả nguyên bảng.
+  bang
+})
 
 // ---------- CÁC BẢNG DỰNG SẴN THƯỜNG GẶP ----------
 //

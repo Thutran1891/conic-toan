@@ -206,6 +206,7 @@ Tạo bài giảng mới: copy `main.typ` thành `bai-1.typ` rồi sửa nội d
 
 #muc[1. Định nghĩa]                     // slide chuyển phần
 #slide(tieu-de: [Khái niệm])[ ... ]     // slide thường
+#slide(tieu-de: [Nội dung dài], co-chu: 17pt)[ ... ] // thu riêng chữ thân
 #trang-cam-on()
 ```
 
@@ -238,6 +239,12 @@ Các bước giải: `#buoc([Bước 1...], [Bước 2...])`.
 
 Mọi hình vẽ nằm trong `#hinh(...)` với hệ toạ độ toán học (y hướng lên).
 Để `h: auto` thì hai trục cùng tỉ lệ (nên giữ khi vẽ hình hình học).
+
+Cỡ chữ nhãn mặc định của `#hinh`, mọi đồ thị dựng sẵn, hình phẳng/không gian,
+Oxyz, đa diện, mặt cong, sơ đồ cây và khối tròn xoay dùng đơn vị tương đối:
+giữ đúng mốc quen thuộc ở `dethi`/`loigiai`, nhưng tự phóng theo chữ thân khi
+sang `beamer` hoặc khi đặt `co-chu:` riêng cho `#slide`. Các hàm có tham số
+`co-chu:` vẫn cho phép truyền một cỡ cụ thể để ghi đè.
 
 **KHÔNG phải khai giới hạn khung.** Bỏ trống `xmin/xmax/ymin/ymax` thì gói tự
 đo phạm vi hình rồi chọn cửa sổ vừa khít — vẽ tới đâu hiện tới đó, kể cả điểm
@@ -759,12 +766,29 @@ Các hình hoàn chỉnh, nét khuất tự vẽ đứt theo quy ước SGK:
 #do-thi-mu(2)   #do-thi-log(2)
 #do-thi-sin()   #do-thi-cos()   #do-thi-tan()   // nhãn π/2, π, 2π
 #do-thi-can()
+#do-thi-can-tam-thuc-bac-hai(1, 0, -4) // y = √(x²−4), tự tách hai nhánh
 ```
+
+Với `do-thi-bac-ba(..., diem-uon: auto)`, nhãn tọa độ điểm uốn tự né theo
+góc phần tư: tung độ âm thì nhãn hoành độ nằm trên trục (ngược lại nằm dưới),
+hoành độ âm thì nhãn tung độ nằm bên phải trục (ngược lại nằm bên trái).
+Truyền `diem-uon: (x: "below", y: "left")` nếu cần ép hướng riêng.
 
 Mọi đồ thị dựng sẵn đều nhận `luoi-o: true` (lưới ô vuông mờ) và `vach: true`
 (vạch chia + số trên hai trục; riêng sin/cos/tan chỉ có `luoi-o` vì trục hoành
 đã ghi theo π). Khi bật `vach`, nên đặt `giao-ox: none, giao-oy: none` để nhãn
 giao trục không chồng lên số vạch.
+
+Nhãn gốc `$O$` mặc định ở góc dưới-trái như trước. Đổi bằng
+`huong-goc: "above-left" | "above-right" | "below-left" | "below-right"`.
+Tham số có ở `truc`, `he-truc`, các hàm đồ thị tự do và các đồ thị dựng sẵn
+bậc hai, bậc ba, trùng phương, phân thức, hữu tỉ.
+
+Từ 0.4.1, bước vạch mặc định là `auto`: thư viện chọn riêng cho từng trục theo
+dãy đẹp `1, 2, 5 × 10^k` và theo chiều dài thật của trục, nên miền từ vài phần
+mười đến hàng nghìn vẫn chỉ có một số vạch dễ đọc. Với `he-truc`, `vach-chia`
+và `mien-nghiem`, có thể ghi đè bằng mọi số dương, chẳng hạn `buoc-x: 20,
+buoc-y: 50`; đặt `buoc-x: 1, buoc-y: 1` để giữ đúng bước đơn vị cũ.
 
 Vẽ tay trong `#hinh`: `he-truc(ctx)` gộp lưới + trục + vạch chia + số một lệnh:
 
@@ -774,6 +798,28 @@ Vẽ tay trong `#hinh`: `he-truc(ctx)` gộp lưới + trục + vạch chia + s�
   ve-ham(ctx, x => x*x - 2, mau: blue)
 })
 ```
+
+Với đồ thị tự do có cửa sổ rất cao/rộng, dùng `toa-do-chu-nhat: true` để
+`hinh` tự chặn `h/w` trong `0.55..0.82`. Công tắc này không bật mặc định cho
+mọi `hinh`, vì hình tròn và hình học cần giữ đơn vị hai trục bằng nhau:
+
+```typst
+#hinh(w: 5cm, xmin: -4, xmax: 4, ymin: -1, ymax: 20,
+  toa-do-chu-nhat: true, ctx => {
+    truc()
+    ve-ham(x => x*x + 10)
+  })
+```
+
+`do-thi-ham(...)` và `ve-do-thi(...)` tự bật chế độ chữ nhật này khi `h: auto`.
+Cả hai nhận `h:` để ghi đè chiều cao và nhận `buoc-x:`, `buoc-y:`,
+`buoc-luoi:` để điều khiển vạch/lưới như `mien-nghiem`.
+
+Riêng `ve-do-thi`, `gioi-han-y: auto` dùng phân vị mẫu: giữ trọn biến thiên
+thông thường, chỉ cắt các đuôi thật sự vọt xa, và đưa Ox vào cửa sổ nếu khoảng
+cách tới 0 không quá lớn. Nếu Ox/Oy vẫn nằm ngoài cửa sổ thì `truc` bỏ đúng
+trục đó, không còn vẽ một trục rời ở xa hình. Truyền số vào `gioi-han-y:` để
+ép giới hạn tuyệt đối theo lối cũ.
 
 Hàm bất kỳ + vẽ chồng qua `them`:
 
@@ -819,13 +865,34 @@ Kiểu gạch chéo đặt được RIÊNG cho từng BPT (giống `mau-gach`): 
 và `buoc-gach:` (bước) trong `bpt(...)` — `auto` = theo giá trị chung khai ở
 `mien-nghiem`.
 
+`mien-nghiem` mặc định tự chọn **hệ toạ độ chữ nhật**: nếu tỉ lệ khoảng giá trị
+`Δy/Δx` quá nhỏ hoặc quá lớn, chiều cao vật lý được chặn trong khoảng
+`0.55w..0.82w`, tránh hình quá bẹt hoặc quá cao. Cửa sổ cân đối vẫn giữ gần
+nguyên tỉ lệ cũ; truyền `h:` nếu cần chiều cao tuyệt đối. `vach: true` và
+`luoi-o: true` dùng bước đẹp độc lập trên hai trục; `buoc-x:`, `buoc-y:` và
+`buoc-luoi:` cho phép ghi đè.
+
+**Tô thì bỏ gạch**: khai `to-mien:` (tô miền nghiệm) thì mặc định KHÔNG gạch
+phần loại bỏ nữa (`gach: auto`); muốn vừa tô vừa gạch như trước thì
+`gach: true`, bỏ gạch hẳn thì `gach: false`.
+
+**Gióng giao điểm**: giao điểm của từng cặp đường biên có hai toạ độ khác 0
+được tự gióng nét đứt về hai trục, kèm số chính xác. Nhãn tự né: tung độ dương
+→ số hoành độ nằm dưới trục Ox (âm → trên); hoành độ dương → số tung độ bên
+trái Oy (âm → phải). `giong-giao: "mien"` chỉ gióng các ĐỈNH của miền nghiệm,
+`giong-giao: false` tắt; `mau-giong:`, `diem-giao: false` (bỏ chấm đỏ).
+
 ```typst
 #mien-nghiem(bpt(4, 5, -8, dau: "<"), giao-truc: auto)   // 4x + 5y < −8
+#mien-nghiem(bpt(1, 20, 120), xmin: -100, xmax: 300, ymin: -10, ymax: 20,
+  vach: true, luoi-o: true)                              // tự chọn bước 100 và 10
+#mien-nghiem(bpt(1, 1, 50), xmin: -20, xmax: 120, ymin: -10, ymax: 80,
+  vach: true, buoc-x: 20, buoc-y: 10)                   // người dùng ghi đè
 #mien-nghiem(                                            // hệ BPT + tô miền
   bpt(3, -2, -9, mau: red, ten: $3x - 2y = -9$, ten-tai: 0.7, huong-ten: "above"),
   bpt(-3, 5, 18, mau: green.darken(25%), ten: $-3x + 5y = 18$, huong-ten: "below",
     goc-gach: 135deg),                                   // gạch riêng đường này
-  to-mien: rgb(40, 90, 200, 35),
+  to-mien: rgb(40, 90, 200, 35), gach: true,             // tô + vẫn gạch
   xmin: -7.5, xmax: 2.5, ymin: -1.5, ymax: 5,
 )
 ```
@@ -996,6 +1063,25 @@ tại các vạch, `buoc:` bước chia, `luoi:` lưới trên mặt phẳng to�
 ```
 
 ## 6. Bảng biến thiên & bảng xét dấu (bang.typ)
+
+Cỡ chữ BBT/bảng xét dấu cũng tự theo hồ sơ và `slide(co-chu: ...)`: ở A4 vẫn
+giữ mốc cũ, còn trong trình chiếu tăng cùng chữ thân. Với `#bbt` hoặc
+`#bang-xet-dau`, truyền `co-chu:` nếu cần ghi đè riêng.
+
+**Phóng to khi trình chiếu (0.4.2).** Ở `beamer`, BBT, bảng xét dấu, bảng
+thống kê và 5 biểu đồ thống kê được dựng ĐÚNG như bản A4 rồi PHÓNG ĐỀU cả khối
+(ô, nét, mũi tên, chữ cùng to) theo tỉ lệ cỡ chữ thân / 11pt — khoảng 1,7 lần
+với chữ 19pt. Khối không vượt bề rộng vùng chứa (cột hình `fig:`…) và không cao
+quá 60% thân slide. Bản in A4 giữ nguyên từng điểm ảnh. `co-chu:` truyền tay
+nay tính theo khổ A4 rồi phóng cùng khối.
+
+```typ
+#phong-hinh(false)   // tắt phóng từ đây trở xuống
+#phong-hinh(1.3)     // ép hệ số (áp cả bản A4)
+#phong-hinh(auto)    // trở lại mặc định
+```
+Dựng hình riêng lẻ (app làm bài online) thì truyền
+`--input phong-hinh=1.4` (`sys.inputs`).
 
 **BBT tự động từ hệ số** (07/2026) — chỉ nhập hệ số (positional), thuật toán
 tự tìm cực trị/tiệm cận/chiều biến thiên, phủ mọi trường hợp, nhãn số đẹp
@@ -1498,8 +1584,9 @@ File thử: `thu-cao-that.typ`; bảng số đo đối chiếu: `thu-cao-that-ch
 
 ### Kết thúc đề & bảng đáp án (`#het`, `#bang-dap-an`)
 
-Hai hàm này CHỈ dựng ở bản in A4 (`dethi`/`loigiai`); ở `beamer` tự bỏ qua
-(không sinh slide thừa). Đặt ở CUỐI file, sau câu cuối cùng:
+`#het()` chỉ dựng ở bản in A4 (`dethi`/`loigiai`). `#bang-dap-an()` dùng được
+cho cả A4 lẫn `beamer`; ở `beamer` nó tự tạo slide đáp án riêng và tự ngắt
+nếu nội dung dài. Đặt ở CUỐI file, sau câu cuối cùng:
 
 ```
 #het()                       // dòng "––––– HẾT –––––" + 2 dòng ghi chú (căn giữa)
@@ -1519,7 +1606,19 @@ mỗi loại đánh số `1..n` độc lập theo thứ tự xuất hiện. Tham
   (không mã đề); hoặc giá trị cụ thể để ghi đè.
 - `tieu-de`: `auto` (theo `ma-de`) | nội dung tuỳ ý | `none` (ẩn tiêu đề).
 - `so-o-tln`: số ô mỗi đáp án trả lời ngắn (mặc định 4; tự nới nếu đáp án dài hơn).
-- `ngat-trang`: `true` (mặc định) = sang trang mới trước bảng.
+- `ngat-trang`: `true` (mặc định) = sang trang mới trước bảng ở bản A4;
+  `beamer` luôn tạo slide riêng.
+- `sau`, `truoc`: nhãn giới hạn vùng thu thập — chỉ lấy các câu nằm **sau**
+  nhãn `sau` và **trước** nhãn `truoc` (mặc định `none` = không giới hạn). Dùng
+  khi một file chứa NHIỀU đề và mỗi đề cần bảng đáp án riêng:
+
+```typ
+#metadata(none) <de-1101-dau>
+// ... các câu của đề 1101 ...
+#het()
+#metadata(none) <de-1101-cuoi>
+#bang-dap-an(ma-de: "1101", sau: <de-1101-dau>, truoc: <de-1101-cuoi>)
+```
 
 Đáp án `tln` truyền dạng chuỗi (`"60,7"`), số, hoặc nội dung (`[1160]`) đều
 được — hàm tự tách thành từng ký tự để điền vào ô; nếu không tách được thì in
@@ -1610,6 +1709,25 @@ chỗ trống còn lại, không phải đếm tay.
 
 Chỉ dựng ở bản in A4 (`dethi`/`loigiai`); bản `beamer` tự bỏ qua. File thử:
 `thu-ke-het-trang.typ`.
+
+### Vùng bài làm một cột / hai cột — `#vung-bai-lam`, `#vung-bai-lam-2-cot` (0.4.2)
+
+Hai lệnh tự phủ hàng kẻ từ vị trí đặt lệnh xuống hết vùng in còn lại. Cả hai
+mặc định có tiêu đề **BÀI LÀM** in đậm, gạch chân và căn giữa:
+
+```typst
+#vung-bai-lam()                         // một cột toàn bề ngang, nét chấm
+#vung-bai-lam(kieu: "lien")             // một cột, nét liền
+#vung-bai-lam-2-cot()                   // hai cột + vạch dọc giữa, nét chấm
+#vung-bai-lam-2-cot(kieu: "lien")       // hai cột + vạch dọc giữa, nét liền
+```
+
+`tieu-de: true` sinh tiêu đề mặc định; `false`/`none` để ẩn; hoặc truyền nội
+dung như `tieu-de: [PHẦN TRẢ LỜI]`. Tham số chung: `cao-dong: 9mm`,
+`mau: luma(65%)`, `day: 0.4pt`, `kieu: "cham" | "lien"`, `chua: 0pt`,
+`le-duoi: auto`. Bản hai cột nhận thêm `khoang-giua: 15pt`,
+`mau-vach: black`, `day-vach: 0.6pt`. Hai lệnh chỉ dựng ở A4; `beamer` tự bỏ
+qua. File thử: `thu-vung-bai-lam.typ`.
 
 ### Hoán vị — trộn đề (08/2026)
 
@@ -1782,7 +1900,10 @@ tiếp, thường kèm `cols:` cố định:
   chừng để đổi từ vị trí đó):
 
 ```typst
-#kieu-cau-hoi(mau: rgb("#e67e22"), hinh: "luc-giac", hien-o: true)
+#kieu-cau-hoi(
+  mau: rgb("#e67e22"), hinh: "luc-giac", hien-o: true,
+  cho-trong: true,
+)
 // hinh: "bo-tron" (mặc định) | "chu-nhat" | "luc-giac" | "khong-to"
 //   "khong-to": không tô nền, chỉ viền + chữ màu (tiết kiệm mực);
 //   riêng hồ sơ DETHI: bỏ luôn viền — "Câu 1." / "A." (ý ds: "a)")
@@ -1793,7 +1914,15 @@ tiếp, thường kèm `cols:` cố định:
 //   2 cột cũ từ vị trí này trở đi.
 // eq-trong-dong: false = giữ nguyên công thức khối `$ ... $` trong phương án
 //   (xem ngay dưới); mặc định true = ép thành công thức trong dòng.
+// cho-trong: true (mặc định) = ở bản dethi, hiện hàng chấm và
+//   chừa đúng chiều cao của `cho-trong:` khai trong từng câu.
+// cho-trong: false = bỏ đồng bộ cả hàng chấm lẫn khoảng trống
+//   trên toàn bài, không cần xoá `cho-trong:` ở từng câu.
 ```
+
+`cho-trong` trong `kieu-cau-hoi` là công tắc toàn cục cho cả
+`#tn`, `#ds`, `#tln`, `#tl` và các dạng hoạt động. Nó chỉ tác động
+ở hồ sơ `dethi`; `loigiai` và `beamer` không chèn chỗ làm bài.
 
 ### Công thức trong phương án luôn nằm TRONG DÒNG (mặc định BẬT)
 
@@ -1955,7 +2084,8 @@ ngoặc tại đầu mút.
 Tham số: `w`, `h` (1.5cm — chiều cao khung cố định trên trang), `min`/`max`
 (auto), `ten` (nhãn trục, mặc định `$x$`), `mau`, `gach`/`mau-gach`,
 `cao-gach` (2mm — chiều cao dải gạch chéo trên trang), `dau: "ngoac" | "cham"`,
-`moc-phu:` (ghi thêm số), `so`, `co-chu` (13pt — cỡ chữ số tại mốc).
+`moc-phu:` (ghi thêm số), `so`, `co-chu` (mặc định tương đương 13pt ở A4 và
+tự theo cỡ chữ hồ sơ — cỡ chữ số tại mốc).
 
 ### Conic: hyperbol & parabol
 
@@ -2020,6 +2150,12 @@ Nét khuất (đáy sau, cạnh bên/đứng tới đỉnh sau) TỰ vẽ đứt
 Dữ liệu vào của bảng và biểu đồ KHỚP NHAU: cùng `moc:` (n+1 mốc số → n nhóm)
 và `tan-so:` — một nguồn số liệu dùng cho cả bảng lẫn biểu đồ. Mọi biểu đồ
 đều có `them: ctx => ...` để vẽ chồng như các hình khác.
+
+Cỡ chữ mặc định dùng đơn vị tương đối nên tự đi theo hồ sơ: giữ cỡ quen thuộc
+ở `dethi`/`loigiai`, nhưng tăng cùng chữ thân khi sang `beamer`. Có thể truyền
+`co-chu: 12pt` (hoặc một giá trị `em`) vào từng bảng/biểu đồ để ghi đè.
+Ở `beamer` cả bảng/biểu đồ còn được PHÓNG ĐỀU cho cân với chữ slide — xem
+`#phong-hinh` ở mục 6.
 
 ```typ
 // 4 bảng tần số bố cục NGANG đúng SGK (don-vi: hiện «tên (đơn vị)» ô góc)

@@ -21,6 +21,7 @@
 // =====================================================================
 #import "ve.typ": *
 #import "do-thi.typ": so-dep, so-toan
+#import "slide.typ": _phong-to
 
 // Bảng màu mặc định cho biểu đồ quạt/cột.
 #let _mau-bd = (
@@ -43,21 +44,31 @@
 // (trục vẽ xuyên qua chữ). Nay nhãn lui hẳn sang phải đầu mũi tên, và khung
 // được nới đúng bằng bề rộng chữ để nhãn không tràn ra ngoài hình.
 // TRẢ VỀ số ĐƠN VỊ TOẠ ĐỘ cần cộng thêm vào xmax. PHẢI gọi trong `context`.
-#let _cho-ten-x(ten-x, w, base, co-chu: 10pt, cach: 5pt) = {
+#let _cho-ten-x(ten-x, w, base, co-chu: 10em / 11, cach: 5pt) = {
   if ten-x == none { return 0 }
   let s = measure(text(size: co-chu, ten-x))
   let k = calc.min((s.width + cach) / w, 0.55)
   base * k / (1 - k)
 }
 
+// Chừa đủ khoảng vật lý giữa đỉnh cột cao nhất và tên trục tung. Với cỡ chữ
+// A4 cũ, mốc 18% vẫn thắng nên hình không đổi; khi chữ lớn theo beamer, phần
+// đầu trục tự nới để tên trục và số trên đỉnh cột không đè nhau.
+// PHẢI gọi trong `context` vì `co-chu` có thể dùng đơn vị em.
+#let _dinh-bd(fmax, buoc, h, co-chu) = {
+  let cao-chu = measure(text(size: co-chu)[Mg]).height
+  let r = calc.min(0.45, 1.5 * cao-chu / h)
+  calc.max(fmax * 1.18, buoc, fmax / (1 - r))
+}
+
 // Trục Ox + Oy (mũi tên), nhãn tên trục.
-#let _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y) = {
+#let _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y, huong-y: "right") = {
   doan(ctx, (x0, 0), (xb, 0), day: 0.9pt)
   dau-mui-ten(ctx, (x0, 0), (xb, 0))
   doan(ctx, (x0, 0), (x0, ytop), day: 0.9pt)
   dau-mui-ten(ctx, (x0, 0), (x0, ytop))
   if ten-x != none { nhan(ctx, (xb, 0), ten-x, huong: "right", cach: 5pt) }
-  if ten-y != none { nhan(ctx, (x0, ytop), ten-y, huong: "right", cach: 7pt) }
+  if ten-y != none { nhan(ctx, (x0, ytop), ten-y, huong: huong-y, cach: 7pt) }
 }
 
 // Vạch chia + số trên trục tung (tại k·buoc) và các đường lưới ngang mờ.
@@ -103,7 +114,7 @@
   luoi-ngang: false,             // lưới ngang mờ theo vạch trục tung
   gap-khuc: false,
   mau-gap-khuc: red,
-  co-chu: 10pt,
+  co-chu: 10em / 11,
   them: none,
 ) = {
   let n = tan-so.len()
@@ -115,9 +126,11 @@
   let bn = mn - moc.at(n - 1)
   let x0 = m0 - b1 * 0.55        // trục tung đặt hụt sang trái nửa nhóm
   let xb = mn + bn * 0.7
-  let ytop = calc.max(fmax * 1.18, by)
   let xa = x0 - (xb - x0) * 0.02
-  context {
+  _phong-to(context {
+  let ytop = _dinh-bd(fmax, by, h, co-chu)
+  let huong-y = if (measure(text(size: co-chu)[MMMM]).width
+      > measure(text(size: 12pt)[MMMM]).width) { "above-right" } else { "right" }
   hinh(
     w: w, h: h,
     xmin: xa, xmax: xb + _cho-ten-x(ten-x, w, xb - xa, co-chu: co-chu),
@@ -143,13 +156,13 @@
         duong-gap-khuc(ctx, pts, mau: mau-gap-khuc, day: 1.1pt)
         for p in pts { diem(ctx, p, mau: mau-gap-khuc, bk: 1.8pt) }
       }
-      _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y)
+      _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y, huong-y: huong-y)
       _vach-tung(ctx, x0, xb, by, fmax, so: so-truc)
       _vach-hoanh(ctx, moc, so: so-truc)
       if them != none { them(ctx) }
     },
   )
-  }
+  })
 }
 
 // =====================================================================
@@ -168,7 +181,7 @@
   buoc-y: auto,
   luoi-ngang: false,
   keo-dai: true,
-  co-chu: 10pt,
+  co-chu: 10em / 11,
   them: none,
 ) = {
   let n = tan-so.len()
@@ -180,9 +193,11 @@
   let bn = mn - moc.at(n - 1)
   let x0 = m0 - b1 * 0.55
   let xb = mn + bn * 0.7
-  let ytop = calc.max(fmax * 1.18, by)
   let xa = x0 - (xb - x0) * 0.02
-  context {
+  _phong-to(context {
+  let ytop = _dinh-bd(fmax, by, h, co-chu)
+  let huong-y = if (measure(text(size: co-chu)[MMMM]).width
+      > measure(text(size: 12pt)[MMMM]).width) { "above-right" } else { "right" }
   hinh(
     w: w, h: h,
     xmin: xa, xmax: xb + _cho-ten-x(ten-x, w, xb - xa, co-chu: co-chu),
@@ -201,13 +216,13 @@
           if tan-so.at(i) > 0 { nhan(ctx, p, [#so-dep(p.at(1))], huong: "above", cach: 5pt, mau: mau) }
         }
       }
-      _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y)
+      _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y, huong-y: huong-y)
       _vach-tung(ctx, x0, xb, by, fmax, so: so-truc)
       _vach-hoanh(ctx, moc, so: so-truc)
       if them != none { them(ctx) }
     },
   )
-  }
+  })
 }
 
 // =====================================================================
@@ -229,7 +244,7 @@
   so-truc: true,
   buoc-y: auto,
   luoi-ngang: false,
-  co-chu: 10pt,
+  co-chu: 10em / 11,
   them: none,
 ) = {
   let n = tan-so.len()
@@ -244,9 +259,11 @@
   let by = if buoc-y == auto { _buoc-dep(fmax) } else { buoc-y }
   let x0 = xs.first() - kc * 0.8
   let xb = xs.last() + kc * 0.8
-  let ytop = calc.max(fmax * 1.18, by)
   let xa = x0 - (xb - x0) * 0.02
-  context {
+  _phong-to(context {
+  let ytop = _dinh-bd(fmax, by, h, co-chu)
+  let huong-y = if (measure(text(size: co-chu)[MMMM]).width
+      > measure(text(size: 12pt)[MMMM]).width) { "above-right" } else { "right" }
   hinh(
     w: w, h: h,
     xmin: xa, xmax: xb + _cho-ten-x(ten-x, w, xb - xa, co-chu: co-chu),
@@ -260,7 +277,7 @@
           to: mau, mau: vien, day: 0.9pt)
         if so-dinh and f > 0 { nhan(ctx, (x, f), [#so-dep(f)], huong: "above", cach: 4pt) }
       }
-      _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y)
+      _truc-bd(ctx, x0, xb, ytop, ten-x, ten-y, huong-y: huong-y)
       _vach-tung(ctx, x0, xb, by, fmax, so: so-truc)
       // nhãn chân cột: số -> so-dep, chữ -> in nguyên
       let dy = 2.6pt / ctx.sy
@@ -274,7 +291,7 @@
       if them != none { them(ctx) }
     },
   )
-  }
+  })
 }
 
 // =====================================================================
@@ -333,7 +350,7 @@
   vien: rgb("#2f5d8a"),
   ten: $x$,
   so: true,             // ghi 5 giá trị dưới trục
-  co-chu: 10pt,
+  co-chu: 10em / 11,
   them: none,
 ) = {
   let t = if du-lieu != none { tu-phan-vi(du-lieu) }
@@ -349,7 +366,7 @@
   let nb = 0.4           // nửa chiều cao hộp
   let nr = 0.2           // nửa chiều cao vạch râu min/max
   let ytr = -0.78        // cao độ trục số
-  context {
+  _phong-to(context {
   hinh(
     w: w, h: h,
     xmin: xa, xmax: xb + _cho-ten-x(ten, w, xb - xa, co-chu: co-chu),
@@ -379,7 +396,7 @@
     }
     if them != none { them(ctx) }
   })
-  }
+  })
 }
 
 // =====================================================================
@@ -393,12 +410,12 @@
   w: 7.5cm,
   phan-tram: true,
   vien: white,          // màu đường phân cách các quạt
-  co-chu: 10pt,
+  co-chu: 10em / 11,
   them: none,
 ) = {
   let ms = muc.pos()
   let tong = ms.map(m => m.at(1)).sum()
-  hinh(
+  _phong-to(hinh(
     w: w, xmin: -1.8, xmax: 1.8, ymin: -1.45, ymax: 1.45, co-chu: co-chu,
     ctx => {
       let g = 90deg                       // bắt đầu 12 giờ
@@ -430,7 +447,7 @@
       }
       if them != none { them(ctx) }
     },
-  )
+  ))
 }
 
 // =====================================================================

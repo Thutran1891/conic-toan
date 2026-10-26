@@ -53,6 +53,61 @@
     - (if co-tieu-de { _le-slide.tren } else { _le-slide.tren-tron }),
 )
 
+// ----- PHÓNG TO BẢNG / BIỂU ĐỒ THEO CỠ CHỮ (0.4.2) -----
+// Bản trình chiếu chữ thân lên ~19pt nhưng BBT, bảng xét dấu, bảng thống kê
+// và 5 biểu đồ thống kê có KÍCH THƯỚC dựng theo khổ A4 (ô biến thiên cao
+// 2,3cm, hình rộng vài cm…) ⇒ nằm lọt thỏm giữa slide. `_phong-to` dựng chúng
+// ĐÚNG như bản A4 (chữ bên trong về cỡ gốc 11pt) rồi PHÓNG ĐỀU cả khối — nét,
+// mũi tên, ô, chữ cùng to theo MỘT tỉ lệ = cỡ chữ hiện tại / 11pt ⇒ giữ dáng.
+//   • Bản in A4 (dethi/loigiai): hệ số 1 ⇒ trả NGUYÊN, không thêm lớp nào.
+//   • Không vượt bề rộng vùng chứa (cột hình, chia-cot…), và ở beamer không
+//     cao quá `_phong-tran` thân slide. Không phóng được (> 1) thì giữ dáng cũ.
+//   • `#phong-hinh(k)`: auto (mặc định, theo cỡ chữ ở beamer) · số k (ép hệ
+//     số, cả bản A4) · false (tắt). App làm bài online dựng hình riêng lẻ nên
+//     truyền `--input phong-hinh=1.4` (sys.inputs) — gói cũ bỏ qua input lạ.
+#let _co-goc-hinh = 11pt
+#let _phong-tran = 0.6
+#let _phong-vao = sys.inputs.at("phong-hinh", default: none)
+#let _phong = state("bg-phong-hinh", if _phong-vao == none { auto }
+  else if lower(_phong-vao) in ("false", "tat", "khong", "none", "auto") {
+    if lower(_phong-vao) == "auto" { auto } else { false }
+  } else { float(_phong-vao) })
+/// Phóng to BBT, bảng xét dấu, bảng thống kê, biểu đồ thống kê.
+/// k: auto (theo cỡ chữ ở bản trình chiếu) · số (ép hệ số) · false (tắt).
+#let phong-hinh(k) = _phong.update(k)
+// co: true — gánh luôn việc CO cho vừa vùng chứa (BBT, bảng xét dấu): đo một
+//   lần cho cả phóng lẫn co, thay vì hai lớp `layout`+`measure` lồng nhau
+//   (lồng nhau làm file nhiều BBT ở beamer chậm gấp đôi, RAM gấp đôi rưỡi).
+#let _phong-to(co: false, body) = context {
+  let p = _phong.get()
+  let beamer = not _la-sach(_ho-so.get())
+  let k = if p == false or p == none { 1.0 }
+    else if p == auto { if beamer { 1em.to-absolute() / _co-goc-hinh } else { 1.0 } }
+    else { float(p) }
+  let mot = calc.abs(k - 1) < 0.01
+  if mot and not co { return body }
+  let noi = if mot { body } else { set text(size: 1em / k); body }
+  layout(kv => {
+    let nat = measure(noi)
+    if nat.width <= 0pt or nat.height <= 0pt { return body }
+    let s = k
+    if kv.width.pt() < 1e5 { s = calc.min(s, kv.width / nat.width) }
+    if beamer and type(page.height) == length {
+      s = calc.min(s, _phong-tran * _vung-than().cao / nat.height)
+    }
+    if co and s < 1 and s < k - 0.001 {
+      // thiếu chỗ (vd chia-2-cot): co cả khối dựng ở cỡ GỐC như bản cũ
+      let w = measure(body).width
+      if w <= kv.width { return body }
+      let c = (kv.width / w) * 100%
+      return scale(x: c, y: c, reflow: true, body)
+    }
+    if k > 1 and s <= 1.001 { return body }   // không phóng được: giữ dáng cũ
+    if calc.abs(s - 1) < 0.001 { return body }
+    scale(x: s * 100%, y: s * 100%, reflow: true, noi)
+  })
+}
+
 // ----- GIÃN DÒNG (khoảng cách giữa các dòng) -----
 // `nen`   : leading NỀN của hồ sơ đang dùng (bai-giang/de-toan ghi vào);
 // `he-so` : HỆ SỐ NHÂN do người dùng đặt — 1.0 = mốc mặc định,
@@ -659,7 +714,7 @@
 // kết hợp với #lo(n)[...] / #chi(n)[...] / lo-da của câu hỏi.
 // Nội dung dài quá một trang sẽ TỰ NGẮT sang trang kế tiếp:
 // đầu/chân trang lặp lại, số slide và chấm điều hướng giữ nguyên.
-#let slide(tieu-de: none, so-buoc: 1, body) = context {
+#let slide(tieu-de: none, so-buoc: 1, co-chu: auto, body) = context {
   let tieu-de = _go-enum(tieu-de)
   // Giãn dòng hiện hành (nen × he-so) — đặt lại ở mỗi slide để #gian-dong(k)
   // gọi giữa bài có tác dụng cho các slide phía sau. Với he-so = 1.0 giá trị
@@ -670,6 +725,7 @@
     // Bản in A4: thanh tiêu đề màu (heading cấp 2) + nội dung chảy liên tục.
     if tieu-de != none { heading(level: 2, tieu-de) }
     block(above: 4pt, below: 12pt, {
+      if co-chu != auto { set text(size: co-chu) }
       set par(leading: _gl, spacing: _gs)
       body
     })
@@ -757,6 +813,9 @@
       ))<bg-nav>])
     }
     pad(x: _le-slide.ngang, {
+      // `co-chu` chỉ đổi phần thân; header/footer vẫn dùng các mốc pt riêng.
+      // Giữ auto để kế thừa cỡ nền của bai-giang/de-toan như trước.
+      if co-chu != auto { set text(size: co-chu) }
       set par(leading: _gl, spacing: _gs)
       body
     })
@@ -834,7 +893,7 @@
 //   #tung-buoc([ý 1], [ý 2], [ý 3])   // trong slide có so-buoc đủ lớn
 #let tung-buoc(tu: 2, ..cac-y) = {
   for (i, y) in cac-y.pos().enumerate() {
-    lo(tu + i, block(above: 6pt, below: 6pt, y))
+    lo(tu + i, block(width: 100%, above: 6pt, below: 6pt, y))
   }
 }
 

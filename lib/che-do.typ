@@ -335,7 +335,9 @@
         if nhan == auto { [#_nhan([Hướng dẫn giải], [Solution]). ] } else { nhan }))
       dong.at(0)
       for i in range(1, dong.len()) {
-        let b = block(above: g, dong.at(i))
+        // width: 100% — block để `auto` thì CO theo nội dung, khiến
+        // `#align(center, ...)` từ dòng thứ hai trở đi bị dồn trái ở beamer.
+        let b = block(width: 100%, above: g, dong.at(i))
         if do { b } else { lo(tu + i, b) }
       }
     },
@@ -743,7 +745,8 @@
 #let tn(
   cau, phuong-an, dap-an: none, cot: auto, cols: 0, diem: none,
   hinh: none, fig: none, fig-pos: "right", fig-width: auto,
-  loi-giai: none, loigiai: none, lines: 0, num: auto, prefix: auto,
+  loi-giai: none, loigiai: none, lines: 0, cho-trong: 0pt,
+  num: auto, prefix: auto,
   boxed: false, fig-giai: none, hinh-giai: none, cham: auto, khoa-pa: false,
   fig-giai-pos: "right", fig-giai-width: auto, fig-giai-moi-man: auto,
   gian-dong: auto,
@@ -771,7 +774,7 @@
   let goi(..them) = cau-mc(
     cau, phuong-an, dap-an: dap-an, cot: cot, diem: diem, hinh: hinh, cham: cham,
     khoa-pa: khoa-pa, trong-dong: trong-dong,
-    fig-pos: fig-pos, fig-width: fig-width, lines: lines,
+    fig-pos: fig-pos, fig-width: fig-width, lines: lines, cho-trong: cho-trong,
     num: num, prefix: prefix, boxed: boxed,
     hinh-giai: if _la-mang-hinh(hg) { none } else { _hg-gop(hg) },
     fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width, ..them,
@@ -824,7 +827,8 @@
 #let ds(
   cau, cac-y, dap-an: none, diem: none,
   hinh: none, fig: none, fig-pos: "right", fig-width: auto,
-  loi-giai: none, loigiai: none, o-tick: false, lines: 0, num: auto, cham: auto,
+  loi-giai: none, loigiai: none, o-tick: false, lines: 0, cho-trong: 0pt,
+  num: auto, cham: auto,
   khoa-y: false, trong-dong: auto,
   prefix: auto, boxed: false, fig-giai: none, hinh-giai: none,
   fig-giai-pos: "right", fig-giai-width: auto, fig-giai-moi-man: auto,
@@ -840,7 +844,7 @@
   let goi(..them) = cau-tf(
     cau, cac-y, dap-an: dap-an, diem: diem, hinh: hinh, o-tick: o-tick, cham: cham,
     khoa-y: khoa-y, trong-dong: trong-dong,
-    fig-pos: fig-pos, fig-width: fig-width, lines: lines,
+    fig-pos: fig-pos, fig-width: fig-width, lines: lines, cho-trong: cho-trong,
     num: num, prefix: prefix, boxed: boxed,
     hinh-giai: if _la-mang-hinh(hg) { none } else { _hg-gop(hg) },
     fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width, ..them,
@@ -888,7 +892,7 @@
   cau, ..tra-loi, dap-an: none, diem: none,
   hinh: none, fig: none, fig-pos: "right", fig-width: auto,
   loi-giai: none, loigiai: none, show-boxes: true, box-count: 4,
-  lines: 0, num: auto, prefix: auto, boxed: false,
+  lines: 0, cho-trong: 0pt, num: auto, prefix: auto, boxed: false,
   fig-giai: none, hinh-giai: none, fig-giai-pos: "right", fig-giai-width: auto,
   fig-giai-moi-man: auto,
   gian-dong: auto, tieu-de: auto,
@@ -904,6 +908,7 @@
     cau, dap-an: dap-an, diem: diem, hinh: hinh,
     fig-pos: fig-pos, fig-width: fig-width,
     show-boxes: show-boxes, box-count: box-count, lines: lines,
+    cho-trong: cho-trong,
     num: num, prefix: prefix, boxed: boxed,
     hinh-giai: if _la-mang-hinh(hg) { none } else { _hg-gop(hg) },
     fig-giai-pos: fig-giai-pos, fig-giai-width: fig-giai-width, ..them,
@@ -1250,7 +1255,16 @@
 //   khoang : khe giữa hai cột
 //   can    : true (mặc định) = tự cân chiều cao hai cột; false = để Typst rót
 //            đầy cột 1 trước (lối gốc của Typst)
-#let chia-2-cot(so: 2, khoang: 18pt, can: true, body) = context {
+#let chia-2-cot(
+  so: 2, 
+  khoang: 18pt, 
+  can: true, 
+  vach-doi: true, 
+  mau-vach: black, 
+  day-vach: 0.4pt, 
+  khoang-vach: 1.8pt, 
+  body
+) = context {
   if not _la-sach(_ho-so.get()) { body } else {
     let (nd0, sau) = _tach-thoi-cot(body)
     if nd0 != none {
@@ -1258,20 +1272,43 @@
       let vung = _cao-vung()
       layout(kich => {
         let wcol = (kich.width - khoang * (so - 1)) / so
-        // `kich.height` = chiều cao vùng chữ do CHÍNH Typst báo lúc dựng trang
-        // ⇒ luôn đúng khổ giấy thật (kể cả trang xoay ngang, lề khai kiểu lạ).
-        // Ưu tiên con số này; `_cao-vung()` chỉ còn để lấy lề trên và vị trí.
+        
         let hc = if type(kich.height) == length and kich.height > 0pt {
           kich.height
-        } else { vung.cot }        // none ⇒ _can-cot tự trả nguyên thân
-        // Chỗ trống còn lại của trang hiện tại = mép dưới vùng chữ − vị trí
-        // hiện tại. Tính lại theo `hc` cho khớp với chiều cao cột ở trên; hai
-        // con số phải cùng một khổ giấy, kẻo lệch trang.
+        } else { vung.cot }
+        
         let hd = if type(hc) == length and vung.lt != none and vung.y != none {
           calc.max(0pt, vung.lt + hc - vung.y)
         } else { vung.dau }
+        
         let than = if can { _can-cot(nd, so, wcol, hd, hc) } else { nd }
-        columns(so, gutter: khoang, than)
+        let cac-cot = columns(so, gutter: khoang, than)
+        
+        if so == 2 and vach-doi {
+          // Hai đường vector có bề dày cố định theo pt. Cách dùng
+          // dải gradient trước đây bị trình xem PDF lúc triệt tiêu nét
+          // mảnh, lúc nội suy thành dải nhoè. Tiling lặp theo chiều
+          // dọc nên mỗi mảnh block qua trang vẫn có nét vector thật.
+          let nua-khe = khoang-vach / 2
+          let nen-vach-doi = tiling(
+            size: (kich.width, 12pt),
+            relative: "self",
+            {
+              place(line(
+                start: (50% - nua-khe, 0%), end: (50% - nua-khe, 100%),
+                stroke: day-vach + mau-vach,
+              ))
+              place(line(
+                start: (50% + nua-khe, 0%), end: (50% + nua-khe, 100%),
+                stroke: day-vach + mau-vach,
+              ))
+            },
+          )
+          
+          block(width: 100%, fill: nen-vach-doi, above: 0pt, below: 0pt, cac-cot)
+        } else {
+          cac-cot
+        }
       })
     }
     if sau != none { sau }
@@ -1290,62 +1327,120 @@
 //   ke          : false = cột phải để trắng trơn (không kẻ dòng)
 //   vach-ngan   : true (mặc định) = vạch dọc mờ ngăn hai cột
 //   tieu-de-phai: vd [Bài làm] — in nhạt ở đầu cột phải; none = không in
+
+
 #let chia-2-cot-lech(
+
   rong-trai: 70%,
+
   khoang: 10pt,
+
   cao-dong: 9mm,
+
   mau: luma(65%),
+
   day: 0.4pt,
+
   ke: true,
+
   vach-ngan: true,
+
   tieu-de-phai: none,
+
   body,
+
 ) = context {
+
   if not _la-sach(_ho-so.get()) { body } else {
+
     let (nd0, sau) = _tach-thoi-cot(body)
+
     let nd = _cot-than(nd0)
+
     if nd != none {
+
       layout(kich => {
+
         let wc = kich.width
+
         let w0 = if type(rong-trai) == ratio { wc * rong-trai
+
         } else if type(rong-trai) == relative { wc * rong-trai.ratio + rong-trai.length
+
         } else { rong-trai }
+
         // chốt chặn: cột trái không hẹp quá 2cm, không nuốt hết cột phải
+
         let wt = calc.max(2cm, calc.min(w0, wc - khoang - 1.5cm))
+
         let wp = wc - wt - khoang
+
         if wp <= 0pt {
+
           // không đủ chỗ cho cột phải ⇒ giữ nguyên lối một cột (an toàn)
+
           nd
+
         } else {
+
           let cao = measure(block(width: wt, nd)).height
+
           let so-dong = calc.min(4000, calc.max(1, int(calc.floor(cao / cao-dong))))
+
           let dong-ke = block(
+
             width: 100%, height: cao-dong, above: 0pt, below: 0pt, breakable: false,
+
             place(bottom + left, line(length: 100%, stroke: day + mau)),
+
           )
+
           grid(
+
             columns: (wt, wp), column-gutter: khoang,
+
             block(width: 100%, nd),
+
             block(
+
               width: 100%,
+
               stroke: if vach-ngan { (left: day + mau) } else { none },
+
               inset: (left: if vach-ngan { 7pt } else { 0pt }),
+
               above: 0pt, below: 0pt,
+
               {
+
                 if tieu-de-phai != none {
+
                   block(above: 0pt, below: 3pt,
+
                     text(size: 0.85em, style: "italic", fill: mau.darken(25%), tieu-de-phai))
+
                 }
+
                 if ke { for _ in range(so-dong) { dong-ke } }
+
               },
+
             ),
+
           )
+
         }
+
       })
+
     }
+
     if sau != none { sau }
+
   }
-}
+
+} 
+
 
 // =====================================================================
 // #ke-het-trang — KẺ DÒNG LẤP ĐẦY CHỖ TRỐNG CÒN LẠI CỦA TRANG  (08/2026)
@@ -1362,8 +1457,20 @@
 // Vị trí của chính lệnh này KHÔNG bị đẩy đi bởi các dòng kẻ nó sinh ra (chúng
 // nằm SAU nó) nên phép đo ổn định, không lặp vô hạn.
 //
-// Chỉ dựng ở bản in A4 (dethi/loigiai); beamer bỏ qua như #het/#bang-dap-an.
+// Chỉ dựng ở bản in A4 (dethi/loigiai); beamer bỏ qua như #het.
 // =====================================================================
+#let _net-ke(kieu, mau, day) = {
+  let k = if type(kieu) == str {
+    lower(kieu).replace("-", "").replace("_", "").replace(" ", "")
+  } else { kieu }
+  let dash = if (k == none or ("lien", "liền", "netlien", "nétliền", "solid").contains(k)) {
+    none
+  } else if ("cham", "chấm", "netcham", "nétchấm", "dotted").contains(k) {
+    "dotted"
+  } else { kieu }
+  (paint: mau, thickness: day, dash: dash)
+}
+
 #let ke-het-trang(
   cao-dong: 9mm,     // khoảng cách giữa hai dòng kẻ
   mau: luma(65%),    // màu nét
@@ -1388,7 +1495,7 @@
     // ⚠️ ĐỪNG viết `v(cao-dong); line(...)`: `line` tự tạo một ĐOẠN VĂN nên
     // Typst cộng thêm khoảng cách đoạn trên/dưới ⇒ mỗi dòng chiếm gần GẤP ĐÔI
     // `cao-dong`, số dòng tính ra thừa và tràn sang trang sau.
-    let net = (paint: mau, thickness: day, dash: kieu)
+    let net = _net-ke(kieu, mau, day)
     let mot-dong = block(
       width: 100%, height: cao-dong, above: 0pt, below: 0pt, breakable: false,
       place(bottom + left, line(length: dai, stroke: net)),
@@ -1413,7 +1520,95 @@
 }
 
 // =====================================================================
-// KẾT THÚC ĐỀ + BẢNG ĐÁP ÁN  (chỉ dựng ở bản in A4 dethi/loigiai)
+// VÙNG BÀI LÀM — một cột toàn bề ngang hoặc hai cột có vạch giữa (10/2026)
+// ---------------------------------------------------------------------
+// Hai lệnh tự kẻ kín phần còn lại của trang A4 và bỏ qua ở beamer:
+//   #vung-bai-lam()                         // một cột, nét chấm
+//   #vung-bai-lam(kieu: "lien")             // một cột, nét liền
+//   #vung-bai-lam-2-cot()                   // hai cột + vạch dọc ở giữa
+//   #vung-bai-lam-2-cot(kieu: "lien")       // hai cột, nét liền
+// `tieu-de: true` sinh "BÀI LÀM"; false/none để ẩn; nội dung khác để đổi chữ.
+// =====================================================================
+#let _dau-vung-bai-lam(tieu-de) = {
+  let td = if tieu-de == true { [BÀI LÀM]
+  } else if tieu-de == false or tieu-de == none { none
+  } else { tieu-de }
+  if td != none {
+    block(width: 100%, above: 7mm, below: 4mm,
+      align(center, underline(text(weight: "bold", td))))
+  }
+}
+
+#let vung-bai-lam(
+  tieu-de: true,
+  cao-dong: 9mm,
+  mau: luma(65%),
+  day: 0.4pt,
+  kieu: "cham",       // "cham" | "lien" (cũng nhận dotted/solid)
+  chua: 0pt,
+  le-duoi: auto,
+) = context {
+  if _la-sach(_ho-so.get()) {
+    _dau-vung-bai-lam(tieu-de)
+    ke-het-trang(cao-dong: cao-dong, mau: mau, day: day, kieu: kieu,
+      chua: chua, le-duoi: le-duoi)
+  }
+}
+
+#let vung-bai-lam-2-cot(
+  tieu-de: true,
+  cao-dong: 9mm,
+  mau: luma(65%),
+  day: 0.4pt,
+  kieu: "cham",       // "cham" | "lien" (cũng nhận dotted/solid)
+  khoang-giua: 15pt,  // khoảng trắng quanh vạch dọc giữa hai cột
+  mau-vach: black,
+  day-vach: 0.6pt,
+  chua: 0pt,
+  le-duoi: auto,
+) = context {
+  if _la-sach(_ho-so.get()) {
+    _dau-vung-bai-lam(tieu-de)
+    context {
+      let (_, cao-giay) = _kho-trang()
+      if type(cao-giay) == length {
+        let (_, ld0) = _le-doc(cao-giay)
+        let ld = if le-duoi != auto { le-duoi
+        } else if ld0 != none { ld0
+        } else { 2.2cm }
+        // Trừ 1mm chống tràn giống #ke-het-trang.
+        let con = cao-giay - here().position().y - ld - chua - 1mm
+        let n = calc.max(0, int(calc.floor(con / cao-dong)))
+        if n > 0 {
+          let net = _net-ke(kieu, mau, day)
+          let mot-dong = block(
+            width: 100%, height: cao-dong, above: 0pt, below: 0pt,
+            breakable: false,
+            place(bottom + left, line(length: 100%, stroke: net)),
+          )
+          let cot-trai = block(
+            width: 100%, height: n * cao-dong,
+            stroke: (right: day-vach + mau-vach),
+            inset: (right: khoang-giua / 2),
+            above: 0pt, below: 0pt,
+            for _ in range(n) { mot-dong },
+          )
+          let cot-phai = block(
+            width: 100%, height: n * cao-dong,
+            inset: (left: khoang-giua / 2),
+            above: 0pt, below: 0pt,
+            for _ in range(n) { mot-dong },
+          )
+          grid(columns: (1fr, 1fr), column-gutter: 0pt,
+            align: top, cot-trai, cot-phai)
+        }
+      }
+    }
+  }
+}
+
+// =====================================================================
+// KẾT THÚC ĐỀ + BẢNG ĐÁP ÁN (#het chỉ A4; #bang-dap-an hỗ trợ cả beamer)
 // =====================================================================
 
 // ---------- #het — dòng kết thúc đề ----------
@@ -1466,102 +1661,123 @@
 //               tay); none = không in mã đề; hoặc giá trị cụ thể để ghi đè.
 //   tieu-de   : auto = tự dựng theo ma-de; hoặc nội dung tuỳ ý; none = ẩn.
 //   so-o-tln  : số ô mỗi đáp án trả lời ngắn (mặc định 4; tự nới nếu dài hơn).
-//   ngat-trang: true = sang trang mới trước bảng.
+//   ngat-trang: true = sang trang mới trước bảng ở bản in A4. Trong beamer,
+//               bảng luôn được dựng thành slide riêng và tự ngắt nếu dài.
+//   sau, truoc: nhãn (label) giới hạn vùng thu thập — chỉ lấy câu nằm SAU nhãn
+//               `sau` và TRƯỚC nhãn `truoc`. Dùng khi một file chứa nhiều đề,
+//               mỗi đề một bảng: đánh dấu đầu/cuối đề bằng `#metadata(none) <nhan>`.
+//               none (mặc định) = không giới hạn phía đó.
 #let bang-dap-an(
   ma-de: auto,
   tieu-de: auto,
   so-o-tln: 4,
   ngat-trang: true,
+  sau: none,
+  truoc: none,
 ) = context {
-  if not _la-sach(_ho-so.get()) { } else {
+  let la-sach = _la-sach(_ho-so.get())
+  {
     let ma-de = if ma-de == auto { _ma-de.get() } else { ma-de }
-    let items = query(<bg-da>).map(m => m.value)
+    let chon = selector(<bg-da>)
+    if sau != none { chon = chon.after(sau) }
+    if truoc != none { chon = chon.before(truoc) }
+    let items = query(chon).map(m => m.value)
+    // Một slide nhiều bước phát metadata lặp lại. Mọi câu đều có mặt ở bước 1,
+    // nên chỉ lấy bước này; bản A4 không lặp và giữ nguyên toàn bộ metadata.
+    if not la-sach {
+      items = items.filter(x => x.at("buoc", default: 1) == 1)
+    }
     let ds-tn = items.filter(x => x.loai == "tn")
     let ds-ds = items.filter(x => x.loai == "ds")
     let ds-tln = items.filter(x => x.loai == "tln")
     if ds-tn.len() + ds-ds.len() + ds-tln.len() > 0 {
-      if ngat-trang { pagebreak(weak: true) }
-
-      // ----- Tiêu đề -----
       let td = if tieu-de == auto {
         if ma-de != none {
           [#_nhan([BẢNG ĐÁP ÁN MÃ ĐỀ], [ANSWER KEY — TEST CODE]) #ma-de]
         } else { _nhan([BẢNG ĐÁP ÁN], [ANSWER KEY]) }
       } else { tieu-de }
-      if td != none {
-        align(center, text(weight: "bold", size: 13pt, fill: _xanh, upper(td)))
-        v(8pt)
-      }
+      let than = {
+        let tieu-muc(nd) = block(above: 12pt, below: 7pt,
+          text(weight: "bold", size: 1.05em, nd))
 
-      let tieu-muc(nd) = block(above: 12pt, below: 7pt,
-        text(weight: "bold", size: 1.05em, nd))
-
-      // ===== 1) Trắc nghiệm nhiều lựa chọn =====
-      if ds-tn.len() > 0 {
-        tieu-muc(_nhan([Bảng đáp án các câu trắc nghiệm nhiều lựa chọn],
-          [Multiple-choice answers]))
-        let o-tn(i, x) = box(stroke: 0.7pt + _xanh, radius: 2.5pt,
-          inset: (x: 6pt, y: 3.5pt), baseline: 30%)[
-          #text(fill: _xanh, weight: "bold")[#(i + 1).]~#text(weight: "bold")[#x.da]
-        ]
-        let cot = calc.min(ds-tn.len(), 12)
-        grid(columns: (auto,) * cot, column-gutter: 6pt, row-gutter: 7pt,
-          align: center + horizon,
-          ..ds-tn.enumerate().map(p => o-tn(p.at(0), p.at(1))))
-      }
-
-      // ===== 2) Đúng — Sai =====
-      if ds-ds.len() > 0 {
-        tieu-muc(_nhan([Bảng đáp án các câu trắc nghiệm đúng sai],
-          [True–false answers]))
-        let vong(dung) = if dung {
-          circle(radius: 7pt, fill: _xanh, stroke: none,
-            align(center + horizon, text(fill: white, weight: "bold", size: 8pt,
-              _nhan([Đ], [T]))))
-        } else {
-          circle(radius: 7pt, fill: white, stroke: 0.9pt + luma(45%),
-            align(center + horizon, text(weight: "bold", size: 8pt, _nhan([S], [F]))))
-        }
-        let o-ds(i, x) = {
-          let bs = if type(x.da) == array { x.da } else { (false, false, false, false) }
-          box(stroke: 0.7pt + luma(45%), radius: 2.5pt, inset: (x: 8pt, y: 6pt),
-            baseline: 30%)[
-            #text(fill: _do, weight: "bold")[#_nhan([Câu], [Question]) #(i + 1).]~~#h(2pt)#box(baseline: 35%,
-              stack(dir: ltr, spacing: 3pt, ..bs.map(vong)))
+        // ===== 1) Trắc nghiệm nhiều lựa chọn =====
+        if ds-tn.len() > 0 {
+          tieu-muc(_nhan([Bảng đáp án các câu trắc nghiệm nhiều lựa chọn],
+            [Multiple-choice answers]))
+          let o-tn(i, x) = box(stroke: 0.7pt + _xanh, radius: 2.5pt,
+            inset: (x: 6pt, y: 3.5pt), baseline: 30%)[
+            #text(fill: _xanh, weight: "bold")[#(i + 1).]~#text(weight: "bold")[#x.da]
           ]
+          let cot = calc.min(ds-tn.len(), 12)
+          grid(columns: (auto,) * cot, column-gutter: 6pt, row-gutter: 7pt,
+            align: center + horizon,
+            ..ds-tn.enumerate().map(p => o-tn(p.at(0), p.at(1))))
         }
-        grid(columns: (auto,) * calc.min(ds-ds.len(), 4),
-          column-gutter: 8pt, row-gutter: 8pt, align: left + horizon,
-          ..ds-ds.enumerate().map(p => o-ds(p.at(0), p.at(1))))
-      }
 
-      // ===== 3) Trả lời ngắn =====
-      if ds-tln.len() > 0 {
-        tieu-muc(_nhan([Bảng đáp án các câu trắc nghiệm trả lời ngắn],
-          [Short-answer responses]))
-        let o-ky-tu(ky) = box(width: 17pt, height: 19pt, stroke: 0.7pt + luma(40%),
-          radius: 1.5pt, inset: 0pt, align(center + horizon,
-            if ky != none { text(size: 0.9em, ky) }))
-        let o-tln(i, x) = {
-          let s = _da-chuoi(x.da)
-          let noi = if s != none {
-            let kts = s.clusters()
-            let n = calc.max(so-o-tln, kts.len())
-            box(baseline: 35%, stack(dir: ltr, spacing: 3pt,
-              ..range(n).map(k => o-ky-tu(if k < kts.len() { kts.at(k) } else { none }))))
+        // ===== 2) Đúng — Sai =====
+        if ds-ds.len() > 0 {
+          tieu-muc(_nhan([Bảng đáp án các câu trắc nghiệm đúng sai],
+            [True–false answers]))
+          let vong(dung) = if dung {
+            circle(radius: 7pt, fill: _xanh, stroke: none,
+              align(center + horizon, text(fill: white, weight: "bold", size: 8pt,
+                _nhan([Đ], [T]))))
           } else {
-            // Không tách được thành ký tự -> in nguyên nội dung vào một ô rộng.
-            box(stroke: 0.7pt + luma(40%), radius: 1.5pt, inset: (x: 5pt, y: 3pt),
-              baseline: 30%, x.da)
+            circle(radius: 7pt, fill: white, stroke: 0.9pt + luma(45%),
+              align(center + horizon, text(weight: "bold", size: 8pt, _nhan([S], [F]))))
           }
-          box(stroke: 0.7pt + luma(45%), radius: 2.5pt, inset: (x: 8pt, y: 6pt),
-            baseline: 30%)[
-            #text(fill: _do, weight: "bold")[#_nhan([Câu], [Question]) #(i + 1).]~~#h(2pt)#noi
-          ]
+          let o-ds(i, x) = {
+            let bs = if type(x.da) == array { x.da } else { (false, false, false, false) }
+            box(stroke: 0.7pt + luma(45%), radius: 2.5pt, inset: (x: 8pt, y: 6pt),
+              baseline: 30%)[
+              #text(fill: _do, weight: "bold")[#_nhan([Câu], [Question]) #(i + 1).]~~#h(2pt)#box(baseline: 35%,
+                stack(dir: ltr, spacing: 3pt, ..bs.map(vong)))
+            ]
+          }
+          grid(columns: (auto,) * calc.min(ds-ds.len(), 4),
+            column-gutter: 8pt, row-gutter: 8pt, align: left + horizon,
+            ..ds-ds.enumerate().map(p => o-ds(p.at(0), p.at(1))))
         }
-        grid(columns: (auto,) * calc.min(ds-tln.len(), 3),
-          column-gutter: 8pt, row-gutter: 8pt, align: left + horizon,
-          ..ds-tln.enumerate().map(p => o-tln(p.at(0), p.at(1))))
+
+        // ===== 3) Trả lời ngắn =====
+        if ds-tln.len() > 0 {
+          tieu-muc(_nhan([Bảng đáp án các câu trắc nghiệm trả lời ngắn],
+            [Short-answer responses]))
+          let o-ky-tu(ky) = box(width: 17pt, height: 19pt, stroke: 0.7pt + luma(40%),
+            radius: 1.5pt, inset: 0pt, align(center + horizon,
+              if ky != none { text(size: 0.9em, ky) }))
+          let o-tln(i, x) = {
+            let s = _da-chuoi(x.da)
+            let noi = if s != none {
+              let kts = s.clusters()
+              let n = calc.max(so-o-tln, kts.len())
+              box(baseline: 35%, stack(dir: ltr, spacing: 3pt,
+                ..range(n).map(k => o-ky-tu(if k < kts.len() { kts.at(k) } else { none }))))
+            } else {
+              // Không tách được thành ký tự -> in nguyên nội dung vào một ô rộng.
+              box(stroke: 0.7pt + luma(40%), radius: 1.5pt, inset: (x: 5pt, y: 3pt),
+                baseline: 30%, x.da)
+            }
+            box(stroke: 0.7pt + luma(45%), radius: 2.5pt, inset: (x: 8pt, y: 6pt),
+              baseline: 30%)[
+              #text(fill: _do, weight: "bold")[#_nhan([Câu], [Question]) #(i + 1).]~~#h(2pt)#noi
+            ]
+          }
+          grid(columns: (auto,) * calc.min(ds-tln.len(), 3),
+            column-gutter: 8pt, row-gutter: 8pt, align: left + horizon,
+            ..ds-tln.enumerate().map(p => o-tln(p.at(0), p.at(1))))
+        }
+      }
+
+      if la-sach {
+        if ngat-trang { pagebreak(weak: true) }
+        if td != none {
+          align(center, text(weight: "bold", size: 13pt, fill: _xanh, upper(td)))
+          v(8pt)
+        }
+        than
+      } else {
+        slide(tieu-de: if td == none { none } else { upper(td) })[#than]
       }
     }
   }
