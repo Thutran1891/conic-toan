@@ -55,6 +55,25 @@ tham số nêu trong tài liệu đều phải hiểu theo API 0.4.1**. Trong l�
 dùng đúng import `@preview` ở trên. (Ghi chú cũ dặn tránh
 `#gian-dong`/`#cao-that` đã HẾT hiệu lực: chúng có sẵn từ 0.3.2 và 0.3.3.)
 
+**Bản 0.4.2 ĐANG CHỜ DUYỆT (PR #6230), CHƯA có trên `@preview`.** Các thứ
+dưới đây chỉ chạy khi tôi nói rõ là dùng bản cài máy (`@local/conic-toan:0.2.0`)
+hoặc import thẳng `baigiang.typ`. Còn lại (mặc định `@preview/conic-toan:0.4.1`)
+thì KHÔNG dùng chúng — dùng lối 0.4.1 ghi trong ngoặc, kẻo `unexpected argument`
+/ `unknown variable`:
+- `doan(..., vach: 2)` · `cac-doan(..., vach: ...)` · `duong(..., vach: ...)`
+  (vạch đánh dấu đoạn bằng nhau) — 0.4.1: gọi riêng `danh-dau(A, B, so: 2)`.
+- `#phong-hinh(...)` (bản trình chiếu tự phóng BBT/bảng/biểu đồ thống kê theo
+  cỡ chữ slide) — 0.4.1: không có, bỏ dòng này.
+- `w:` của `bbt`/`bang-xet-dau`/`bbt-bac-hai`/`bbt-bac-ba`/… /
+  `xet-dau-tam-thuc` (bề rộng cả bảng, phóng đều: `w: 9cm`, `w: 80%`) —
+  0.4.1: không có, bỏ tham số (muốn rộng hơn thì nới `rong-cot:`).
+- `#kieu-cau-hoi(ti-le-hinh: 0.8)` (co/giãn mọi `#hinh` toàn file) — 0.4.1:
+  không có, tự đổi `w:` từng hình.
+- `#slide(co-chu: ...)`, `#vung-bai-lam`, `#vung-bai-lam-2-cot`,
+  `#bang-dap-an(sau:, truoc:)` và `#bang-dap-an` ở `beamer`, `ke-het-trang(kieu:
+  "cham" | "lien")`, `mien-nghiem(gach:, giong-giao:, mau-giong:, diem-giao:)`.
+Khi 0.4.2 lên Universe, tôi sẽ đổi dòng import ở quy tắc 1 sang `0.4.2`.
+
 Mới ở 0.4.0: `tieng-anh: true` trong `#de-toan` hoặc `#bai-giang` đổi toàn bộ
 nhãn mặc định do lib sinh (`Definition`, `Theorem`, `Note`, `Remark`, `Example`,
 `Practice`, `Application`, `Question`, `Solution`, bảng đáp án...) sang English;
@@ -662,6 +681,8 @@ Ra `PHƯƠNG PHÁP 1 — Tìm số hạng tổng quát`. Bỏ `ten:` thì chỉ 
 // Từ 0.4.2, ở beamer BBT/bảng xét dấu/bảng & biểu đồ thống kê được PHÓNG ĐỀU
 // cả khối (tắt: #phong-hinh(false)). Đặt mỗi bảng/biểu đồ trong lời giải thành
 // một ĐOẠN riêng (dòng trống trước/sau) để slide tự ngắt màn được giữa chúng.
+// (0.4.2) `w:` = bề rộng cả bảng, phóng ĐỀU giữ dáng: `w: 9cm` (A4) hoặc
+// `w: 80%` (vùng chứa) — dùng cho mọi bbt-*/bang-xet-dau/xet-dau-tam-thuc.
 #bbt(x: ($-oo$, $0$, $2$, $+oo$),
   dau: ("", "+", "0", "-", "0", "+", ""),
   gia-tri: ($-oo$, $2$, $-2$, $+oo$),
