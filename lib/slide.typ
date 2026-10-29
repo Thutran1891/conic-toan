@@ -27,7 +27,20 @@
 // ----- Hồ sơ hiển thị: "beamer" (trình chiếu) hoặc bản in A4 -----
 //   "sach-dethi"  : A4, ví dụ hiện lời giải, 4 loại câu ẩn đáp án.
 //   "sach-loigiai": A4, mọi thứ hiện lời giải + đánh dấu đáp án.
-#let _ho-so = state("bg-ho-so", "beamer")
+// GIÁ TRỊ KHỞI ĐẦU = PHỎNG ĐOÁN cho LƯỢT DỰNG ĐẦU TIÊN. `de-toan`/`bai-giang`
+// ghi hồ sơ thật bằng `.update`, nhưng ở lượt 1 Typst chưa giải state nên mọi
+// `_ho-so.get()` trả giá trị khởi đầu. Trước đây là "beamer" ⇒ bản A4 nào
+// cũng dựng THỬ cả bản trình chiếu ở lượt 1 — riêng bộ tự ngắt màn
+// (`_cat-man-vua`) đo đi đo lại mọi câu có lời giải, câu có `#hinh` tự dò cửa
+// sổ thì mỗi phép đo lại dò lại từ đầu (đề 8 câu TLN có hình: 3,7 GB RAM).
+// Nay đoán theo `--input ho-so=…` nếu có, không có thì đoán bản A4 (đa số
+// file khai `default: "loigiai"`). Đoán sai chỉ tốn thêm MỘT lượt dựng, kết
+// quả cuối KHÔNG đổi — trừ file KHÔNG dùng `de-toan`/`bai-giang` (không ai
+// `.update`): các câu `#vd`/`#hd`… trong đó nay ra dáng A4 thay vì slide.
+#let _ho-so = state("bg-ho-so", {
+  let v = lower(str(sys.inputs.at("ho-so", default: "loigiai"))).replace("-", "").replace("_", "")
+  if v == "beamer" or v.starts-with("sach") { v } else { "sach" + v }
+})
 #let _tieng-anh = state("bg-tieng-anh", false)
 // Chọn nhãn do thư viện tự sinh. Nội dung người dùng truyền tay được giữ nguyên.
 #let _nhan(vi, en) = context { if _tieng-anh.get() { en } else { vi } }

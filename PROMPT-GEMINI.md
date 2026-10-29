@@ -111,6 +111,34 @@ hình; `de-toan` bật sẵn cho cả tài liệu, không phải gọi) — vì 
   chỉ tăng khi muốn CẢ BÀI thoáng hơn.
 - Đừng chèn `#v(...)` hay dòng trống thủ công giữa các phương án cho "đỡ dính".
 
+### 1d. Chuẩn nội dung câu hỏi — tự kiểm trước khi xuất file
+
+Những lỗi dưới đây đã lọt vào đề thật; rà từng mục trước khi trả file.
+
+- **In đậm là MỘT dấu sao**: `*không*`. Viết `**không**` (kiểu Markdown) thì
+  Typst hiểu là hai cặp in đậm rỗng: chữ không đậm và sinh cảnh báo.
+- **Đáp án `#tln`** là MỘT SỐ trần, tối đa 4 ký tự kể cả dấu `-` và dấu phẩy
+  thập phân: `[676]`, `[-1,5]`, `[0,25]`. Không bọc `$...$`, không kèm đơn vị,
+  không viết `x = 2`, không viết khoảng hay tập hợp. Kết quả không phải một số
+  thì đổi cách hỏi: hỏi tổng các nghiệm, độ dài khoảng, giá trị tại một điểm,
+  hoành độ điểm cực đại… Kết quả lẻ thì ghi rõ yêu cầu làm tròn trong đề
+  ("làm tròn đến hàng phần mười") sao cho đáp số vừa 4 ô.
+- **Bốn phương án `#tn`** phải đôi một KHÁC NHAU và không TƯƠNG ĐƯƠNG về mặt
+  toán học: `$x != pi/2 + k pi$` và `$x != -pi/2 + k pi$` là CÙNG một tập;
+  `sqrt(8)` và `2sqrt(2)`, `0,5` và `1/2` là cùng một số. Đúng MỘT phương án
+  bọc `True(...)`. Nhiễu nên đến từ lỗi sai điển hình (quên đổi dấu, nhầm công
+  thức, nhầm đơn vị), không lấy bừa `đáp án ± 1`.
+- **Bài thực tế** phải hợp lý: lợi nhuận lớn nhất là số dương, giá bán lớn hơn
+  giá vốn, kích thước dương, vận tốc/thời gian/số lượng trong tầm thực tế, đơn
+  vị khớp nhau giữa đề, lời giải và đáp số. Tự tính lại đáp án (thế ngược số
+  vào đề) trước khi viết.
+- **Phân số có số thập phân**: trong `frac(...)` dấu phẩy là dấu ngăn đối số,
+  `frac(0,75 a, 2)` báo lỗi `unexpected argument`. Viết `(0,75 a)/2`.
+- **Hình đặt trong `#tn`/`#ds`/`#tln`**: biết toạ độ thì khai đủ bốn cạnh
+  `xmin`/`xmax`/`ymin`/`ymax` của `#hinh` (chừa lề cho nhãn chữ). Để gói tự dò
+  cửa sổ thì mỗi hình phải dựng thử nhiều lần; đề nhiều câu có hình sẽ biên
+  dịch chậm và tốn RAM gấp mấy lần (nặng nhất trên app web).
+
 ## 2. Khung file BẮT BUỘC cho đề kiểm tra / phiếu bài tập
 
 ```typst
@@ -336,7 +364,7 @@ trước. Hình kèm lời giải LUÔN đưa ra `fig-giai:`.
 // TLN (trả lời ngắn) — đáp án là content, đặt NGAY SAU đề bài
 // (Form cũ dap-an: $2$ vẫn chạy.)
 // show-boxes: true, box-count: 4 — ô điền trên phiếu (bản in đề).
-#tln([Câu hỏi...?], [$2$],
+#tln([Câu hỏi...?], [2],   // đáp số: MỘT số trần ≤ 4 ký tự, không $...$, không đơn vị
   loigiai: [Bước 1... \ Bước 2... \ Vậy đáp số là $2$.])
 
 // TL — tự luận; cho-trong: chừa chỗ làm bài trên bản đề in

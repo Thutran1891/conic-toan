@@ -48,7 +48,7 @@
 #tl([Sau `#kieu-cau-hoi(ti-le-hinh: 0.6)` — cùng hai hình, nhỏ đi 40%: #align(center, hinh-mau)
   #align(center, do-thi-bac-ba(1, 0, -3, 1, w: 5cm))])
 
-#kieu-cau-hoi(ti-le-hinh: 150%)
+#kieu-cau-hoi(ti-le-hinh: 80%)
 #tl([`ti-le-hinh: 150%` (nhận cả tỉ lệ %), hình kèm câu qua `fig:`.],
   fig: hinh-mau, fig-pos: "right")
 
